@@ -1,0 +1,13 @@
+node_modules/
+.next/
+.env
+.env.local
+.env.*.local
+*.tsbuildinfo
+dist/
+build/
+.rpt2_cache/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
