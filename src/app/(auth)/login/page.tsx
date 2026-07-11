@@ -37,7 +37,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm border border-border-metal bg-gradient-to-b from-[rgba(42,48,60,0.88)] to-[rgba(25,33,34,0.96)] p-6 shadow-[0_18px_48px_rgba(0,0,0,0.24)]">
         <div className="mb-6 text-center">
           <Link href="/" className="inline-flex items-center justify-center gap-2">
-            <Image src="/silklearn.avif" alt="SILKLABS" width={32} height={32} />
+            <Image src="/silklearn.avif" alt="SILKLABS" width={44} height={44} />
             <span className="font-heading text-2xl font-bold text-primary">
               SILKLABS
             </span>

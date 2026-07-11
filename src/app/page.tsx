@@ -21,8 +21,8 @@ export default async function HomePage() {
             <Image
               src="/silklearn.avif"
               alt="SILKLABS"
-              width={28}
-              height={28}
+              width={36}
+              height={36}
               className="shrink-0"
             />
             <span className="font-heading text-lg font-bold tracking-tight text-primary">

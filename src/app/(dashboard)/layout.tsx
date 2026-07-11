@@ -30,8 +30,8 @@ export default async function DashboardLayout({
               <Image
                 src="/silklearn.avif"
                 alt="SILKLABS"
-                width={24}
-                height={24}
+                width={36}
+                height={36}
                 className="shrink-0"
               />
               <span className="font-heading text-lg font-bold tracking-tight text-primary">
