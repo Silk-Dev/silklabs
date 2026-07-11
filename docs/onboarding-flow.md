@@ -255,10 +255,45 @@ Triggered by "Create project" button → opens modal
 
 ### Step 2: Landing Page or AI
 - "Do you have a landing page?"
-- Option A: Enter URL + checkbox (confirm rights) + "Continue with Link →"
-- Option B: "Build with an AI Assistant" → "Continue with AI Assistant →"
+- Option A: **Manual / URL** — Enter URL + checkbox (confirm rights to site content + authorize Solvearn to fetch publicly available text) → "Continue with Link →"
+- Option B: **AI Assistant** — "Build with an AI Assistant" → "Continue with AI Assistant →"
 
-### Step 3: AI Chat Mode (if AI Assistant chosen)
+### Step 3a: URL Analysis (Manual path)
+- "Before we build your project page"
+- "We are currently analyzing your landing page, to understand what your project is about."
+- Shows project page preview with project name
+- Next Steps:
+  1. "You can upload Additional Media →"
+  2. "We ask you for more information →"
+  3. "You Review & Edit the Page →"
+
+### Step 3b: Provide Media
+- "Provide media for your project page"
+- "Drag & drop files here, or click to browse"
+- "or Continue without any media (not recommended)"
+- Confirmation dialog if skipping: "Add media to stand out" → "I want to add media" / "Continue, I will add later"
+
+### Step 3c: 2 Manual Questions
+- "We need more information"
+- **Q1/2**: "What unique value do you bring to this project as a founder?" — textarea
+- **Q2/2**: "Do you have any plans to expand the use or functionality of this domain in the future?" — textarea (question references the landing page domain entered in step 2)
+
+### Step 3d: Links to Highlight
+- "Do you have any links to highlight?"
+- Pre-filled with the landing page URL + auto-extracted description
+- Empty slots: URL input + "What is behind this link?" textarea
+- "+ Add New" button
+- "Start generating" button
+
+### Step 3e: Generation
+- "Thank you!"
+- "We are now building your project page, this takes a few minutes."
+- "Once it's ready, we will ask you to check it, and make any edits to what we got wrong."
+- "You'll be notified via email. Or just wait here :)"
+- "Current Progress: Finalizing"
+- "Return to Solvearn" button
+
+### AI Chat Mode (if AI Assistant chosen)
 - "Tell us about your project"
 - AI: "Hi! I'm here to help you describe your project. Let's start with the basics - what is your project idea?"
 - User types response, AI asks follow-up questions (e.g. "Answer 3 more questions to continue")
