@@ -127,3 +127,153 @@
 - **AI extracts structure**: From freeform text (skills, experience, references)
 - **Photo upload**: Via file input, optional
 - **Region visibility**: Checkbox grid for geographic visibility
+
+---
+
+# Post-Onboarding: Main App (after Continue)
+
+The user presses "Continue >" on the completed profile page and enters `/app/`.
+
+## 4. App Shell / Navigation
+
+### Sidebar (left)
+- **Solvearn** (logo) — home/discover
+- **Projects** — project feed
+- **People** — browse users
+- **Messages** — `chat/workspace` (community chat + DMs)
+- **Notifications**
+- **Profile** — goes to `/app/settings` (account settings, NOT profile page)
+- **Avatar** (bottom) — quick actions
+
+### Top Banner
+- **Projects for you** (active tab, algorithmically matched)
+- **All projects** (all projects)
+- **Create project** — opens modal
+- **Find team member**
+- **AI Search** — textbox with voice input (min 3 chars)
+- **Settings** gear icon
+
+## 5. Discover Feed (`/app/`)
+
+- Title: "Projects for you"
+- Projects found by algorithm: N (e.g. 42)
+- **Project cards** (infinite scroll):
+  - Cover image from CDN
+  - Project name (h2)
+  - Tagline/description (h6, 1-2 sentences)
+  - "Recommended for you" badge
+  - "Apply for {Role} role" — the role matched to user
+  - "Updated / Created" + Founder name + Date (DD/MM/YY)
+  - "Category" + value (AI, E-Commerce, Cyber Security, Finance, etc.)
+  - "Phase" + value (Idea, Building MVP, PMF, etc.)
+  - Website link (if any)
+  - Bookmark button (add bookmark)
+  - **show more** — opens project detail modal
+
+## 6. Project Detail Modal (or `/app/company/{id}-{slug}/home`)
+
+### Tabs
+- **Home** — project overview
+- **Jobs** — open positions + team
+
+### Home Tab
+- **Cover image** (large hero)
+- **Project category** + **Current stage** badges
+- **Problem** section (text)
+- **Solution** section (text)
+- **Product Origins & Approach** (rich text with optional images)
+- **Founder Fit & Product Direction** (detailed narrative, optional images)
+- **Current Phase & Progress** (text + phase label)
+- **Follow Our Journey** section (images, social media links, "Follow" button)
+
+### Jobs Tab
+- **Available Positions** list:
+  - Role title (e.g. "Full-Stack Developer")
+  - Compensation type (e.g. "Equity-Based")
+  - Commitment level (e.g. "Daily")
+  - "Recommended for you" badge
+  - "Learn More →" button
+- **Our Team** section:
+  - Team member cards with avatar, name, location, role, bio
+  - "Open Profile" button for each member
+
+### Project Detail Header Actions
+- **Open in new tab** — navigates to dedicated page
+- **Add bookmark**
+- **Home** / **Jobs** tab toggle
+- **Close**
+
+## 7. People Page (`/app/` → People tab)
+
+- **Title**: "People" (with online count, e.g. "11 online")
+- **Person cards** in a list:
+  - Name, location (continent, country), @username
+  - tl;dr bio
+  - "Open Profile" button — opens profile panel on the right side
+- Profile panel (right side) shows:
+  - Avatar, name, @username, country flag
+  - "Joined N months ago · Last seen X hours ago"
+  - Website link ("View My Professional Site")
+  - **tldr**: AI-generated summary
+  - **Top Skill**: title + bullet points
+  - **About me**: prior business experience
+  - **What am I looking for?**: partnerships text
+  - **connect** button
+
+## 8. Messages / Workspace (`/app/workspace`)
+
+- **YOUR PROJECTS** section (empty state: "No projects yet. Create one to get started." + "New project" button)
+- **Teams** tab
+- **People** tab
+- **Channels**: "Public chat for Solvearn community" (Discord/Slack-style chat)
+  - Messages from all users with username, timestamp, text
+  - Real-time chat for networking/job posts
+
+## 9. Settings / Profile (`/app/settings`)
+
+- **Your Account** section:
+  - **Profile Settings** — same profile card as onboarding (inline editable)
+    - Public/private toggle
+    - Region visibility (Africa, Asia, Australia, Europe, North America, South America)
+    - Name, location, tldr, top skill, skills & hobbies, about me, what am I looking for, business experience
+    - Profile URL
+  - **Email Settings**
+  - **Security & Privacy**
+  - **Support Center**
+  - **Remove Account**
+  - **Log out**
+- **Save & Exit** button
+- Right panel shows the same profile preview as onboarding
+
+## 10. Create Project Flow
+
+Triggered by "Create project" button → opens modal
+
+### Step 1: Project Name
+- "Let's Setup your Project Page"
+- "What's your project name?" → text input → "Continue →"
+
+### Step 2: Landing Page or AI
+- "Do you have a landing page?"
+- Option A: Enter URL + checkbox (confirm rights) + "Continue with Link →"
+- Option B: "Build with an AI Assistant" → "Continue with AI Assistant →"
+
+### Step 3: AI Chat Mode (if AI Assistant chosen)
+- "Tell us about your project"
+- AI: "Hi! I'm here to help you describe your project. Let's start with the basics - what is your project idea?"
+- User types response, AI asks follow-up questions (e.g. "Answer 3 more questions to continue")
+- "AI Chat Mode" toggle (ON by default)
+- Attachment button 📎
+- Continue button with remaining question count
+
+## 11. Route Map
+
+| Route | Page |
+|---|---|
+| `/` | Landing page |
+| `/signup` | Sign up (2-step + email OTP) |
+| `/app/` | Discover feed (Projects for you / All projects) |
+| `/app/company/{id}-{slug}/home` | Project detail (Home tab) |
+| `/app/company/{id}-{slug}/jobs` | Project detail (Jobs tab) |
+| `/app/workspace` | Messages / Chat workspace |
+| `/app/settings` | Account settings & profile editing |
