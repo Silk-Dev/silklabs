@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Silklabs
+
+A platform for users and companies to publish products and find team members for projects. Built as a [Solvearn](https://vvd.world) clone with an industrial cyberpunk design system.
+
+## Tech Stack
+
+- **Framework:** Next.js 16 (Turbopack)
+- **UI:** shadcn `base-nova` with `@base-ui/react` primitives
+- **Styling:** Tailwind CSS v4, `tw-animate-css`
+- **Database:** Prisma 7
+- **Auth:** Better Auth
+- **Fonts:** Space Grotesk (headings), Inter (body), JetBrains Mono (labels)
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run db:seed` | Seed the database |
+| `npm run db:reset` | Reset migrations + seed |
+| `npm run db:studio` | Prisma Studio |
+| `npm run test:e2e` | Playwright e2e tests |
+| `npm run test:e2e:ui` | Playwright UI mode |
 
-## Learn More
+## Theme
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dark industrial cyberpunk palette (`#0d1515` bg, `#00f0ff` accent, `#ff5c00` orange) with vvd.world-inspired micro-animations (`animate-float`, `animate-shimmer`, `animate-entrance`, `animate-vvd-fade-in`, gradient border rotation, marching ants, orbiting gradient background).

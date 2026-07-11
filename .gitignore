@@ -1,16 +1,49 @@
+# dependencies
 node_modules/
+.pnp
+.pnp.js
+
+# next
 .next/
+out/
+
+# env
 .env
 .env.local
-.env.*.local
-*.tsbuildinfo
+.env.development.local
+.env.test.local
+.env.production.local
+
+# build
 dist/
 build/
 .rpt2_cache/
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
+*.tsbuildinfo
+.next.d.ts
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# testing
+coverage/
 test-results/
 playwright-report/
+
+# AI assistant context
+AGENTS.md
+
+# misc
+*~
+*.patch
+*.bak
+
+# repowise
 .repowise/
