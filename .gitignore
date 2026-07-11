@@ -11,3 +11,6 @@ build/
 *.test.tsx
 *.spec.ts
 *.spec.tsx
+test-results/
+playwright-report/
+.repowise/
