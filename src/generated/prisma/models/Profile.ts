@@ -34,6 +34,16 @@ export type ProfileMinAggregateOutputType = {
   linkedinUrl: string | null
   websiteUrl: string | null
   businessName: string | null
+  location: string | null
+  tldr: string | null
+  lookingFor: string | null
+  partnerships: string | null
+  commitment: string | null
+  motivation: string | null
+  experience: string | null
+  topSkill: string | null
+  isPublic: boolean | null
+  onboardingCompleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -48,6 +58,16 @@ export type ProfileMaxAggregateOutputType = {
   linkedinUrl: string | null
   websiteUrl: string | null
   businessName: string | null
+  location: string | null
+  tldr: string | null
+  lookingFor: string | null
+  partnerships: string | null
+  commitment: string | null
+  motivation: string | null
+  experience: string | null
+  topSkill: string | null
+  isPublic: boolean | null
+  onboardingCompleted: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -62,6 +82,18 @@ export type ProfileCountAggregateOutputType = {
   linkedinUrl: number
   websiteUrl: number
   businessName: number
+  location: number
+  tldr: number
+  lookingFor: number
+  partnerships: number
+  commitment: number
+  motivation: number
+  experience: number
+  topSkill: number
+  skills: number
+  isPublic: number
+  visibleRegions: number
+  onboardingCompleted: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -78,6 +110,16 @@ export type ProfileMinAggregateInputType = {
   linkedinUrl?: true
   websiteUrl?: true
   businessName?: true
+  location?: true
+  tldr?: true
+  lookingFor?: true
+  partnerships?: true
+  commitment?: true
+  motivation?: true
+  experience?: true
+  topSkill?: true
+  isPublic?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -92,6 +134,16 @@ export type ProfileMaxAggregateInputType = {
   linkedinUrl?: true
   websiteUrl?: true
   businessName?: true
+  location?: true
+  tldr?: true
+  lookingFor?: true
+  partnerships?: true
+  commitment?: true
+  motivation?: true
+  experience?: true
+  topSkill?: true
+  isPublic?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -106,6 +158,18 @@ export type ProfileCountAggregateInputType = {
   linkedinUrl?: true
   websiteUrl?: true
   businessName?: true
+  location?: true
+  tldr?: true
+  lookingFor?: true
+  partnerships?: true
+  commitment?: true
+  motivation?: true
+  experience?: true
+  topSkill?: true
+  skills?: true
+  isPublic?: true
+  visibleRegions?: true
+  onboardingCompleted?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -193,6 +257,18 @@ export type ProfileGroupByOutputType = {
   linkedinUrl: string | null
   websiteUrl: string | null
   businessName: string | null
+  location: string | null
+  tldr: string | null
+  lookingFor: string | null
+  partnerships: string | null
+  commitment: string | null
+  motivation: string | null
+  experience: string | null
+  topSkill: string | null
+  skills: runtime.JsonValue | null
+  isPublic: boolean
+  visibleRegions: string[]
+  onboardingCompleted: boolean
   createdAt: Date
   updatedAt: Date
   _count: ProfileCountAggregateOutputType | null
@@ -228,6 +304,18 @@ export type ProfileWhereInput = {
   linkedinUrl?: Prisma.StringNullableFilter<"Profile"> | string | null
   websiteUrl?: Prisma.StringNullableFilter<"Profile"> | string | null
   businessName?: Prisma.StringNullableFilter<"Profile"> | string | null
+  location?: Prisma.StringNullableFilter<"Profile"> | string | null
+  tldr?: Prisma.StringNullableFilter<"Profile"> | string | null
+  lookingFor?: Prisma.StringNullableFilter<"Profile"> | string | null
+  partnerships?: Prisma.StringNullableFilter<"Profile"> | string | null
+  commitment?: Prisma.StringNullableFilter<"Profile"> | string | null
+  motivation?: Prisma.StringNullableFilter<"Profile"> | string | null
+  experience?: Prisma.StringNullableFilter<"Profile"> | string | null
+  topSkill?: Prisma.StringNullableFilter<"Profile"> | string | null
+  skills?: Prisma.JsonNullableFilter<"Profile">
+  isPublic?: Prisma.BoolFilter<"Profile"> | boolean
+  visibleRegions?: Prisma.StringNullableListFilter<"Profile">
+  onboardingCompleted?: Prisma.BoolFilter<"Profile"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -245,6 +333,18 @@ export type ProfileOrderByWithRelationInput = {
   linkedinUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   websiteUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   businessName?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
+  tldr?: Prisma.SortOrderInput | Prisma.SortOrder
+  lookingFor?: Prisma.SortOrderInput | Prisma.SortOrder
+  partnerships?: Prisma.SortOrderInput | Prisma.SortOrder
+  commitment?: Prisma.SortOrderInput | Prisma.SortOrder
+  motivation?: Prisma.SortOrderInput | Prisma.SortOrder
+  experience?: Prisma.SortOrderInput | Prisma.SortOrder
+  topSkill?: Prisma.SortOrderInput | Prisma.SortOrder
+  skills?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
+  visibleRegions?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -265,6 +365,18 @@ export type ProfileWhereUniqueInput = Prisma.AtLeast<{
   linkedinUrl?: Prisma.StringNullableFilter<"Profile"> | string | null
   websiteUrl?: Prisma.StringNullableFilter<"Profile"> | string | null
   businessName?: Prisma.StringNullableFilter<"Profile"> | string | null
+  location?: Prisma.StringNullableFilter<"Profile"> | string | null
+  tldr?: Prisma.StringNullableFilter<"Profile"> | string | null
+  lookingFor?: Prisma.StringNullableFilter<"Profile"> | string | null
+  partnerships?: Prisma.StringNullableFilter<"Profile"> | string | null
+  commitment?: Prisma.StringNullableFilter<"Profile"> | string | null
+  motivation?: Prisma.StringNullableFilter<"Profile"> | string | null
+  experience?: Prisma.StringNullableFilter<"Profile"> | string | null
+  topSkill?: Prisma.StringNullableFilter<"Profile"> | string | null
+  skills?: Prisma.JsonNullableFilter<"Profile">
+  isPublic?: Prisma.BoolFilter<"Profile"> | boolean
+  visibleRegions?: Prisma.StringNullableListFilter<"Profile">
+  onboardingCompleted?: Prisma.BoolFilter<"Profile"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Profile"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -282,6 +394,18 @@ export type ProfileOrderByWithAggregationInput = {
   linkedinUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   websiteUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   businessName?: Prisma.SortOrderInput | Prisma.SortOrder
+  location?: Prisma.SortOrderInput | Prisma.SortOrder
+  tldr?: Prisma.SortOrderInput | Prisma.SortOrder
+  lookingFor?: Prisma.SortOrderInput | Prisma.SortOrder
+  partnerships?: Prisma.SortOrderInput | Prisma.SortOrder
+  commitment?: Prisma.SortOrderInput | Prisma.SortOrder
+  motivation?: Prisma.SortOrderInput | Prisma.SortOrder
+  experience?: Prisma.SortOrderInput | Prisma.SortOrder
+  topSkill?: Prisma.SortOrderInput | Prisma.SortOrder
+  skills?: Prisma.SortOrderInput | Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
+  visibleRegions?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ProfileCountOrderByAggregateInput
@@ -302,6 +426,18 @@ export type ProfileScalarWhereWithAggregatesInput = {
   linkedinUrl?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   websiteUrl?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
   businessName?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  location?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  tldr?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  lookingFor?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  partnerships?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  commitment?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  motivation?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  experience?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  topSkill?: Prisma.StringNullableWithAggregatesFilter<"Profile"> | string | null
+  skills?: Prisma.JsonNullableWithAggregatesFilter<"Profile">
+  isPublic?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
+  visibleRegions?: Prisma.StringNullableListFilter<"Profile">
+  onboardingCompleted?: Prisma.BoolWithAggregatesFilter<"Profile"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Profile"> | Date | string
 }
@@ -315,6 +451,18 @@ export type ProfileCreateInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
@@ -332,6 +480,18 @@ export type ProfileUncheckedCreateInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   tags?: Prisma.ProfileTagUncheckedCreateNestedManyWithoutProfileInput
@@ -347,6 +507,18 @@ export type ProfileUpdateInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
@@ -364,6 +536,18 @@ export type ProfileUncheckedUpdateInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ProfileTagUncheckedUpdateManyWithoutProfileNestedInput
@@ -380,6 +564,18 @@ export type ProfileCreateManyInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -393,6 +589,18 @@ export type ProfileUpdateManyMutationInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -407,6 +615,18 @@ export type ProfileUncheckedUpdateManyInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -414,6 +634,14 @@ export type ProfileUncheckedUpdateManyInput = {
 export type ProfileNullableScalarRelationFilter = {
   is?: Prisma.ProfileWhereInput | null
   isNot?: Prisma.ProfileWhereInput | null
+}
+
+export type StringNullableListFilter<$PrismaModel = never> = {
+  equals?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel> | null
+  has?: string | Prisma.StringFieldRefInput<$PrismaModel> | null
+  hasEvery?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  hasSome?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
+  isEmpty?: boolean
 }
 
 export type ProfileCountOrderByAggregateInput = {
@@ -426,6 +654,18 @@ export type ProfileCountOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   websiteUrl?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  location?: Prisma.SortOrder
+  tldr?: Prisma.SortOrder
+  lookingFor?: Prisma.SortOrder
+  partnerships?: Prisma.SortOrder
+  commitment?: Prisma.SortOrder
+  motivation?: Prisma.SortOrder
+  experience?: Prisma.SortOrder
+  topSkill?: Prisma.SortOrder
+  skills?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
+  visibleRegions?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -440,6 +680,16 @@ export type ProfileMaxOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   websiteUrl?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  location?: Prisma.SortOrder
+  tldr?: Prisma.SortOrder
+  lookingFor?: Prisma.SortOrder
+  partnerships?: Prisma.SortOrder
+  commitment?: Prisma.SortOrder
+  motivation?: Prisma.SortOrder
+  experience?: Prisma.SortOrder
+  topSkill?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -454,6 +704,16 @@ export type ProfileMinOrderByAggregateInput = {
   linkedinUrl?: Prisma.SortOrder
   websiteUrl?: Prisma.SortOrder
   businessName?: Prisma.SortOrder
+  location?: Prisma.SortOrder
+  tldr?: Prisma.SortOrder
+  lookingFor?: Prisma.SortOrder
+  partnerships?: Prisma.SortOrder
+  commitment?: Prisma.SortOrder
+  motivation?: Prisma.SortOrder
+  experience?: Prisma.SortOrder
+  topSkill?: Prisma.SortOrder
+  isPublic?: Prisma.SortOrder
+  onboardingCompleted?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -495,6 +755,15 @@ export type ProfileUncheckedUpdateOneWithoutUserNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProfileUpdateToOneWithWhereWithoutUserInput, Prisma.ProfileUpdateWithoutUserInput>, Prisma.ProfileUncheckedUpdateWithoutUserInput>
 }
 
+export type ProfileCreatevisibleRegionsInput = {
+  set: string[]
+}
+
+export type ProfileUpdatevisibleRegionsInput = {
+  set?: string[]
+  push?: string | string[]
+}
+
 export type ProfileCreateNestedOneWithoutTagsInput = {
   create?: Prisma.XOR<Prisma.ProfileCreateWithoutTagsInput, Prisma.ProfileUncheckedCreateWithoutTagsInput>
   connectOrCreate?: Prisma.ProfileCreateOrConnectWithoutTagsInput
@@ -532,6 +801,18 @@ export type ProfileCreateWithoutUserInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   tags?: Prisma.ProfileTagCreateNestedManyWithoutProfileInput
@@ -547,6 +828,18 @@ export type ProfileUncheckedCreateWithoutUserInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   tags?: Prisma.ProfileTagUncheckedCreateNestedManyWithoutProfileInput
@@ -578,6 +871,18 @@ export type ProfileUpdateWithoutUserInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ProfileTagUpdateManyWithoutProfileNestedInput
@@ -593,6 +898,18 @@ export type ProfileUncheckedUpdateWithoutUserInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ProfileTagUncheckedUpdateManyWithoutProfileNestedInput
@@ -608,6 +925,18 @@ export type ProfileCreateWithoutTagsInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
@@ -624,6 +953,18 @@ export type ProfileUncheckedCreateWithoutTagsInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   products?: Prisma.ProductUncheckedCreateNestedManyWithoutOwnerInput
@@ -654,6 +995,18 @@ export type ProfileUpdateWithoutTagsInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
@@ -670,6 +1023,18 @@ export type ProfileUncheckedUpdateWithoutTagsInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   products?: Prisma.ProductUncheckedUpdateManyWithoutOwnerNestedInput
@@ -684,6 +1049,18 @@ export type ProfileCreateWithoutProductsInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutProfileInput
@@ -700,6 +1077,18 @@ export type ProfileUncheckedCreateWithoutProductsInput = {
   linkedinUrl?: string | null
   websiteUrl?: string | null
   businessName?: string | null
+  location?: string | null
+  tldr?: string | null
+  lookingFor?: string | null
+  partnerships?: string | null
+  commitment?: string | null
+  motivation?: string | null
+  experience?: string | null
+  topSkill?: string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: boolean
+  visibleRegions?: Prisma.ProfileCreatevisibleRegionsInput | string[]
+  onboardingCompleted?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   tags?: Prisma.ProfileTagUncheckedCreateNestedManyWithoutProfileInput
@@ -730,6 +1119,18 @@ export type ProfileUpdateWithoutProductsInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutProfileNestedInput
@@ -746,6 +1147,18 @@ export type ProfileUncheckedUpdateWithoutProductsInput = {
   linkedinUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   websiteUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   businessName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tldr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lookingFor?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  partnerships?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  commitment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  motivation?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  experience?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  topSkill?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  skills?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  visibleRegions?: Prisma.ProfileUpdatevisibleRegionsInput | string[]
+  onboardingCompleted?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   tags?: Prisma.ProfileTagUncheckedUpdateManyWithoutProfileNestedInput
@@ -801,6 +1214,18 @@ export type ProfileSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   linkedinUrl?: boolean
   websiteUrl?: boolean
   businessName?: boolean
+  location?: boolean
+  tldr?: boolean
+  lookingFor?: boolean
+  partnerships?: boolean
+  commitment?: boolean
+  motivation?: boolean
+  experience?: boolean
+  topSkill?: boolean
+  skills?: boolean
+  isPublic?: boolean
+  visibleRegions?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -819,6 +1244,18 @@ export type ProfileSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   linkedinUrl?: boolean
   websiteUrl?: boolean
   businessName?: boolean
+  location?: boolean
+  tldr?: boolean
+  lookingFor?: boolean
+  partnerships?: boolean
+  commitment?: boolean
+  motivation?: boolean
+  experience?: boolean
+  topSkill?: boolean
+  skills?: boolean
+  isPublic?: boolean
+  visibleRegions?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -834,6 +1271,18 @@ export type ProfileSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   linkedinUrl?: boolean
   websiteUrl?: boolean
   businessName?: boolean
+  location?: boolean
+  tldr?: boolean
+  lookingFor?: boolean
+  partnerships?: boolean
+  commitment?: boolean
+  motivation?: boolean
+  experience?: boolean
+  topSkill?: boolean
+  skills?: boolean
+  isPublic?: boolean
+  visibleRegions?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -849,11 +1298,23 @@ export type ProfileSelectScalar = {
   linkedinUrl?: boolean
   websiteUrl?: boolean
   businessName?: boolean
+  location?: boolean
+  tldr?: boolean
+  lookingFor?: boolean
+  partnerships?: boolean
+  commitment?: boolean
+  motivation?: boolean
+  experience?: boolean
+  topSkill?: boolean
+  skills?: boolean
+  isPublic?: boolean
+  visibleRegions?: boolean
+  onboardingCompleted?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bio" | "timezone" | "avatarUrl" | "githubUrl" | "linkedinUrl" | "websiteUrl" | "businessName" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
+export type ProfileOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "bio" | "timezone" | "avatarUrl" | "githubUrl" | "linkedinUrl" | "websiteUrl" | "businessName" | "location" | "tldr" | "lookingFor" | "partnerships" | "commitment" | "motivation" | "experience" | "topSkill" | "skills" | "isPublic" | "visibleRegions" | "onboardingCompleted" | "createdAt" | "updatedAt", ExtArgs["result"]["profile"]>
 export type ProfileInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   tags?: boolean | Prisma.Profile$tagsArgs<ExtArgs>
@@ -884,6 +1345,18 @@ export type $ProfilePayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     linkedinUrl: string | null
     websiteUrl: string | null
     businessName: string | null
+    location: string | null
+    tldr: string | null
+    lookingFor: string | null
+    partnerships: string | null
+    commitment: string | null
+    motivation: string | null
+    experience: string | null
+    topSkill: string | null
+    skills: runtime.JsonValue | null
+    isPublic: boolean
+    visibleRegions: string[]
+    onboardingCompleted: boolean
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["profile"]>
@@ -1321,6 +1794,18 @@ export interface ProfileFieldRefs {
   readonly linkedinUrl: Prisma.FieldRef<"Profile", 'String'>
   readonly websiteUrl: Prisma.FieldRef<"Profile", 'String'>
   readonly businessName: Prisma.FieldRef<"Profile", 'String'>
+  readonly location: Prisma.FieldRef<"Profile", 'String'>
+  readonly tldr: Prisma.FieldRef<"Profile", 'String'>
+  readonly lookingFor: Prisma.FieldRef<"Profile", 'String'>
+  readonly partnerships: Prisma.FieldRef<"Profile", 'String'>
+  readonly commitment: Prisma.FieldRef<"Profile", 'String'>
+  readonly motivation: Prisma.FieldRef<"Profile", 'String'>
+  readonly experience: Prisma.FieldRef<"Profile", 'String'>
+  readonly topSkill: Prisma.FieldRef<"Profile", 'String'>
+  readonly skills: Prisma.FieldRef<"Profile", 'Json'>
+  readonly isPublic: Prisma.FieldRef<"Profile", 'Boolean'>
+  readonly visibleRegions: Prisma.FieldRef<"Profile", 'String[]'>
+  readonly onboardingCompleted: Prisma.FieldRef<"Profile", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Profile", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Profile", 'DateTime'>
 }

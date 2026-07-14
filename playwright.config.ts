@@ -25,7 +25,7 @@ export default defineConfig({
       use: {
         storageState: path.join(__dirname, "playwright/.auth/user.json"),
       },
-      testMatch: /(discover|onboarding)\.spec\.ts/,
+      testMatch: /(discover|onboarding|features)\.spec\.ts/,
     },
     {
       name: "cross-actor",
@@ -33,7 +33,7 @@ export default defineConfig({
       use: {
         storageState: path.join(__dirname, "playwright/.auth/owner.json"),
       },
-      testMatch: /application\.spec\.ts/,
+      testMatch: /(application|notifications)\.spec\.ts/,
     },
     {
       name: "public",
@@ -47,7 +47,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
     env: {
-      DATABASE_URL: "postgresql://postgres:postgres@localhost:5433/silklabs?schema=public",
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5444/silklabs?schema=public",
       BETTER_AUTH_URL: "http://localhost:3000",
       BETTER_AUTH_SECRET: "playwright-e2e-test-secret-key-32-chars-min",
     },

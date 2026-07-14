@@ -3,7 +3,7 @@ import { test, expect } from "@playwright/test"
 test.describe("Auth flows", () => {
   test("shows UI on register page", async ({ page }) => {
     await page.goto("/register")
-    await expect(page.locator('[data-slot="card-title"]')).toHaveText("Create Account")
+    await expect(page.getByText("Create Account").first()).toBeVisible()
   })
 
   test("shows validation errors on invalid email and short password", async ({ page }) => {
@@ -23,8 +23,8 @@ test.describe("Auth flows", () => {
     await page.fill('input[name="email"]', `${id}@test.com`)
     await page.fill('input[name="password"]', "password123")
     await page.click('button[type="submit"]')
-    await page.waitForURL("**/discover", { timeout: 30000 })
-    await expect(page.locator("h1")).toContainText("Discover Projects")
+    await page.waitForURL("**/onboarding", { timeout: 30000 })
+    await expect(page.getByText(/AI Cofounder/)).toBeVisible()
   })
 
   test("shows error for wrong credentials", async ({ page }) => {
@@ -36,7 +36,6 @@ test.describe("Auth flows", () => {
   })
 
   test("login with valid credentials redirects to discover", async ({ page }) => {
-    await page.context().clearCookies()
     await page.goto("/login")
     await page.fill('input[name="email"]', "alex@example.com")
     await page.fill('input[name="password"]', "password123")

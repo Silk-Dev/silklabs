@@ -48,6 +48,9 @@ model User {
   projects     Project[]     @relation("ProjectOwner")
   teamMembers  TeamMember[]
   applications Application[]
+  messages     Message[]
+  notifications Notification[]
+  bookmarks    Bookmark[]
 
   @@map("users")
 }
@@ -111,6 +114,21 @@ model Profile {
   linkedinUrl  String?
   websiteUrl   String?
   businessName String?
+
+  // Onboarding fields
+  location           String?
+  tldr               String?
+  lookingFor         String?
+  partnerships       String?
+  commitment         String?
+  motivation         String?
+  experience         String?
+  topSkill           String?
+  skills             Json?
+  isPublic           Boolean  @default(false)
+  visibleRegions     String[]
+  onboardingCompleted Boolean @default(false)
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -176,6 +194,7 @@ model Project {
   owner       User         @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   roles       Role[]
   teamMembers TeamMember[]
+  bookmarks   Bookmark[]
 
   @@map("projects")
 }
@@ -235,6 +254,49 @@ model TeamMember {
 
   @@unique([projectId, userId])
   @@map("team_members")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+  @@index([createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // "new_project", "application", "team_invite", etc.
+  title     String
+  body      String?
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+model Bookmark {
+  id        String   @id @default(cuid())
+  userId    String
+  projectId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@map("bookmarks")
 }
 
 model Product {

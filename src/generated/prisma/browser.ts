@@ -83,6 +83,21 @@ export type Application = Prisma.ApplicationModel
  */
 export type TeamMember = Prisma.TeamMemberModel
 /**
+ * Model Message
+ * 
+ */
+export type Message = Prisma.MessageModel
+/**
+ * Model Notification
+ * 
+ */
+export type Notification = Prisma.NotificationModel
+/**
+ * Model Bookmark
+ * 
+ */
+export type Bookmark = Prisma.BookmarkModel
+/**
  * Model Product
  * 
  */

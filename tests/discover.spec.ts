@@ -11,6 +11,7 @@ test.describe("Discovery feed", () => {
 
   test("filters by phase badge click and updates URL", async ({ page }) => {
     await page.goto("/discover")
+    await page.locator("aside").locator("text=Ideation").waitFor()
     await page.locator("aside").locator("text=Ideation").click()
     await expect(page).toHaveURL(/phase=Ideation/)
     await expect(page.locator("text=OpenFeedback")).toBeVisible()

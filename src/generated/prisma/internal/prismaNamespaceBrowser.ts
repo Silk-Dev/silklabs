@@ -64,6 +64,9 @@ export const ModelName = {
   RoleTag: 'RoleTag',
   Application: 'Application',
   TeamMember: 'TeamMember',
+  Message: 'Message',
+  Notification: 'Notification',
+  Bookmark: 'Bookmark',
   Product: 'Product'
 } as const
 
@@ -152,6 +155,18 @@ export const ProfileScalarFieldEnum = {
   linkedinUrl: 'linkedinUrl',
   websiteUrl: 'websiteUrl',
   businessName: 'businessName',
+  location: 'location',
+  tldr: 'tldr',
+  lookingFor: 'lookingFor',
+  partnerships: 'partnerships',
+  commitment: 'commitment',
+  motivation: 'motivation',
+  experience: 'experience',
+  topSkill: 'topSkill',
+  skills: 'skills',
+  isPublic: 'isPublic',
+  visibleRegions: 'visibleRegions',
+  onboardingCompleted: 'onboardingCompleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -254,6 +269,41 @@ export const TeamMemberScalarFieldEnum = {
 export type TeamMemberScalarFieldEnum = (typeof TeamMemberScalarFieldEnum)[keyof typeof TeamMemberScalarFieldEnum]
 
 
+export const MessageScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  title: 'title',
+  body: 'body',
+  link: 'link',
+  read: 'read',
+  createdAt: 'createdAt'
+} as const
+
+export type NotificationScalarFieldEnum = (typeof NotificationScalarFieldEnum)[keyof typeof NotificationScalarFieldEnum]
+
+
+export const BookmarkScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  projectId: 'projectId',
+  createdAt: 'createdAt'
+} as const
+
+export type BookmarkScalarFieldEnum = (typeof BookmarkScalarFieldEnum)[keyof typeof BookmarkScalarFieldEnum]
+
+
 export const ProductScalarFieldEnum = {
   id: 'id',
   ownerId: 'ownerId',
@@ -279,6 +329,14 @@ export const SortOrder = {
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+export const NullableJsonNullValueInput = {
+  DbNull: DbNull,
+  JsonNull: JsonNull
+} as const
+
+export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
 export const QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
@@ -293,4 +351,13 @@ export const NullsOrder = {
 } as const
 
 export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+export const JsonNullValueFilter = {
+  DbNull: DbNull,
+  JsonNull: JsonNull,
+  AnyNull: AnyNull
+} as const
+
+export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 

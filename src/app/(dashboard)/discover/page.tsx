@@ -1,9 +1,10 @@
 export const dynamic = "force-dynamic"
 
 import { prisma } from "@/lib/prisma"
+import { getSession } from "@/lib/auth"
 import { searchProjects } from "@/services/discovery.service"
 import { ProjectCard } from "@/components/blocks/project-card"
-import { Card, CardContent } from "@/components/ui/card"
+import { BookmarkButton } from "@/components/blocks/bookmark-button"
 import {
   Pagination,
   PaginationContent,
@@ -34,7 +35,18 @@ export default async function DiscoverPage({
   const selectedPhase = sp.phase ?? null
   const roleAvailableOnly = sp.roleAvailable === "true"
 
-  const allTags = await prisma.tag.findMany({ orderBy: { name: "asc" } })
+  const session = await getSession()
+
+  const [allTags, bookmarks] = await Promise.all([
+    prisma.tag.findMany({ orderBy: { name: "asc" } }),
+    session?.user
+      ? prisma.bookmark.findMany({
+          where: { userId: session.user.id },
+          select: { projectId: true },
+        })
+      : [],
+  ])
+  const bookmarkedIds = new Set(bookmarks.map((b) => b.projectId))
 
   const filterProps = {
     tags: allTags,
@@ -119,7 +131,17 @@ export default async function DiscoverPage({
           <>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {projects.map((project) => (
-                <ProjectCard key={project.id} project={project} />
+                <div key={project.id} className="relative">
+                  <ProjectCard project={project} />
+                  {session?.user && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <BookmarkButton
+                        projectId={project.id}
+                        initialBookmarked={bookmarkedIds.has(project.id)}
+                      />
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
 

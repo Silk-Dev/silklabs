@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { applicationSchema } from "@/lib/validation"
 import { requireAuth, assertProjectOwner } from "@/lib/dal"
 import { revalidatePath } from "next/cache"
+import { notifyOnApplication, notifyOnApplicationStatus } from "./notification.service"
 
 export async function applyForRole(data: unknown) {
   const session = await requireAuth()
@@ -17,13 +18,15 @@ export async function applyForRole(data: unknown) {
 
   const role = await prisma.role.findUnique({
     where: { id: parsed.data.roleId },
-    select: { projectId: true },
+    select: { projectId: true, title: true },
   })
   if (!role) return { error: "Role not found" }
 
   await prisma.application.create({
     data: { userId: session.user.id, ...parsed.data },
   })
+
+  notifyOnApplication(role.projectId, session.user.name ?? "Someone", role.title)
 
   revalidatePath(`/projects/${role.projectId}`)
   return { success: true }
@@ -58,7 +61,9 @@ export async function updateApplicationStatus(
 ) {
   const application = await prisma.application.findUnique({
     where: { id: applicationId },
-    include: { role: { select: { projectId: true, title: true } } },
+    include: {
+      role: { include: { project: { select: { title: true } } } },
+    },
   })
   if (!application) return { error: "Application not found" }
 
@@ -69,6 +74,8 @@ export async function updateApplicationStatus(
     where: { id: applicationId },
     data: { status },
   })
+
+  const projectTitle = application.role.project.title
 
   if (status === "Accepted") {
     await prisma.teamMember.upsert({
@@ -91,6 +98,13 @@ export async function updateApplicationStatus(
       data: { isFilled: true },
     })
   }
+
+  notifyOnApplicationStatus(
+    application.userId,
+    projectTitle,
+    application.role.title,
+    status
+  )
 
   revalidatePath(`/projects/${application.role.projectId}`)
   return { success: true }

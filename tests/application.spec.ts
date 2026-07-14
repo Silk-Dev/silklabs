@@ -5,14 +5,17 @@ test.describe("Cross-actor application workflow", () => {
     // --- Context A: Collaborator (Maya) applies to OpenFeedback ---
     const collaborator = await browser.newPage({ storageState: "playwright/.auth/user.json" })
     await collaborator.goto("/discover")
+    await collaborator.locator("h1:has-text('Discover Projects')").waitFor()
 
     await collaborator.locator("text=OpenFeedback").click()
     await collaborator.waitForURL(/\/projects\//)
+    await collaborator.locator("h1:has-text('OpenFeedback')").waitFor()
 
     // Check if already applied (from a previous retry) — if not, apply now
-    const alreadyApplied = await collaborator.locator("aside").getByText("Applied").isVisible().catch(() => false)
+    const appliedBadge = collaborator.locator("text=UI/UX Designer").locator("..").locator("..").getByText("Applied")
+    const alreadyApplied = await appliedBadge.isVisible().catch(() => false)
     if (!alreadyApplied) {
-      const applyButton = collaborator.locator("aside").getByText("Apply Now")
+      const applyButton = collaborator.getByRole("button", { name: "Apply Now" }).first()
       await expect(applyButton).toBeVisible()
       await applyButton.click()
 
@@ -27,9 +30,11 @@ test.describe("Cross-actor application workflow", () => {
     // --- Context B: Owner (Alex) accepts the application ---
     const owner = await browser.newPage({ storageState: "playwright/.auth/owner.json" })
     await owner.goto("/discover")
+    await owner.locator("h1:has-text('Discover Projects')").waitFor()
 
     await owner.locator("text=OpenFeedback").click()
     await owner.waitForURL(/\/projects\//)
+    await owner.locator("h1:has-text('OpenFeedback')").waitFor()
 
     // Scroll to the Applications section
     await owner.locator("h2:has-text('Applications')").scrollIntoViewIfNeeded()

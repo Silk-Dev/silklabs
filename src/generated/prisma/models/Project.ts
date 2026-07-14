@@ -241,6 +241,7 @@ export type ProjectWhereInput = {
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   roles?: Prisma.RoleListRelationFilter
   teamMembers?: Prisma.TeamMemberListRelationFilter
+  bookmarks?: Prisma.BookmarkListRelationFilter
 }
 
 export type ProjectOrderByWithRelationInput = {
@@ -259,6 +260,7 @@ export type ProjectOrderByWithRelationInput = {
   owner?: Prisma.UserOrderByWithRelationInput
   roles?: Prisma.RoleOrderByRelationAggregateInput
   teamMembers?: Prisma.TeamMemberOrderByRelationAggregateInput
+  bookmarks?: Prisma.BookmarkOrderByRelationAggregateInput
 }
 
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -280,6 +282,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   owner?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   roles?: Prisma.RoleListRelationFilter
   teamMembers?: Prisma.TeamMemberListRelationFilter
+  bookmarks?: Prisma.BookmarkListRelationFilter
 }, "id">
 
 export type ProjectOrderByWithAggregationInput = {
@@ -333,6 +336,7 @@ export type ProjectCreateInput = {
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateInput = {
@@ -350,6 +354,7 @@ export type ProjectUncheckedCreateInput = {
   updatedAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUpdateInput = {
@@ -367,6 +372,7 @@ export type ProjectUpdateInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
@@ -384,6 +390,7 @@ export type ProjectUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
@@ -564,6 +571,20 @@ export type ProjectUpdateOneRequiredWithoutTeamMembersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutTeamMembersInput, Prisma.ProjectUpdateWithoutTeamMembersInput>, Prisma.ProjectUncheckedUpdateWithoutTeamMembersInput>
 }
 
+export type ProjectCreateNestedOneWithoutBookmarksInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutBookmarksInput, Prisma.ProjectUncheckedCreateWithoutBookmarksInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutBookmarksInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutBookmarksNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutBookmarksInput, Prisma.ProjectUncheckedCreateWithoutBookmarksInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutBookmarksInput
+  upsert?: Prisma.ProjectUpsertWithoutBookmarksInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutBookmarksInput, Prisma.ProjectUpdateWithoutBookmarksInput>, Prisma.ProjectUncheckedUpdateWithoutBookmarksInput>
+}
+
 export type ProjectCreateWithoutOwnerInput = {
   id?: string
   title: string
@@ -578,6 +599,7 @@ export type ProjectCreateWithoutOwnerInput = {
   updatedAt?: Date | string
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutOwnerInput = {
@@ -594,6 +616,7 @@ export type ProjectUncheckedCreateWithoutOwnerInput = {
   updatedAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutOwnerInput = {
@@ -654,6 +677,7 @@ export type ProjectCreateWithoutRolesInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutRolesInput = {
@@ -670,6 +694,7 @@ export type ProjectUncheckedCreateWithoutRolesInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutRolesInput = {
@@ -702,6 +727,7 @@ export type ProjectUpdateWithoutRolesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutRolesInput = {
@@ -718,6 +744,7 @@ export type ProjectUncheckedUpdateWithoutRolesInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutTeamMembersInput = {
@@ -734,6 +761,7 @@ export type ProjectCreateWithoutTeamMembersInput = {
   updatedAt?: Date | string
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutTeamMembersInput = {
@@ -750,6 +778,7 @@ export type ProjectUncheckedCreateWithoutTeamMembersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutTeamMembersInput = {
@@ -782,6 +811,7 @@ export type ProjectUpdateWithoutTeamMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutTeamMembersInput = {
@@ -798,6 +828,91 @@ export type ProjectUncheckedUpdateWithoutTeamMembersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectCreateWithoutBookmarksInput = {
+  id?: string
+  title: string
+  tagline?: string | null
+  description?: string | null
+  coverImage?: string | null
+  phase?: $Enums.ProjectPhase
+  discordLink?: string | null
+  repoLink?: string | null
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutProjectsInput
+  roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutBookmarksInput = {
+  id?: string
+  ownerId: string
+  title: string
+  tagline?: string | null
+  description?: string | null
+  coverImage?: string | null
+  phase?: $Enums.ProjectPhase
+  discordLink?: string | null
+  repoLink?: string | null
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutBookmarksInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutBookmarksInput, Prisma.ProjectUncheckedCreateWithoutBookmarksInput>
+}
+
+export type ProjectUpsertWithoutBookmarksInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutBookmarksInput, Prisma.ProjectUncheckedUpdateWithoutBookmarksInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutBookmarksInput, Prisma.ProjectUncheckedCreateWithoutBookmarksInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutBookmarksInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutBookmarksInput, Prisma.ProjectUncheckedUpdateWithoutBookmarksInput>
+}
+
+export type ProjectUpdateWithoutBookmarksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
+  discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutBookmarksInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
+  discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyOwnerInput = {
@@ -828,6 +943,7 @@ export type ProjectUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutOwnerInput = {
@@ -844,6 +960,7 @@ export type ProjectUncheckedUpdateWithoutOwnerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateManyWithoutOwnerInput = {
@@ -868,11 +985,13 @@ export type ProjectUncheckedUpdateManyWithoutOwnerInput = {
 export type ProjectCountOutputType = {
   roles: number
   teamMembers: number
+  bookmarks: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | ProjectCountOutputTypeCountRolesArgs
   teamMembers?: boolean | ProjectCountOutputTypeCountTeamMembersArgs
+  bookmarks?: boolean | ProjectCountOutputTypeCountBookmarksArgs
 }
 
 /**
@@ -899,6 +1018,13 @@ export type ProjectCountOutputTypeCountTeamMembersArgs<ExtArgs extends runtime.T
   where?: Prisma.TeamMemberWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountBookmarksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BookmarkWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -916,6 +1042,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.Project$rolesArgs<ExtArgs>
   teamMembers?: boolean | Prisma.Project$teamMembersArgs<ExtArgs>
+  bookmarks?: boolean | Prisma.Project$bookmarksArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -971,6 +1098,7 @@ export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.Project$rolesArgs<ExtArgs>
   teamMembers?: boolean | Prisma.Project$teamMembersArgs<ExtArgs>
+  bookmarks?: boolean | Prisma.Project$bookmarksArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -986,6 +1114,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     owner: Prisma.$UserPayload<ExtArgs>
     roles: Prisma.$RolePayload<ExtArgs>[]
     teamMembers: Prisma.$TeamMemberPayload<ExtArgs>[]
+    bookmarks: Prisma.$BookmarkPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1397,6 +1526,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   owner<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   roles<T extends Prisma.Project$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teamMembers<T extends Prisma.Project$teamMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$teamMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  bookmarks<T extends Prisma.Project$bookmarksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$bookmarksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookmarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1884,6 +2014,30 @@ export type Project$teamMembersArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.TeamMemberScalarFieldEnum | Prisma.TeamMemberScalarFieldEnum[]
+}
+
+/**
+ * Project.bookmarks
+ */
+export type Project$bookmarksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Bookmark
+   */
+  select?: Prisma.BookmarkSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Bookmark
+   */
+  omit?: Prisma.BookmarkOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BookmarkInclude<ExtArgs> | null
+  where?: Prisma.BookmarkWhereInput
+  orderBy?: Prisma.BookmarkOrderByWithRelationInput | Prisma.BookmarkOrderByWithRelationInput[]
+  cursor?: Prisma.BookmarkWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BookmarkScalarFieldEnum | Prisma.BookmarkScalarFieldEnum[]
 }
 
 /**
