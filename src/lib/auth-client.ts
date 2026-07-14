@@ -12,6 +12,10 @@ export const authClient = {
       if (!res.ok || json.error) return { error: json.error ?? { message: "Invalid email or password" }, data: null }
       return { data: json, error: null }
     },
+    social: async (provider: "google" | "github" | "linkedin") => {
+      window.location.href = `${BASE}/sign-in/social/${provider}`
+      return { error: null, data: null }
+    },
   },
   signUp: {
     email: async (data: { name: string; email: string; password: string }) => {
@@ -23,6 +27,10 @@ export const authClient = {
       const json = await res.json()
       if (!res.ok || json.error) return { error: json.error ?? { message: "Registration failed" }, data: null }
       return { data: json, error: null }
+    },
+    social: async (provider: "google" | "github" | "linkedin") => {
+      window.location.href = `${BASE}/sign-up/social/${provider}`
+      return { error: null, data: null }
     },
   },
   signOut: async () => {

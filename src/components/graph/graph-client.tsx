@@ -1,0 +1,1057 @@
+"use client"
+
+import { useEffect, useRef, useState, useCallback } from "react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+// ─── Constants ───
+const COLS: Record<string, string> = {
+  "Artificial Intelligence": "#9333EA",
+  "Hardware & Robotics": "#F59E0B",
+  "Enterprise Software & SaaS": "#3B82F6",
+  Fintech: "#10B981",
+  "Healthcare & Biotech": "#EF4444",
+  "Consumer & E-commerce": "#EC4899",
+  "Education & HR": "#8B5CF6",
+  "Media & Entertainment": "#F97316",
+  "Climate & Energy": "#22C55E",
+  "Transportation & Logistics": "#06B6D4",
+  "Security & Infrastructure": "#6366F1",
+  "Legal, Gov & Civic Tech": "#A855F7",
+}
+const CATS = Object.keys(COLS)
+const CTRY_COLS = [
+  "#FF6B6B", "#4ECDC4", "#FFE66D", "#95E1D3", "#F38181", "#AA96DA",
+  "#FCBAD3", "#A8D8EA", "#FFD3B6", "#45B7D1", "#FFA07A", "#98FB98",
+  "#DDA0DD", "#F0E68C", "#FFB347", "#77DD77", "#89CFF0", "#FF6961",
+]
+const R1 = 4
+const R2 = 10
+const R3 = 22
+
+let nextUid = 0
+const uid = () => ++nextUid
+
+export default function GraphClient() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [ready, setReady] = useState(false)
+
+  // All state is stored in a ref to avoid re-renders during animation frames
+  const S = useRef<any>({
+    tags: [], pos: [], counts: [], edges: [], tagCos: {}, cats: [], hier: {},
+    tagCat: {}, tagSub: {}, sel: new Set<string>(), suggested: new Set<string>(),
+    idxMap: {} as Record<string, number>, wasm: null as any,
+    tx: 0, ty: 0, scale: 1, drag: false, dragOx: 0, dragOy: 0, dragTx: 0, dragTy: 0, hoverIdx: -1,
+    catNodes: [] as any[], subNodes: [] as any[],
+    countries: [] as string[], tagCountries: {} as Record<string, Record<string, number>>,
+    selCtries: new Set<string>(), ctryColors: {} as Record<string, string>,
+    companyLookup: null as any, tagEmbs: [] as number[][],
+    initialScale: 1,
+  })
+  const [tab, setTab] = useState("tags")
+  const [ideaStatus, setIdeaStatus] = useState("")
+  const SCALED = useRef<any[]>([])
+  let W = 0, H = 0
+
+  // ─── Data loading ───
+  useEffect(() => {
+    const s = S.current
+    Promise.all([
+      fetch("/graph/graph_data.json").then((r) => r.json()),
+      fetch("/graph/graph_engine.wasm")
+        .then((r) => r.arrayBuffer())
+        .then((buf) => WebAssembly.instantiate(buf, {
+          env: {},
+          wasi_snapshot_preview1: { fd_write: () => 0, fd_close: () => 0, fd_seek: () => 0, fd_read: () => 0 },
+        }))
+        .then((mod) => { s.wasm = mod.instance.exports })
+        .catch(() => {}),
+      fetch("/graph/all_companies.json")
+        .then((r) => r.json())
+        .then((cs) => {
+          s.companyLookup = {}
+          for (const c of cs) s.companyLookup[c.name.toLowerCase().trim()] = c
+        })
+        .catch(() => {}),
+    ]).then(([d]) => {
+      s.tags = d.tags
+      s.tagEmbs = d.tagEmbs || []
+      s.pos = d.positions
+      s.counts = d.tagCounts
+      s.edges = d.edges
+      s.tagCos = d.tagCompanies
+      s.cats = d.categories
+      s.hier = d.hierarchy
+      for (const c of d.categories) for (const tn of c.tagNames) {
+        s.tagCat[tn] = c.path[0] || ""
+        s.tagSub[tn] = c.path[1] || ""
+      }
+      s.tags.forEach((t: string, i: number) => { s.idxMap[t] = i })
+      if (d.countries) {
+        s.countries = d.countries
+        s.tagCountries = d.tagCountries || {}
+        s.countries.forEach((c: string, i: number) => { s.ctryColors[c] = CTRY_COLS[i % CTRY_COLS.length] })
+      }
+      computeRadialLayout(s, SCALED)
+      setReady(true)
+    })
+  }, [])
+
+  // ─── Canvas setup ───
+  useEffect(() => {
+    if (!ready) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")!
+    const s = S.current
+    let animId = 0
+
+    const resize = () => {
+      W = window.innerWidth
+      H = window.innerHeight
+      canvas.width = W * devicePixelRatio
+      canvas.height = H * devicePixelRatio
+      canvas.style.width = W + "px"
+      canvas.style.height = H + "px"
+      ctx.scale(devicePixelRatio, devicePixelRatio)
+      setInitialScale(s, SCALED.current, W, H)
+    }
+
+    resize()
+    window.addEventListener("resize", resize)
+
+    const draw = () => {
+      ctx.clearRect(0, 0, W, H)
+      const scaled = SCALED.current
+      if (!scaled.length) { animId = requestAnimationFrame(draw); return }
+
+      const visible = cullNodes(s, SCALED.current, W, H)
+      const visSet = visible ? new Set(visible) : null
+
+      ctx.save()
+      ctx.translate(W / 2, H / 2)
+      ctx.scale(s.scale, s.scale)
+      ctx.translate(-s.tx, -s.ty)
+
+      const maxC = Math.max(...s.counts)
+      const sel = s.sel
+      const z = s.initialScale ? s.scale / s.initialScale : 0
+
+      let activeCats: Set<string> | undefined, activeSubs: Set<string> | undefined
+      if (sel.size > 0) {
+        activeCats = new Set()
+        activeSubs = new Set()
+        for (const t of sel) {
+          const c = s.tagCat[t]
+          const sb = s.tagSub[t]
+          if (c) activeCats.add(c)
+          if (sb) activeSubs.add(sb)
+        }
+      }
+      const dim = (v: any) => sel.size > 0 && !v
+
+      // Spokes
+      ctx.strokeStyle = "rgba(255,255,255,0.05)"
+      ctx.lineWidth = 1 / s.scale
+      for (const cat of CATS) {
+        const subs = s.hier[cat]
+        if (!subs) continue
+        for (const [sn, ts] of Object.entries(subs)) {
+          if (!(ts as string[]).length) continue
+          const idx = s.idxMap[(ts as string[])[0]]
+          if (idx === undefined) continue
+          const [x, y] = scaled[idx]
+          const a = Math.atan2(y, x)
+          let maxR = 0
+          for (const t of ts as string[]) {
+            const i = s.idxMap[t]
+            if (i === undefined) continue
+            const [px, py] = scaled[i]
+            const r = Math.sqrt(px * px + py * py)
+            if (r > maxR) maxR = r
+          }
+          const spDim = dim(activeSubs && activeSubs.has(sn))
+          ctx.globalAlpha = spDim ? 0.01 : 0.05
+          ctx.beginPath()
+          ctx.moveTo(R1 * 0.5 * Math.cos(a), R1 * 0.5 * Math.sin(a))
+          ctx.lineTo(maxR * Math.cos(a), maxR * Math.sin(a))
+          ctx.stroke()
+        }
+      }
+      ctx.globalAlpha = 1
+
+      // Category arcs
+      if (s.catNodes) {
+        ctx.lineWidth = 3 / s.scale
+        for (let ci = 0; ci < s.catNodes.length; ci++) {
+          const cn = s.catNodes[ci]
+          const aStart = (ci / s.catNodes.length) * 2 * Math.PI - Math.PI / 2 + 0.02
+          const aEnd = ((ci + 1) / s.catNodes.length) * 2 * Math.PI - Math.PI / 2 - 0.02
+          const caDim = dim(activeCats && activeCats.has(cn.name))
+          ctx.globalAlpha = caDim ? 0.08 : 0.5
+          ctx.beginPath()
+          ctx.arc(0, 0, R1, aStart, aEnd)
+          ctx.strokeStyle = cn.color
+          ctx.stroke()
+        }
+        ctx.globalAlpha = 1
+      }
+
+      // Category labels
+      if (s.catNodes && z > 1.2) {
+        for (const cn of s.catNodes) {
+          const x = R1 * Math.cos(cn.angle)
+          const y = R1 * Math.sin(cn.angle)
+          const caDim = dim(activeCats && activeCats.has(cn.name))
+          if (caDim) ctx.globalAlpha = 0.1
+          const lbl = cn.name.length > 10 ? cn.name.slice(0, 8) + ".." : cn.name
+          ctx.fillStyle = cn.color
+          ctx.font = `bold ${Math.min(10, 7 * z) / s.scale}px sans-serif`
+          ctx.textAlign = "left"
+          ctx.textBaseline = "middle"
+          ctx.save()
+          ctx.translate(x, y)
+          ctx.rotate(cn.angle)
+          ctx.fillText(lbl, 5 / s.scale, 0)
+          ctx.restore()
+          if (caDim) ctx.globalAlpha = 1
+        }
+      }
+
+      // Subcategory dots
+      if (s.subNodes && s.scale > 0.5) {
+        for (const sn of s.subNodes) {
+          const x = R2 * Math.cos(sn.angle)
+          const y = R2 * Math.sin(sn.angle)
+          const dr = 4 / s.scale
+          const rgb = hex2rgb(sn.color)
+          const sbDim = dim(activeSubs && activeSubs.has(sn.name))
+          const sa = sbDim ? 0.08 : 0.5
+          ctx.beginPath()
+          ctx.arc(x, y, dr, 0, Math.PI * 2)
+          ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${sa})`
+          ctx.fill()
+          ctx.strokeStyle = sbDim ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.1)"
+          ctx.lineWidth = 0.5 / s.scale
+          ctx.stroke()
+          if (z > 1.8) {
+            const fs = Math.min(12, 6 * z) / s.scale
+            ctx.fillStyle = sbDim ? "#444" : "#888"
+            ctx.font = `${fs}px sans-serif`
+            ctx.textAlign = "center"
+            ctx.textBaseline = "middle"
+            const lbl = sn.name.length > 14 ? sn.name.slice(0, 12) + "…" : sn.name
+            ctx.fillText(lbl, x, y + dr + 2 / s.scale)
+          }
+        }
+      }
+
+      // Tag nodes
+      for (let i = 0; i < s.tags.length; i++) {
+        if (visSet && !visSet.has(i)) continue
+        const t = s.tags[i]
+        const c = s.counts[i]
+        const [x, y] = scaled[i]
+        const r = (8 + (c / maxC) * 6) / s.scale
+        const col = tcol(s, t)
+        const rgb = hex2rgb(col)
+
+        const ctrySel = s.selCtries.size > 0
+        const ctryMatches: string[] = []
+        if (ctrySel) {
+          const tc = s.tagCountries[String(i)]
+          if (tc) for (const ct of s.selCtries) { if (tc[ct]) ctryMatches.push(s.ctryColors[ct]) }
+        }
+        const ctryMatch = ctryMatches.length > 0
+        const hl = (sel.size === 0 || sel.has(t)) && (!ctrySel || ctryMatch)
+        const isSug = !sel.has(t) && s.suggested && s.suggested.has(t)
+
+        if (!hl && !isSug) ctx.globalAlpha = 0.2
+        else if (sel.has(t)) ctx.globalAlpha = 1
+        else if (isSug && sel.size > 0) ctx.globalAlpha = 0.5
+        else ctx.globalAlpha = sel.size === 0 ? 1 : 0.15
+
+        // Glow
+        const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5)
+        grd.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl ? 0.25 : 0.05})`)
+        grd.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`)
+        ctx.fillStyle = grd
+        ctx.beginPath()
+        ctx.arc(x, y, r * 2.5, 0, Math.PI * 2)
+        ctx.fill()
+
+        // Circle
+        ctx.beginPath()
+        ctx.arc(x, y, r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl ? 0.9 : 0.3})`
+        ctx.fill()
+        ctx.strokeStyle = `rgba(255,255,255,${hl ? 0.15 : 0.05})`
+        ctx.lineWidth = 1 / s.scale
+        ctx.stroke()
+
+        // Suggested dashed border
+        if (isSug && sel.size > 0) {
+          ctx.setLineDash([3 / s.scale, 3 / s.scale])
+          ctx.beginPath()
+          ctx.arc(x, y, r + 1.5 / s.scale, 0, Math.PI * 2)
+          ctx.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`
+          ctx.lineWidth = 1.5 / s.scale
+          ctx.stroke()
+          ctx.setLineDash([])
+        }
+
+        // Country ring
+        if (ctryMatch) {
+          ctx.beginPath()
+          ctx.arc(x, y, r + 1.5 / s.scale, 0, Math.PI * 2)
+          ctx.strokeStyle = ctryMatches[0]
+          ctx.lineWidth = 2 / s.scale
+          ctx.stroke()
+        }
+
+        // Label
+        if (z > 2.5 && (hl || isSug)) {
+          const fs = Math.min(13, 7 * z) / s.scale
+          ctx.fillStyle = isSug ? "#888" : hl ? "#fff" : "#666"
+          ctx.font = `${fs}px sans-serif`
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          const lbl = t.length > 12 ? t.slice(0, 10) + ".." : t
+          ctx.fillText(lbl, x, y + r + 2 / s.scale)
+        }
+      }
+
+      ctx.restore()
+      ctx.globalAlpha = 1
+      animId = requestAnimationFrame(draw)
+    }
+
+    animId = requestAnimationFrame(draw)
+
+    // ─── Interaction handlers ───
+    const hitTest = (px: number, py: number) => {
+      const [wx, wy] = screenToWorld(s, px, py, W, H)
+      const maxC = Math.max(...s.counts)
+      let best = -1
+      let bestD = Infinity
+      const sc = SCALED.current
+      for (let i = 0; i < s.tags.length; i++) {
+        const [x, y] = sc[i] || [0, 0]
+        const r = (8 + (s.counts[i] / maxC) * 6) / s.scale
+        const dx = x - wx
+        const dy = y - wy
+        const d = dx * dx + dy * dy
+        if (d < r * r && d < bestD) {
+          best = i
+          bestD = d
+        }
+      }
+      return best
+    }
+
+    const onMouseDown = (e: MouseEvent) => {
+      s.drag = true
+      s.dragOx = e.clientX
+      s.dragOy = e.clientY
+      s.dragTx = s.tx
+      s.dragTy = s.ty
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (s.drag) {
+        s.tx = s.dragTx - (e.clientX - s.dragOx) / s.scale
+        s.ty = s.dragTy - (e.clientY - s.dragOy) / s.scale
+      }
+      const idx = hitTest(e.clientX, e.clientY)
+      if (idx !== s.hoverIdx) {
+        s.hoverIdx = idx
+        canvas!.style.cursor = idx >= 0 ? "pointer" : "grab"
+      }
+    }
+
+    const onMouseUp = () => { s.drag = false }
+
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault()
+      const dz = -e.deltaY * 0.001
+      const ns = Math.max(s.scale * 0.1, Math.min(s.scale * 5, s.scale * (1 + dz)))
+      const mx = e.clientX
+      const my = e.clientY
+      const wx = (mx - W / 2) / s.scale + s.tx
+      const wy = (my - H / 2) / s.scale + s.ty
+      s.scale = ns
+      s.tx = wx - (mx - W / 2) / s.scale
+      s.ty = wy - (my - H / 2) / s.scale
+    }
+
+    const onClick = (e: MouseEvent) => {
+      if (s.drag && (Math.abs(e.clientX - s.dragOx) > 3 || Math.abs(e.clientY - s.dragOy) > 3)) return
+      const idx = hitTest(e.clientX, e.clientY)
+      if (idx >= 0) toggleTag(s.tags[idx])
+    }
+
+    canvas!.addEventListener("mousedown", onMouseDown)
+    window.addEventListener("mousemove", onMouseMove)
+    window.addEventListener("mouseup", onMouseUp)
+    canvas!.addEventListener("wheel", onWheel, { passive: false })
+    canvas!.addEventListener("click", onClick)
+
+    return () => {
+      cancelAnimationFrame(animId)
+      window.removeEventListener("resize", resize)
+      canvas!.removeEventListener("mousedown", onMouseDown)
+      window.removeEventListener("mousemove", onMouseMove)
+      window.removeEventListener("mouseup", onMouseUp)
+      canvas!.removeEventListener("wheel", onWheel)
+      canvas!.removeEventListener("click", onClick)
+    }
+  }, [ready])
+
+  // ─── Tag selection ───
+  const addTag = useCallback((t: string) => {
+    const s = S.current
+    if (s.sel.has(t)) return
+    s.sel.add(t)
+    updateSuggested(s)
+    forceUpdate()
+  }, [])
+
+  const removeTag = useCallback((t: string) => {
+    const s = S.current
+    if (!s.sel.has(t)) return
+    s.sel.delete(t)
+    updateSuggested(s)
+    forceUpdate()
+  }, [])
+
+  const toggleTag = useCallback((t: string) => {
+    if (S.current.sel.has(t)) removeTag(t)
+    else addTag(t)
+  }, [addTag, removeTag])
+
+  // Force re-render for state changes
+  const [, setTick] = useState(0)
+  const forceUpdate = useCallback(() => setTick((t) => t + 1), [])
+
+  // ─── Build legend (once ready) ───
+  const legendRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!ready || !legendRef.current) return
+    const s = S.current
+    const el = legendRef.current
+    el.innerHTML = ""
+    for (const cat of CATS) {
+      const subs = s.hier[cat]
+      if (!subs) continue
+      let tc = 0
+      for (const t of Object.values(subs)) tc += (t as string[]).length
+      const d = document.createElement("div")
+      d.className = "lc"
+      d.innerHTML = `<div class="lch"><span class="ar">▶</span><span class="dot" style="background:${COLS[cat]}"></span><span>${cat}</span><span class="cnt">${tc}</span></div><div class="lsc"></div>`
+      const h = d.querySelector(".lch")!
+      const sc = d.querySelector(".lsc")!
+      h.addEventListener("click", () => { sc.classList.toggle("on"); h.querySelector(".ar")!.classList.toggle("on") })
+      for (const [sn, ts] of Object.entries(subs)) {
+        const sd = document.createElement("div")
+        sd.className = "ls"
+        sd.innerHTML = `<div class="lsh"><span class="ar">▶</span><span>${sn}</span></div><div class="ltg"></div>`
+        const sh = sd.querySelector(".lsh")!
+        const tg = sd.querySelector(".ltg")!
+        sh.addEventListener("click", (e) => { e.stopPropagation(); tg.classList.toggle("on"); sh.querySelector(".ar")!.classList.toggle("on") })
+        for (const tag of ts as string[]) {
+          const idx = s.idxMap[tag]
+          const cnt = idx !== undefined ? s.counts[idx] : 0
+          const td = document.createElement("div")
+          td.className = "lt"
+          td.innerHTML = `<span class="td" style="background:${COLS[cat]}"></span><span>${tag}</span><span class="tc">${cnt}</span>`
+          td.addEventListener("click", (e) => { e.stopPropagation(); toggleTag(tag) })
+          tg.appendChild(td)
+        }
+        if ((ts as string[]).length <= 3) { tg.classList.add("on"); sh.querySelector(".ar")!.classList.add("on") }
+        sc.appendChild(sd)
+      }
+      if (CATS.indexOf(cat) < 3) { sc.classList.add("on"); h.querySelector(".ar")!.classList.add("on") }
+      el.appendChild(d)
+    }
+  }, [ready, toggleTag])
+
+  // ─── Tags tab content ───
+  return (
+    <>
+      {/* Canvas */}
+      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" />
+
+      {/* Legend */}
+      <div id="legend" className="fixed top-0 left-0 w-[300px] h-full z-10 overflow-y-auto border-r border-white/10 transition-transform duration-300 pt-12 pb-4" style={{ background: "rgba(15,15,19,0.96)" }}>
+        <div className="px-4 pb-2 text-[11px] font-semibold tracking-widest text-gray-500 uppercase">Tags</div>
+        <div ref={legendRef} id="ltree"></div>
+      </div>
+
+      {/* Legend toggle */}
+      <div id="ltog" className="fixed top-3 left-[310px] z-11 flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 cursor-pointer text-sm transition-colors"
+        onClick={() => document.getElementById("legend")?.classList.toggle("collapsed")}>
+        ☰
+      </div>
+
+      {/* Right Panel */}
+      <div className="fixed top-3 right-3 z-10 w-[280px] bg-[#0e0e16] border border-white/10 rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
+        <Tabs value={tab} onValueChange={setTab} className="flex flex-col flex-1 min-h-0">
+          <TabsList className="w-full justify-start rounded-none border-b border-white/10 bg-transparent px-0">
+            {["tags", "gap", "companies", "compare", "decon"].map((t) => (
+              <TabsTrigger key={t} value={t} className="flex-1 text-[11px] h-8 rounded-none data-active:bg-transparent data-active:border-b-2 data-active:border-primary data-active:text-foreground">
+                {t === "tags" ? "Tags" : t === "gap" ? "Gap" : t === "decon" ? "Decon" : t.charAt(0).toUpperCase() + t.slice(1)}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+
+          <TabsContent value="tags" className="flex-1 overflow-y-auto p-2.5 space-y-2 mt-0">
+            <TagsTab S={S} addTag={addTag} removeTag={removeTag} toggleTag={toggleTag} forceUpdate={forceUpdate} />
+          </TabsContent>
+          <TabsContent value="gap" className="flex-1 overflow-y-auto p-2.5 mt-0"><GapTab S={S} /></TabsContent>
+          <TabsContent value="companies" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompaniesTab S={S} /></TabsContent>
+          <TabsContent value="compare" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompareTab S={S} /></TabsContent>
+          <TabsContent value="decon" className="flex-1 overflow-y-auto p-2.5 mt-0">
+            <DeconTab S={S} ideaStatus={ideaStatus} setIdeaStatus={setIdeaStatus} />
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Company detail popup */}
+      <CompanyDetail S={S} addTag={addTag} setTab={setTab} />
+
+      {/* Tooltip */}
+      <div id="tt" className="fixed z-20 bg-[#14141c]/96 border border-white/10 rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl">
+        <div className="ttn text-white font-medium"></div>
+        <div className="ttc text-gray-500 mt-0.5"></div>
+        <div className="tcat text-gray-600 text-[10px] mt-0.5"></div>
+      </div>
+    </>
+  )
+}
+
+// ═══════════════════ PRIVATE HELPERS ═══════════════════
+
+function hex2rgb(h: string) {
+  const v = parseInt(h.slice(1), 16)
+  return [(v >> 16) & 255, (v >> 8) & 255, v & 255]
+}
+
+const COL_CACHE = new Map<string, string>()
+function tcol(S: any, t: string) {
+  let c = COL_CACHE.get(t)
+  if (c) return c
+  c = "#666"
+  for (const cat of CATS) { if (S.tagCat[t] === cat) { c = COLS[cat]; break } }
+  COL_CACHE.set(t, c)
+  return c
+}
+
+function computeRadialLayout(S: any, SCALED: { current: any[] }) {
+  const cats = CATS.filter((c) => S.hier[c])
+  const nCats = cats.length
+  SCALED.current = new Array(S.tags.length)
+  const placed = new Set<string>()
+  S.catNodes = []
+  S.subNodes = []
+
+  const angleDist = (i: number, n: number, center: number, span: number) => center - span / 2 + ((i + 0.5) / n) * span
+
+  cats.forEach((cat, ci) => {
+    const a0 = (ci / nCats) * 2 * Math.PI - Math.PI / 2
+    S.catNodes.push({ name: cat, angle: a0, color: COLS[cat] })
+    const subs = S.hier[cat]
+    const sk = Object.keys(subs)
+    const catArc = (2 * Math.PI) / nCats
+    const sArc = Math.min(catArc * 0.85, (Math.PI * 0.8) / sk.length)
+
+    sk.forEach((sub, si) => {
+      const a1 = angleDist(si, sk.length, a0, sArc)
+      S.subNodes.push({ name: sub, angle: a1, color: COLS[cat], catAng: a0 })
+      const tags = subs[sub]
+
+      tags.forEach((tag: string, ti: number) => {
+        if (placed.has(tag)) return
+        placed.add(tag)
+        const idx = S.idxMap[tag]
+        if (idx === undefined) return
+        const frac = tags.length > 1 ? ti / (tags.length - 1) : 0.5
+        const r = R2 + 0.6 + frac * (R3 - R2 - 0.6)
+        SCALED.current[idx] = [r * Math.cos(a1), r * Math.sin(a1)]
+      })
+
+      const subIdx = S.idxMap[sub]
+      if (subIdx !== undefined && !placed.has(sub)) {
+        placed.add(sub)
+        SCALED.current[subIdx] = [R2 * Math.cos(a1), R2 * Math.sin(a1)]
+      }
+    })
+
+    const catIdx = S.idxMap[cat]
+    if (catIdx !== undefined && !placed.has(cat)) {
+      placed.add(cat)
+      SCALED.current[catIdx] = [R1 * Math.cos(a0), R1 * Math.sin(a0)]
+    }
+  })
+
+  for (let i = 0; i < S.tags.length; i++) {
+    if (!SCALED.current[i]) {
+      const t = S.tags[i]
+      const cat = S.tagCat[t]
+      const ci = cats.indexOf(cat)
+      const a0 = ci >= 0 ? (ci / nCats) * 2 * Math.PI - Math.PI / 2 : Math.random() * 2 * Math.PI
+      const a2 = a0 + (Math.random() - 0.5) * 0.3
+      SCALED.current[i] = [R3 * Math.cos(a2), R3 * Math.sin(a2)]
+    }
+  }
+}
+
+function setInitialScale(S: any, scaled: any[], W: number, H: number) {
+  let maxExt = 0
+  for (const p of scaled) {
+    if (!p) continue
+    const d = Math.max(Math.abs(p[0]), Math.abs(p[1]))
+    if (d > maxExt) maxExt = d
+  }
+  if (maxExt > 0) S.scale = (Math.min(W, H) * 0.85) / (maxExt * 2)
+  if (!S.initialScale) S.initialScale = S.scale
+}
+
+function cullNodes(S: any, scaled: any[], W: number, H: number) {
+  if (!S.wasm) return null
+  const n = scaled.length
+  const ptr = S.wasm.malloc(n * 2 * 4)
+  const view = new Float32Array(S.wasm.memory.buffer, ptr, n * 2)
+  for (let i = 0; i < n; i++) {
+    view[i * 2] = scaled[i][0]
+    view[i * 2 + 1] = scaled[i][1]
+  }
+  const outPtr = S.wasm.malloc(4)
+  const rPtr = S.wasm.cull_nodes(ptr, n, S.tx, S.ty, W, H, S.scale, 0.5, outPtr)
+  const outView = new Int32Array(S.wasm.memory.buffer, outPtr, 1)
+  const count = outView[0]
+  const rView = new Float32Array(S.wasm.memory.buffer, rPtr, count * 2 + 1)
+  const indices: number[] = []
+  for (let i = 0; i < count; i++) indices.push((rView[i * 2 + 1] | 0))
+  S.wasm.free(ptr)
+  S.wasm.free(outPtr)
+  S.wasm.free_result(rPtr)
+  return indices
+}
+
+function screenToWorld(S: any, px: number, py: number, W: number, H: number) {
+  return [(px - W / 2) / S.scale + S.tx, (py - H / 2) / S.scale + S.ty]
+}
+
+function updateSuggested(S: any) {
+  if (!S.sel.size) { S.suggested = new Set<string>(); return }
+  const selArr = Array.from(S.sel) as string[]
+  let inter: string[] | null = null
+  for (const t of selArr) {
+    const idx = S.idxMap[t]
+    if (idx === undefined) continue
+    const cos: any[] = S.tagCos[String(idx)]
+    if (!cos) continue
+    const names = cos.map((c: any) => c.n.toLowerCase())
+    if (inter === null) inter = names
+    else inter = inter.filter((n) => names.includes(n))
+  }
+  if (!inter || !inter.length) { S.suggested = new Set<string>(); return }
+  const interSet = new Set<string>(inter)
+  const sug = new Set<string>()
+  for (const t of S.tags) {
+    if (S.sel.has(t)) continue
+    const idx = S.idxMap[t]
+    if (idx === undefined) continue
+    const cos: any[] = S.tagCos[String(idx)]
+    if (!cos) continue
+    for (const c of cos) { if (interSet.has(c.n.toLowerCase())) { sug.add(t); break } }
+  }
+  S.suggested = sug
+}
+
+// ═══════════════════ TAB COMPONENTS ═══════════════════
+
+function TagsTab({ S, addTag, removeTag, toggleTag, forceUpdate }: any) {
+  const [query, setQuery] = useState("")
+  const [results, setResults] = useState<string[]>([])
+  const [ctrySearch, setCtrySearch] = useState("")
+  const [showCtry, setShowCtry] = useState(false)
+
+  const s = S.current
+
+  useEffect(() => {
+    if (!query.trim()) { setResults([]); return }
+    const q = query.toLowerCase()
+    setResults(s.tags.filter((t: string) => t.toLowerCase().includes(q) && !s.sel.has(t)).slice(0, 15))
+  }, [query, s.tags, s.sel])
+
+  // Match count
+  const matchCount = (() => {
+    if (!s.sel.size && !s.selCtries.size) return ""
+    const sel = Array.from(s.sel) as string[]
+    let matchArr: string[] | null = null
+    if (sel.length) {
+      for (const t of sel) {
+        const idx = s.idxMap[t]
+        if (idx === undefined) continue
+        const cos = s.tagCos[String(idx)]
+        if (!cos) continue
+        const names: string[] = cos.map((c: any) => c.n)
+        if (matchArr === null) matchArr = names
+        else matchArr = matchArr.filter((n) => names.includes(n))
+      }
+    } else {
+      matchArr = []
+      for (const cos of Object.values(s.tagCos) as any) {
+        for (const e of cos) matchArr.push(e.n)
+      }
+    }
+    const n = matchArr ? matchArr.length : 0
+    return `${n} compan${n !== 1 ? "ies" : "y"}`
+  })()
+
+  const filteredCtrys = s.countries.filter((c: string) => !ctrySearch.trim() || c.toLowerCase().includes(ctrySearch.toLowerCase()))
+
+  return (
+    <div className="p-2.5 space-y-2 overflow-y-auto">
+      <div className="relative">
+        <Input placeholder="Search tags..." value={query} onChange={(e) => setQuery(e.target.value)} className="h-7 text-xs" />
+        {results.length > 0 && (
+          <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg shadow-xl z-10">
+            {results.map((t) => {
+              const idx = s.idxMap[t]
+              const cnt = idx !== undefined ? s.counts[idx] : 0
+              return (
+                <div key={t} className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer"
+                  onClick={() => { addTag(t); setQuery(""); setResults([]) }}>
+                  <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tcol(s, t) }}></span>
+                  <span className="flex-1">{t}</span>
+                  <span className="text-[10px] text-gray-600">{cnt}</span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Country selector */}
+      <div className="relative">
+        <div className="cursor-pointer px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-gray-400 transition-colors text-center select-none"
+          onClick={() => setShowCtry(!showCtry)}>
+          🌍 Country {s.selCtries.size > 0 && `(${s.selCtries.size})`}
+        </div>
+        {showCtry && (
+          <>
+            <div className="fixed inset-0 z-0" onClick={() => setShowCtry(false)} />
+            <div className="absolute top-full left-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg w-52 shadow-xl z-10">
+              <Input placeholder="Filter countries..." value={ctrySearch} onChange={(e) => setCtrySearch(e.target.value)} className="w-[calc(100%-12px)] mx-1.5 my-1.5 h-6 text-[11px]" />
+              {filteredCtrys.map((c: string) => {
+                const on = s.selCtries.has(c)
+                return (
+                  <div key={c} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer"
+                    onClick={() => { if (on) s.selCtries.delete(c); else s.selCtries.add(c); forceUpdate() }}>
+                    <span className={`w-3 h-3 rounded border flex items-center justify-center text-[8px] ${on ? "bg-white/15 border-white/30" : "border-white/20"}`}>
+                      {on ? "✓" : ""}
+                    </span>
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.ctryColors[c] }}></span>
+                    <span className="flex-1">{c}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Chips */}
+      <div className="flex flex-wrap gap-1 min-h-[20px]">
+        {(Array.from(s.sel) as string[]).map((t: string) => (
+          <span key={t} className="chip" onClick={() => removeTag(t)}>{t}<span className="cx ml-1">×</span></span>
+        ))}
+        {(Array.from(s.selCtries) as string[]).map((c: string) => (
+          <span key={c} className="chip" onClick={() => { s.selCtries.delete(c); forceUpdate() }}>
+            <span className="w-1.5 h-1.5 rounded-full inline-block mr-1" style={{ background: s.ctryColors[c] }}></span>
+            {c}<span className="cx ml-1">×</span>
+          </span>
+        ))}
+      </div>
+      {matchCount && <div className="text-[11px] text-gray-500">{matchCount}</div>}
+    </div>
+  )
+}
+
+function GapTab({ S }: any) {
+  const s = S.current
+  const ca = Array.from(s.selCtries) as string[]
+
+  if (ca.length < 2) {
+    return <div className="p-2.5 text-xs text-gray-600">Select at least 2 countries from the Tags tab.</div>
+  }
+
+  const tagPresence: Record<string, Set<number>> = {}
+  for (const c of ca) tagPresence[c] = new Set()
+  for (const [tiStr, cc] of Object.entries(s.tagCountries)) {
+    const idx = parseInt(tiStr)
+    for (const [ctry] of Object.entries(cc as Record<string, number>)) {
+      if (tagPresence[ctry]) tagPresence[ctry].add(idx)
+    }
+  }
+
+  const onlyA: number[] = []
+  const onlyB: number[] = []
+  const both: number[] = []
+  const neither: number[] = []
+  for (let i = 0; i < s.tags.length; i++) {
+    const inA = tagPresence[ca[0]]?.has(i)
+    const inB = tagPresence[ca[1]]?.has(i)
+    if (inA && !inB) onlyA.push(i)
+    else if (!inA && inB) onlyB.push(i)
+    else if (inA && inB) both.push(i)
+    else neither.push(i)
+  }
+
+  return (
+    <div className="p-2.5 overflow-y-auto text-xs space-y-1.5">
+      <div className="text-gray-400 font-medium mb-1">{ca[0]} vs {ca[1]}</div>
+      <div><span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: s.ctryColors[ca[0]] }}></span>
+        <span className="text-gray-300">Only in {ca[0]}</span> <span className="text-gray-600">({onlyA.length})</span>
+        <div className="pl-4 text-[10px] text-gray-600">{onlyA.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyA.length > 6 ? `, +${onlyA.length - 6} more` : ""}</div>
+      </div>
+      <div><span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: s.ctryColors[ca[1]] }}></span>
+        <span className="text-gray-300">Only in {ca[1]}</span> <span className="text-gray-600">({onlyB.length})</span>
+        <div className="pl-4 text-[10px] text-gray-600">{onlyB.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyB.length > 6 ? `, +${onlyB.length - 6} more` : ""}</div>
+      </div>
+      <div><span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
+        <span className="text-gray-300">Both</span> <span className="text-gray-600">({both.length})</span></div>
+      <div><span className="inline-block w-2 h-2 rounded-full bg-gray-700 mr-1"></span>
+        <span className="text-gray-300">Neither</span> <span className="text-gray-600">({neither.length})</span></div>
+    </div>
+  )
+}
+
+function CompaniesTab({ S }: any) {
+  const s = S.current
+  const sel = Array.from(s.sel) as string[]
+
+  let match: Set<string> | null = null
+  let mData: any = null
+
+  if (sel.length) {
+    for (const t of sel) {
+      const idx = s.idxMap[t]
+      if (idx === undefined) continue
+      const cos = s.tagCos[String(idx)] || []
+      const m = new Map(cos.map((c: any) => [c.n, c]))
+      if (match === null) { match = new Set(m.keys()) as Set<string>; mData = m } else match = new Set([...match].filter((n) => m.has(n))) as Set<string>
+    }
+  } else {
+    const m = new Map()
+    for (const cos of Object.values(s.tagCos) as any) {
+      for (const e of cos) if (!m.has(e.n)) m.set(e.n, e)
+    }
+    match = new Set(m.keys())
+    mData = m
+  }
+
+  const sorted = match ? Array.from(match).sort() : []
+
+  return (
+    <div className="p-2.5 overflow-y-auto">
+      {sorted.length === 0 ? (
+        <div className="text-xs text-gray-600 mt-4 text-center">Select tags to see companies.</div>
+      ) : (
+        sorted.map((n: string) => {
+          const c = mData instanceof Map ? mData.get(n) : mData[n]
+          const loc = c?.l?.length < 80 ? c.l : ""
+          const ctry = c?.c ? <span className="text-gray-600 text-[10px] ml-1.5">{c.c}</span> : null
+          return (
+            <div key={n} className="cpc" onClick={() => (window as any).showCDP?.(n)}>
+              <div className="cn">{n}{ctry}</div>
+              {loc && <div className="cl">{loc}</div>}
+            </div>
+          )
+        })
+      )}
+    </div>
+  )
+}
+
+function CompareTab({ S }: any) {
+  const s = S.current
+  const [aName, setAName] = useState("")
+  const [bName, setBName] = useState("")
+  const [result, setResult] = useState<any>(null)
+
+  const run = () => {
+    if (!aName.trim() || !bName.trim() || !s.companyLookup) { setResult(null); return }
+    const ca = s.companyLookup[aName.toLowerCase().trim()]
+    const cb = s.companyLookup[bName.toLowerCase().trim()]
+    if (!ca || !cb) { setResult({ error: "Company not found" }); return }
+    const tagsA = new Set<string>(ca.tags || [])
+    const tagsB = new Set<string>(cb.tags || [])
+    const shared: string[] = []
+    const onlyA: string[] = []
+    const onlyB: string[] = []
+    for (const t of tagsA) if (tagsB.has(t)) shared.push(t); else onlyA.push(t)
+    for (const t of tagsB) if (!tagsA.has(t)) onlyB.push(t)
+    setResult({ ca, cb, shared, onlyA, onlyB })
+  }
+
+  return (
+    <div className="p-2.5 overflow-y-auto text-xs">
+      <div className="text-gray-500 mb-2">Compare two companies by their tags.</div>
+      <div className="flex gap-2 mb-2">
+        <Input placeholder="Company A..." value={aName} onChange={(e) => setAName(e.target.value)} className="flex-1 h-7 text-xs" />
+        <Input placeholder="Company B..." value={bName} onChange={(e) => setBName(e.target.value)} className="flex-1 h-7 text-xs" />
+      </div>
+      <Button variant="outline" size="sm" onClick={run} className="w-full">Compare</Button>
+
+      {result?.error && <div className="text-gray-600 mt-2">{result.error}</div>}
+      {result?.ca && (
+        <div className="mt-2 space-y-1.5">
+          <div className="text-gray-400 font-medium mb-1">{result.ca.name} vs {result.cb.name}</div>
+          {[{ label: "Shared", tags: result.shared, color: "#4ade80" },
+            { label: `Only in ${result.ca.name}`, tags: result.onlyA, color: "#93c5fd" },
+            { label: `Only in ${result.cb.name}`, tags: result.onlyB, color: "#fca5a5" },
+          ].map((g) => (
+            <div key={g.label}>
+              <span className="text-gray-300">{g.label} ({g.tags.length})</span>
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {g.tags.map((t: string) => (
+                  <span key={t} className="inline-block px-1.5 py-0.5 rounded text-[10px] cursor-pointer"
+                    style={{ background: "rgba(255,255,255,0.04)", color: g.color }}
+                    onClick={() => {
+                      const idx = s.idxMap[t]
+                      if (idx !== undefined) { S.current.sel.add(t); updateSuggested(S.current) }
+                    }}>
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DeconTab({ S, ideaStatus, setIdeaStatus }: any) {
+  const s = S.current
+  const [text, setText] = useState("")
+  const [results, setResults] = useState<any[]>([])
+  const modelRef = useRef<any>(null)
+  const loadedRef = useRef(false)
+
+  useEffect(() => {
+    if (loadedRef.current) return
+    loadedRef.current = true
+    setIdeaStatus("Loading model (23MB)...")
+    import("@xenova/transformers").then(async (mod) => {
+      const p = await mod.pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
+      modelRef.current = p
+      setIdeaStatus("Ready.")
+      if (text.trim()) runDecon(text)
+    }).catch((e: any) => setIdeaStatus("Failed: " + e.message))
+  }, [])
+
+  const runDecon = async (txt: string) => {
+    if (!modelRef.current || !s.tagEmbs.length) return
+    setIdeaStatus("Embedding...")
+    try {
+      const out = await modelRef.current(txt, { pooling: "mean", normalize: true })
+      const vec = Array.from(out.data) as number[]
+      const sims = s.tagEmbs.map((emb: number[], i: number) => {
+        let dot = 0
+        for (let j = 0; j < vec.length; j++) dot += vec[j] * emb[j]
+        return { idx: i, sim: dot }
+      })
+      sims.sort((a: any, b: any) => b.sim - a.sim)
+      setResults(sims.slice(0, 10))
+      setIdeaStatus("Top 10 matches.")
+    } catch (e: any) {
+      setIdeaStatus("Error: " + e.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!text.trim()) { setResults([]); return }
+    const timer = setTimeout(() => runDecon(text), 500)
+    return () => clearTimeout(timer)
+  }, [text])
+
+  return (
+    <div className="p-2.5 overflow-y-auto">
+      <div className="text-[11px] text-gray-500 mb-2">Describe your idea and see where it lands.</div>
+      <textarea placeholder="Describe your product or idea..." rows={3} value={text}
+        onChange={(e) => setText(e.target.value)}
+        className="w-full px-2.5 py-2 bg-muted border border-input rounded-lg text-xs text-foreground placeholder-muted-foreground outline-none focus:border-ring resize-none" />
+      <div className="text-[10px] text-gray-600 mt-1">{ideaStatus}</div>
+      <div className="mt-2 space-y-1">
+        {results.map((r: any, i: number) => {
+          const t = s.tags[r.idx]
+          const col = tcol(s, t)
+          const cnt = s.counts[r.idx]
+          const pct = (r.sim * 100).toFixed(0)
+          return (
+            <div key={r.idx} className="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-white/5 cursor-pointer"
+              onClick={() => { S.current.sel.add(t); updateSuggested(S.current) }}>
+              <span className="text-[10px] text-gray-500 w-4 text-right">{i + 1}</span>
+              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: col }}></span>
+              <span className="text-xs text-gray-200 flex-1">{t}</span>
+              <span className="text-[10px] text-gray-500">{pct}%</span>
+              <span className="text-[10px] text-gray-600">{cnt} co.</span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function CompanyDetail({ S, addTag, setTab }: any) {
+  const s = S.current
+  const [visible, setVisible] = useState(false)
+  const [name, setName] = useState("")
+
+  useEffect(() => {
+    ; (window as any).showCDP = (n: string) => { setName(n); setVisible(true) }
+    ; (window as any).closeCDP = () => setVisible(false)
+    return () => { delete (window as any).showCDP; delete (window as any).closeCDP }
+  }, [])
+
+  const c = s.companyLookup?.[name.toLowerCase().trim()]
+
+  return (
+    <Dialog open={visible} onOpenChange={setVisible}>
+      <DialogContent className="min-w-[340px] max-w-[440px]">
+        <DialogTitle className="text-base font-semibold text-foreground">{name}</DialogTitle>
+        {c ? (
+          <div className="space-y-1.5 text-sm mt-2">
+            {c.source && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Source</span><span className="text-foreground">{c.source}</span></div>}
+            {(c.description as string) && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Description</span><span className="text-foreground">{c.description}</span></div>}
+            {c.location && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Location</span><span className="text-foreground">{c.location}</span></div>}
+            {c.country && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Country</span><span className="text-foreground">{c.country}</span></div>}
+            {c.types?.length && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Industry</span><span className="text-foreground">{c.types.join(", ")}</span></div>}
+            {c.tags?.length && (
+              <div className="flex flex-wrap gap-1 mt-2">
+                {c.tags.map((t: string) => (
+                  <span key={t} className="px-2 py-0.5 bg-muted rounded-lg text-xs text-muted-foreground cursor-pointer hover:text-foreground"
+                    onClick={() => addTag(t)}>{t}</span>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2 mt-3">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "A"); setTab("compare"); setVisible(false) }}>Compare as A</Button>
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "B"); setTab("compare"); setVisible(false) }}>Compare as B</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="text-sm text-muted-foreground mt-2">No additional data available.</div>
+        )}
+      </DialogContent>
+    </Dialog>
+  )
+}

@@ -3,6 +3,9 @@ import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google"
 import { ThemeProvider } from "next-themes"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+import Script from "next/script"
 import "./globals.css"
 
 const spaceGrotesk = Space_Grotesk({
@@ -66,6 +69,21 @@ export default function RootLayout({
             <Toaster />
           </TooltipProvider>
         </ThemeProvider>
+        <Analytics />
+        <SpeedInsights />
+        {process.env.NEXT_PUBLIC_GA_ID && (
+          <>
+            <Script src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`} strategy="afterInteractive" />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${process.env.NEXT_PUBLIC_GA_ID}');
+              `}
+            </Script>
+          </>
+        )}
       </body>
     </html>
   )
