@@ -68,11 +68,14 @@ export default function GraphClient() {
         }))
         .then((mod) => { s.wasm = mod.instance.exports })
         .catch(() => {}),
-      fetch("/graph/all_companies.json")
+      fetch("/graph/companies_light.json")
         .then((r) => r.json())
         .then((cs) => {
           s.companyLookup = {}
-          for (const c of cs) s.companyLookup[c.name.toLowerCase().trim()] = c
+          for (const c of cs) {
+            const key = (c.n || '').toLowerCase().trim()
+            if (key) s.companyLookup[key] = { name: c.n, tags: c.t || [], country: c.c || '', source: c.s || '', description: '' }
+          }
         })
         .catch(() => {}),
     ]).then(([d]) => {
@@ -1039,10 +1042,7 @@ function CompanyDetail({ S, addTag, setTab }: any) {
         {c ? (
           <div className="space-y-1.5 text-sm mt-2">
             {c.source && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Source</span><span className="text-foreground">{c.source}</span></div>}
-            {(c.description as string) && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Description</span><span className="text-foreground">{c.description}</span></div>}
-            {c.location && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Location</span><span className="text-foreground">{c.location}</span></div>}
             {c.country && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Country</span><span className="text-foreground">{c.country}</span></div>}
-            {c.types?.length && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Industry</span><span className="text-foreground">{c.types.join(", ")}</span></div>}
             {c.tags?.length && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {c.tags.map((t: string) => (
