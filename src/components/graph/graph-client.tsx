@@ -528,7 +528,7 @@ export default function GraphClient() {
 
       {/* Legend */}
       <div id="legend" className="fixed top-0 left-0 w-[300px] h-full z-10 overflow-y-auto border-r border-border-metal transition-transform duration-300 pt-12 pb-4" style={{ background: "rgba(13,21,21,0.98)" }}>
-        <div className="px-4 pb-2 text-[11px] font-semibold tracking-widest text-gray-500 uppercase">Tags</div>
+        <div className="px-4 pb-2 font-mono text-[11px] font-medium tracking-[0.06em] text-outline uppercase">Tags</div>
         <div ref={legendRef} id="ltree"></div>
       </div>
 
@@ -541,7 +541,7 @@ export default function GraphClient() {
       {/* Right Panel */}
       <div className="fixed top-3 right-3 z-10 w-[280px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col flex-1 min-h-0">
-          <TabsList className="w-full justify-start rounded-none border-b border-white/10 bg-transparent px-0">
+          <TabsList className="w-full justify-start rounded-none border-b border-border-metal bg-transparent px-0">
             {["tags", "gap", "companies", "compare", "decon"].map((t) => (
               <TabsTrigger key={t} value={t} className="flex-1 text-[11px] h-8 rounded-none data-active:bg-transparent data-active:border-b-2 data-active:border-primary data-active:text-foreground">
                 {t === "tags" ? "Tags" : t === "gap" ? "Gap" : t === "decon" ? "Decon" : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -737,16 +737,16 @@ function TagsTab({ S, addTag, toggleTag, updateChipsDOM }: any) {
       <div className="relative">
         <Input placeholder="Search tags..." value={query} onChange={(e) => setQuery(e.target.value)} className="h-7 text-xs" />
         {results.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg shadow-xl z-10">
+          <div className="absolute top-full left-0 right-0 mt-1 bg-surface/98 border border-border-metal rounded-lg shadow-xl z-10">
             {results.map((t) => {
               const idx = s.idxMap[t]
               const cnt = idx !== undefined ? s.counts[idx] : 0
               return (
-                <div key={t} className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer"
+                <div key={t} className="flex items-center gap-2 px-3 py-1.5 text-xs text-outline hover:bg-surface-variant hover:text-foreground cursor-pointer"
                   onClick={() => { addTag(t); setQuery(""); setResults([]) }}>
                   <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: tcol(s, t) }}></span>
                   <span className="flex-1">{t}</span>
-                  <span className="text-[10px] text-gray-600">{cnt}</span>
+                  <span className="text-[10px] text-muted-foreground">{cnt}</span>
                 </div>
               )
             })}
@@ -756,21 +756,21 @@ function TagsTab({ S, addTag, toggleTag, updateChipsDOM }: any) {
 
       {/* Country selector */}
       <div className="relative">
-        <div className="cursor-pointer px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-gray-400 transition-colors text-center select-none"
+        <div className="cursor-pointer px-2.5 py-1.5 bg-surface hover:bg-surface-variant border border-border-metal rounded-lg text-xs text-outline transition-colors text-center select-none"
           onClick={() => setShowCtry(!showCtry)}>
           🌍 Country {s.selCtries.size > 0 && `(${s.selCtries.size})`}
         </div>
         {showCtry && (
           <>
             <div className="fixed inset-0 z-0" onClick={() => setShowCtry(false)} />
-            <div className="absolute top-full left-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg w-52 shadow-xl z-10">
+            <div className="absolute top-full left-0 mt-1 bg-surface/98 border border-border-metal rounded-lg w-52 shadow-xl z-10">
               <Input placeholder="Filter countries..." value={ctrySearch} onChange={(e) => setCtrySearch(e.target.value)} className="w-[calc(100%-12px)] mx-1.5 my-1.5 h-6 text-[11px]" />
               {filteredCtrys.map((c: string) => {
                 const on = s.selCtries.has(c)
                 return (
-                  <div key={c} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer"
+                  <div key={c} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-outline hover:bg-surface-variant hover:text-foreground cursor-pointer"
                     onClick={() => { if (on) s.selCtries.delete(c); else s.selCtries.add(c); updateChipsDOM() }}>
-                    <span className={`w-3 h-3 rounded border flex items-center justify-center text-[8px] ${on ? "bg-white/15 border-white/30" : "border-white/20"}`}>
+                    <span className={`w-3 h-3 rounded border flex items-center justify-center text-[8px] ${on ? "bg-surface-variant border-border-metal" : "border-border-metal"}`}>
                       {on ? "✓" : ""}
                     </span>
                     <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: s.ctryColors[c] }}></span>
@@ -785,7 +785,7 @@ function TagsTab({ S, addTag, toggleTag, updateChipsDOM }: any) {
 
       {/* Chips (DOM-managed) */}
       <div id="tab-tags-cc" className="flex flex-wrap gap-1 min-h-[20px]"></div>
-      <div id="tab-tags-mc" className="text-[11px] text-gray-500 min-h-[16px]"></div>
+      <div id="tab-tags-mc" className="text-[11px] text-muted-foreground min-h-[16px]"></div>
     </div>
   )
 }
@@ -795,7 +795,7 @@ function GapTab({ S }: any) {
   const ca = Array.from(s.selCtries) as string[]
 
   if (ca.length < 2) {
-    return <div className="p-2.5 text-xs text-gray-600">Select at least 2 countries from the Tags tab.</div>
+    return <div className="p-2.5 text-xs text-muted-foreground">Select at least 2 countries from the Tags tab.</div>
   }
 
   const tagPresence: Record<string, Set<number>> = {}
@@ -822,19 +822,19 @@ function GapTab({ S }: any) {
 
   return (
     <div className="p-2.5 overflow-y-auto text-xs space-y-1.5">
-      <div className="text-gray-400 font-medium mb-1">{ca[0]} vs {ca[1]}</div>
+      <div className="text-outline font-mono text-[11px] uppercase tracking-[0.06em] mb-1">{ca[0]} vs {ca[1]}</div>
       <div><span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: s.ctryColors[ca[0]] }}></span>
-        <span className="text-gray-300">Only in {ca[0]}</span> <span className="text-gray-600">({onlyA.length})</span>
-        <div className="pl-4 text-[10px] text-gray-600">{onlyA.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyA.length > 6 ? `, +${onlyA.length - 6} more` : ""}</div>
+        <span className="text-foreground/80">Only in {ca[0]}</span> <span className="text-muted-foreground">({onlyA.length})</span>
+        <div className="pl-4 text-[10px] text-muted-foreground">{onlyA.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyA.length > 6 ? `, +${onlyA.length - 6} more` : ""}</div>
       </div>
       <div><span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: s.ctryColors[ca[1]] }}></span>
-        <span className="text-gray-300">Only in {ca[1]}</span> <span className="text-gray-600">({onlyB.length})</span>
-        <div className="pl-4 text-[10px] text-gray-600">{onlyB.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyB.length > 6 ? `, +${onlyB.length - 6} more` : ""}</div>
+        <span className="text-foreground/80">Only in {ca[1]}</span> <span className="text-muted-foreground">({onlyB.length})</span>
+        <div className="pl-4 text-[10px] text-muted-foreground">{onlyB.slice(0, 6).map((i) => s.tags[i]).join(", ")}{onlyB.length > 6 ? `, +${onlyB.length - 6} more` : ""}</div>
       </div>
-      <div><span className="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1"></span>
-        <span className="text-gray-300">Both</span> <span className="text-gray-600">({both.length})</span></div>
-      <div><span className="inline-block w-2 h-2 rounded-full bg-gray-700 mr-1"></span>
-        <span className="text-gray-300">Neither</span> <span className="text-gray-600">({neither.length})</span></div>
+      <div><span className="inline-block w-2 h-2 rounded-full bg-outline mr-1"></span>
+        <span className="text-foreground/80">Both</span> <span className="text-muted-foreground">({both.length})</span></div>
+      <div><span className="inline-block w-2 h-2 rounded-full bg-muted mr-1"></span>
+        <span className="text-foreground/80">Neither</span> <span className="text-muted-foreground">({neither.length})</span></div>
     </div>
   )
 }
@@ -868,12 +868,12 @@ function CompaniesTab({ S }: any) {
   return (
     <div className="p-2.5 overflow-y-auto">
       {sorted.length === 0 ? (
-        <div className="text-xs text-gray-600 mt-4 text-center">Select tags to see companies.</div>
+        <div className="text-xs text-muted-foreground mt-4 text-center">Select tags to see companies.</div>
       ) : (
         sorted.map((n: string) => {
           const c = mData instanceof Map ? mData.get(n) : mData[n]
           const loc = c?.l?.length < 80 ? c.l : ""
-          const ctry = c?.c ? <span className="text-gray-600 text-[10px] ml-1.5">{c.c}</span> : null
+          const ctry = c?.c ? <span className="text-muted-foreground text-[10px] ml-1.5">{c.c}</span> : null
           return (
             <div key={n} className="cpc" onClick={() => (window as any).showCDP?.(n)}>
               <div className="cn">{n}{ctry}</div>
