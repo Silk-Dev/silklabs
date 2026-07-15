@@ -130,6 +130,38 @@ export default function GraphClient() {
       const scaled = SCALED.current
       if (!scaled.length) { animId = requestAnimationFrame(draw); return }
 
+      // Camera animation (lerp toward target)
+      if (camTarget) {
+        const tx = camTarget.x, ty = camTarget.y
+        const dx = tx - s.tx, dy = ty - s.ty
+        if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) { s.tx = tx; s.ty = ty; camTarget = null }
+        else { s.tx += dx * CAM_LERP; s.ty += dy * CAM_LERP }
+      }
+
+      // Hover smudge: pull connected nodes toward hovered
+      if (s.hoverIdx >= 0 && s.edges) {
+        const hx = scaled[s.hoverIdx][0], hy = scaled[s.hoverIdx][1]
+        const connected = new Set<number>()
+        for (const e of s.edges) {
+          const a = e[0] as number, b = e[1] as number
+          if (a === s.hoverIdx) connected.add(b)
+          if (b === s.hoverIdx) connected.add(a)
+        }
+        if (connected.size > 0) {
+          const pullMax = 0.3 / s.scale
+          for (const ci of connected) {
+            const [cx, cy] = scaled[ci] || [0, 0]
+            const dx = hx - cx, dy = hy - cy
+            const dist = Math.sqrt(dx * dx + dy * dy)
+            if (dist > 0) {
+              const pull = Math.min(pullMax, pullMax * (4 / dist))
+              scaled[ci][0] += dx * pull
+              scaled[ci][1] += dy * pull
+            }
+          }
+        }
+      }
+
       const visible = cullNodes(s, SCALED.current, W, H)
       const visSet = visible ? new Set(visible) : null
 
@@ -333,10 +365,14 @@ export default function GraphClient() {
       animId = requestAnimationFrame(draw)
     }
 
+    // Camera animation state
+    let camTarget: { x: number; y: number } | null = null
+    const CAM_LERP = 0.08
+
     animId = requestAnimationFrame(draw)
 
     // ─── Interaction handlers ───
-    const hitTest = (px: number, py: number) => {
+    const hitTest = (px: number, py: number, useSmudge = false) => {
       const [wx, wy] = screenToWorld(s, px, py, W, H)
       const maxC = Math.max(...s.counts)
       let best = -1
@@ -362,12 +398,15 @@ export default function GraphClient() {
       s.dragOy = e.clientY
       s.dragTx = s.tx
       s.dragTy = s.ty
+      // Cancel camera animation on drag
+      camTarget = null
     }
 
     const onMouseMove = (e: MouseEvent) => {
       if (s.drag) {
         s.tx = s.dragTx - (e.clientX - s.dragOx) / s.scale
         s.ty = s.dragTy - (e.clientY - s.dragOy) / s.scale
+        camTarget = null
       }
       const idx = hitTest(e.clientX, e.clientY)
       if (idx !== s.hoverIdx) {
@@ -394,7 +433,12 @@ export default function GraphClient() {
     const onClick = (e: MouseEvent) => {
       if (s.drag && (Math.abs(e.clientX - s.dragOx) > 3 || Math.abs(e.clientY - s.dragOy) > 3)) return
       const idx = hitTest(e.clientX, e.clientY)
-      if (idx >= 0) toggleTag(s.tags[idx])
+      if (idx >= 0) {
+        toggleTag(s.tags[idx])
+        // Animate camera to center on clicked node
+        const [x, y] = SCALED.current[idx] || [0, 0]
+        camTarget = { x, y }
+      }
     }
 
     canvas!.addEventListener("mousedown", onMouseDown)
@@ -1049,21 +1093,37 @@ function CompanyDetail({ S, addTag, setTab }: any) {
 
   return (
     <Dialog open={visible} onOpenChange={setVisible}>
-      <DialogContent className="min-w-[340px] max-w-[440px]">
+      <DialogContent className="min-w-[380px] max-w-[480px]">
         <DialogTitle className="text-base font-semibold text-foreground">{name}</DialogTitle>
         {c ? (
-          <div className="space-y-1.5 text-sm mt-2">
-            {c.source && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Source</span><span className="text-foreground">{c.source}</span></div>}
-            {c.country && <div className="flex gap-2"><span className="text-muted-foreground shrink-0 w-20">Country</span><span className="text-foreground">{c.country}</span></div>}
-            {c.tags?.length && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {c.tags.map((t: string) => (
-                  <span key={t} className="px-2 py-0.5 bg-muted rounded-lg text-xs text-muted-foreground cursor-pointer hover:text-foreground"
-                    onClick={() => addTag(t)}>{t}</span>
-                ))}
+          <div className="mt-3 space-y-4 text-sm">
+            {/* SOURCE */}
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground mb-1">Source</div>
+              <div className="text-foreground">{c.source || "—"}</div>
+            </div>
+            {/* COUNTRY */}
+            {c.country && (
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground mb-1">Country</div>
+                <div className="text-foreground">{c.country}</div>
               </div>
             )}
-            <div className="flex gap-2 mt-3">
+            {/* CONNECTS TO (tags) */}
+            {c.tags?.length && (
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.06em] text-muted-foreground mb-2">Connects to</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {c.tags.map((t: string) => (
+                    <button key={t}
+                      className="px-2.5 py-1 text-xs text-foreground/80 bg-surface-variant rounded-full hover:bg-muted-foreground/20 transition-colors"
+                      onClick={() => addTag(t)}>{t}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Actions */}
+            <div className="flex gap-2 pt-2 border-t border-border-metal">
               <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "A"); setTab("compare"); setVisible(false) }}>Compare as A</Button>
               <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "B"); setTab("compare"); setVisible(false) }}>Compare as B</Button>
             </div>
