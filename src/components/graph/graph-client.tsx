@@ -8,18 +8,18 @@ import { Input } from "@/components/ui/input"
 
 // ─── Constants ───
 const COLS: Record<string, string> = {
-  "Artificial Intelligence": "#9333EA",
-  "Hardware & Robotics": "#F59E0B",
-  "Enterprise Software & SaaS": "#3B82F6",
-  Fintech: "#10B981",
-  "Healthcare & Biotech": "#EF4444",
-  "Consumer & E-commerce": "#EC4899",
-  "Education & HR": "#8B5CF6",
-  "Media & Entertainment": "#F97316",
-  "Climate & Energy": "#22C55E",
-  "Transportation & Logistics": "#06B6D4",
-  "Security & Infrastructure": "#6366F1",
-  "Legal, Gov & Civic Tech": "#A855F7",
+  "Artificial Intelligence": "#00f0ff",
+  "Hardware & Robotics": "#ff5c00",
+  "Enterprise Software & SaaS": "#60a5fa",
+  Fintech: "#34d399",
+  "Healthcare & Biotech": "#f87171",
+  "Consumer & E-commerce": "#f472b6",
+  "Education & HR": "#a78bfa",
+  "Media & Entertainment": "#fb923c",
+  "Climate & Energy": "#4ade80",
+  "Transportation & Logistics": "#22d3ee",
+  "Security & Infrastructure": "#818cf8",
+  "Legal, Gov & Civic Tech": "#c084fc",
 }
 const CATS = Object.keys(COLS)
 const CTRY_COLS = [
@@ -481,22 +481,22 @@ export default function GraphClient() {
   return (
     <>
       {/* Canvas */}
-      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" />
+      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" style={{ background: "#0d1515" }} />
 
       {/* Legend */}
-      <div id="legend" className="fixed top-0 left-0 w-[300px] h-full z-10 overflow-y-auto border-r border-white/10 transition-transform duration-300 pt-12 pb-4" style={{ background: "rgba(15,15,19,0.96)" }}>
+      <div id="legend" className="fixed top-0 left-0 w-[300px] h-full z-10 overflow-y-auto border-r border-border-metal transition-transform duration-300 pt-12 pb-4" style={{ background: "rgba(13,21,21,0.98)" }}>
         <div className="px-4 pb-2 text-[11px] font-semibold tracking-widest text-gray-500 uppercase">Tags</div>
         <div ref={legendRef} id="ltree"></div>
       </div>
 
       {/* Legend toggle */}
-      <div id="ltog" className="fixed top-3 left-[310px] z-11 flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 cursor-pointer text-sm transition-colors"
+      <div id="ltog" className="fixed top-3 left-[310px] z-11 flex items-center justify-center w-8 h-8 bg-surface hover:bg-surface/80 border border-border-metal rounded-lg text-outline cursor-pointer text-sm transition-colors"
         onClick={() => document.getElementById("legend")?.classList.toggle("collapsed")}>
         ☰
       </div>
 
       {/* Right Panel */}
-      <div className="fixed top-3 right-3 z-10 w-[280px] bg-[#0e0e16] border border-white/10 rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
+      <div className="fixed top-3 right-3 z-10 w-[280px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col flex-1 min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b border-white/10 bg-transparent px-0">
             {["tags", "gap", "companies", "compare", "decon"].map((t) => (
@@ -522,10 +522,10 @@ export default function GraphClient() {
       <CompanyDetail S={S} addTag={addTag} setTab={setTab} />
 
       {/* Tooltip */}
-      <div id="tt" className="fixed z-20 bg-[#14141c]/96 border border-white/10 rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl">
-        <div className="ttn text-white font-medium"></div>
-        <div className="ttc text-gray-500 mt-0.5"></div>
-        <div className="tcat text-gray-600 text-[10px] mt-0.5"></div>
+      <div id="tt" className="fixed z-20 bg-surface/96 border border-border-metal rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl">
+        <div className="ttn text-foreground font-medium"></div>
+        <div className="ttc text-outline mt-0.5"></div>
+        <div className="tcat text-muted-foreground text-[10px] mt-0.5"></div>
       </div>
     </>
   )

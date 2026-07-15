@@ -281,4 +281,167 @@
     position: relative;
     z-index: 1;
   }
+
+  /* ── Graph legend dynamic styles ── */
+  .lc {
+    margin: 0 6px 2px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .lc:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .lch {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #dbfcff;
+    user-select: none;
+    border-radius: 5px;
+  }
+  .lch .ar {
+    width: 14px;
+    text-align: center;
+    transition: transform 0.2s;
+    font-size: 9px;
+    color: #555;
+  }
+  .lch .ar.on {
+    transform: rotate(90deg);
+  }
+  .lch .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .lch .cnt {
+    font-size: 10px;
+    color: #666;
+    margin-left: auto;
+  }
+  .lsc {
+    padding-left: 20px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s;
+  }
+  .lsc.on {
+    max-height: 2000px;
+  }
+  .ls {
+    margin: 1px 0;
+  }
+  .lsh {
+    display: flex;
+    align-items: center;
+    padding: 4px 6px;
+    gap: 5px;
+    font-size: 11px;
+    color: #aaa;
+    cursor: pointer;
+    border-radius: 3px;
+    user-select: none;
+  }
+  .lsh:hover {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .lsh .ar {
+    width: 10px;
+    text-align: center;
+    transition: transform 0.2s;
+    font-size: 8px;
+    color: #555;
+  }
+  .lsh .ar.on {
+    transform: rotate(90deg);
+  }
+  .ltg {
+    padding-left: 14px;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.2s;
+  }
+  .ltg.on {
+    max-height: 2000px;
+  }
+  .lt {
+    display: flex;
+    align-items: center;
+    padding: 2px 6px;
+    gap: 5px;
+    font-size: 10px;
+    color: #777;
+    cursor: pointer;
+    border-radius: 2px;
+    user-select: none;
+    transition: all 0.1s;
+  }
+  .lt:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ccc;
+  }
+  .lt.sel {
+    color: #dbfcff;
+    font-weight: 500;
+  }
+  .lt .td {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  .lt.sel .td {
+    opacity: 1;
+  }
+  .lt .tc {
+    font-size: 9px;
+    color: #555;
+    margin-left: auto;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 7px 2px 9px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    font-size: 11px;
+    color: #ccc;
+    cursor: pointer;
+  }
+  .chip:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+  .chip .cx {
+    font-size: 13px;
+    color: #555;
+    margin-left: 2px;
+    line-height: 1;
+  }
+  .chip .cx:hover {
+    color: #dbfcff;
+  }
+  .cpc {
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+  }
+  .cpc:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .cpc .cn {
+    font-size: 13px;
+    font-weight: 500;
+    color: #dbfcff;
+  }
+  .cpc .cl {
+    font-size: 11px;
+    color: #555;
+    margin-top: 2px;
+  }
 }
