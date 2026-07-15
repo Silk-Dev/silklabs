@@ -544,20 +544,17 @@ export default function GraphClient() {
       {/* Canvas */}
       <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" style={{ background: "#0d1515" }} />
 
-      {/* Legend */}
-      <div id="legend" className="fixed top-0 left-0 w-[300px] h-full z-10 overflow-y-auto border-r border-border-metal transition-transform duration-300 pt-12 pb-4" style={{ background: "rgba(13,21,21,0.98)" }}>
-        <div className="px-4 pb-2 font-mono text-[11px] font-medium tracking-[0.06em] text-outline uppercase">Tags</div>
-        <div ref={legendRef} id="ltree"></div>
-      </div>
+      {/* Right Panel (combined legend + tabs) */}
+      <div className="fixed top-3 right-3 z-10 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
+        {/* Collapsible legend section */}
+        <details className="group border-b border-border-metal [&_summary::-webkit-details-marker]:hidden" open>
+          <summary className="flex items-center gap-2 px-3 py-2 font-mono text-[11px] font-medium tracking-[0.06em] text-outline uppercase cursor-pointer select-none hover:text-foreground">
+            <span className="ar on">▶</span> Tags ({S.current.tags.length})
+          </summary>
+          <div ref={legendRef} className="overflow-y-auto max-h-[35vh] border-t border-border-metal pt-1"></div>
+        </details>
 
-      {/* Legend toggle */}
-      <div id="ltog" className="fixed top-3 left-[310px] z-11 flex items-center justify-center w-8 h-8 bg-surface hover:bg-surface/80 border border-border-metal rounded-lg text-outline cursor-pointer text-sm transition-colors"
-        onClick={() => document.getElementById("legend")?.classList.toggle("collapsed")}>
-        ☰
-      </div>
-
-      {/* Right Panel */}
-      <div className="fixed top-3 right-3 z-10 w-[280px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
+        {/* Tabs */}
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col flex-1 min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b border-border-metal bg-transparent px-0">
             {["tags", "gap", "companies", "compare", "decon"].map((t) => (
