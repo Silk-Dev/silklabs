@@ -273,14 +273,16 @@ export default function GraphClient() {
         else if (isSug && sel.size > 0) ctx.globalAlpha = 0.5
         else ctx.globalAlpha = sel.size === 0 ? 1 : 0.15
 
-        // Glow
-        const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5)
-        grd.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl ? 0.25 : 0.05})`)
-        grd.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`)
-        ctx.fillStyle = grd
-        ctx.beginPath()
-        ctx.arc(x, y, r * 2.5, 0, Math.PI * 2)
-        ctx.fill()
+        // Glow (only for highlighted nodes)
+        if (hl || isSug) {
+          const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5)
+          grd.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl ? 0.25 : 0.08})`)
+          grd.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`)
+          ctx.fillStyle = grd
+          ctx.beginPath()
+          ctx.arc(x, y, r * 2.5, 0, Math.PI * 2)
+          ctx.fill()
+        }
 
         // Circle
         ctx.beginPath()
@@ -409,31 +411,72 @@ export default function GraphClient() {
     }
   }, [ready])
 
-  // ─── Tag selection ───
+  // ─── Tag selection (DOM-only update, no React re-render) ───
+  const updateChipsDOM = useCallback(() => {
+    const el = document.getElementById("tab-tags-cc")
+    if (!el) return
+    const s = S.current
+    el.innerHTML = ""
+    for (const t of s.sel) {
+      const c = document.createElement("span")
+      c.className = "chip"
+      c.innerHTML = `${t}<span class="cx ml-1">×</span>`
+      c.onclick = () => { s.sel.delete(t); updateSuggested(s); updateChipsDOM() }
+      el.appendChild(c)
+    }
+    for (const c of s.selCtries) {
+      const ch = document.createElement("span")
+      ch.className = "chip"
+      ch.innerHTML = `<span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background:${s.ctryColors[c]}"></span>${c}<span class="cx ml-1">×</span>`
+      ch.onclick = () => { s.selCtries.delete(c); updateChipsDOM() }
+      el.appendChild(ch)
+    }
+    // Match count
+    const mc = document.getElementById("tab-tags-mc")
+    if (!mc) return
+    if (!s.sel.size && !s.selCtries.size) { mc.textContent = ""; return }
+    const selArr = Array.from(s.sel) as string[]
+    let match: string[] | null = null
+    if (selArr.length) {
+      for (const t of selArr) {
+        const idx = s.idxMap[t]
+        if (idx === undefined) continue
+        const cos = s.tagCos[String(idx)]
+        if (!cos) continue
+        const names = cos.map((c: any) => c.n)
+        if (match === null) match = names
+        else match = match.filter((n) => names.includes(n))
+      }
+    } else {
+      match = []
+      for (const cos of Object.values(s.tagCos) as any) {
+        for (const e of cos) match.push(e.n)
+      }
+    }
+    const n = match ? match.length : 0
+    mc.textContent = `${n} compan${n !== 1 ? "ies" : "y"}`
+  }, [])
+
   const addTag = useCallback((t: string) => {
     const s = S.current
     if (s.sel.has(t)) return
     s.sel.add(t)
     updateSuggested(s)
-    forceUpdate()
-  }, [])
+    updateChipsDOM()
+  }, [updateChipsDOM])
 
   const removeTag = useCallback((t: string) => {
     const s = S.current
     if (!s.sel.has(t)) return
     s.sel.delete(t)
     updateSuggested(s)
-    forceUpdate()
-  }, [])
+    updateChipsDOM()
+  }, [updateChipsDOM])
 
   const toggleTag = useCallback((t: string) => {
     if (S.current.sel.has(t)) removeTag(t)
     else addTag(t)
   }, [addTag, removeTag])
-
-  // Force re-render for state changes
-  const [, setTick] = useState(0)
-  const forceUpdate = useCallback(() => setTick((t) => t + 1), [])
 
   // ─── Build legend (once ready) ───
   const legendRef = useRef<HTMLDivElement>(null)
@@ -507,7 +550,7 @@ export default function GraphClient() {
           </TabsList>
 
           <TabsContent value="tags" className="flex-1 overflow-y-auto p-2.5 space-y-2 mt-0">
-            <TagsTab S={S} addTag={addTag} removeTag={removeTag} toggleTag={toggleTag} forceUpdate={forceUpdate} />
+            <TagsTab S={S} addTag={addTag} toggleTag={toggleTag} updateChipsDOM={updateChipsDOM} />
           </TabsContent>
           <TabsContent value="gap" className="flex-1 overflow-y-auto p-2.5 mt-0"><GapTab S={S} /></TabsContent>
           <TabsContent value="companies" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompaniesTab S={S} /></TabsContent>
@@ -673,7 +716,7 @@ function updateSuggested(S: any) {
 
 // ═══════════════════ TAB COMPONENTS ═══════════════════
 
-function TagsTab({ S, addTag, removeTag, toggleTag, forceUpdate }: any) {
+function TagsTab({ S, addTag, toggleTag, updateChipsDOM }: any) {
   const [query, setQuery] = useState("")
   const [results, setResults] = useState<string[]>([])
   const [ctrySearch, setCtrySearch] = useState("")
@@ -686,31 +729,6 @@ function TagsTab({ S, addTag, removeTag, toggleTag, forceUpdate }: any) {
     const q = query.toLowerCase()
     setResults(s.tags.filter((t: string) => t.toLowerCase().includes(q) && !s.sel.has(t)).slice(0, 15))
   }, [query, s.tags, s.sel])
-
-  // Match count
-  const matchCount = (() => {
-    if (!s.sel.size && !s.selCtries.size) return ""
-    const sel = Array.from(s.sel) as string[]
-    let matchArr: string[] | null = null
-    if (sel.length) {
-      for (const t of sel) {
-        const idx = s.idxMap[t]
-        if (idx === undefined) continue
-        const cos = s.tagCos[String(idx)]
-        if (!cos) continue
-        const names: string[] = cos.map((c: any) => c.n)
-        if (matchArr === null) matchArr = names
-        else matchArr = matchArr.filter((n) => names.includes(n))
-      }
-    } else {
-      matchArr = []
-      for (const cos of Object.values(s.tagCos) as any) {
-        for (const e of cos) matchArr.push(e.n)
-      }
-    }
-    const n = matchArr ? matchArr.length : 0
-    return `${n} compan${n !== 1 ? "ies" : "y"}`
-  })()
 
   const filteredCtrys = s.countries.filter((c: string) => !ctrySearch.trim() || c.toLowerCase().includes(ctrySearch.toLowerCase()))
 
@@ -751,7 +769,7 @@ function TagsTab({ S, addTag, removeTag, toggleTag, forceUpdate }: any) {
                 const on = s.selCtries.has(c)
                 return (
                   <div key={c} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] text-gray-400 hover:bg-white/5 hover:text-white cursor-pointer"
-                    onClick={() => { if (on) s.selCtries.delete(c); else s.selCtries.add(c); forceUpdate() }}>
+                    onClick={() => { if (on) s.selCtries.delete(c); else s.selCtries.add(c); updateChipsDOM() }}>
                     <span className={`w-3 h-3 rounded border flex items-center justify-center text-[8px] ${on ? "bg-white/15 border-white/30" : "border-white/20"}`}>
                       {on ? "✓" : ""}
                     </span>
@@ -765,19 +783,9 @@ function TagsTab({ S, addTag, removeTag, toggleTag, forceUpdate }: any) {
         )}
       </div>
 
-      {/* Chips */}
-      <div className="flex flex-wrap gap-1 min-h-[20px]">
-        {(Array.from(s.sel) as string[]).map((t: string) => (
-          <span key={t} className="chip" onClick={() => removeTag(t)}>{t}<span className="cx ml-1">×</span></span>
-        ))}
-        {(Array.from(s.selCtries) as string[]).map((c: string) => (
-          <span key={c} className="chip" onClick={() => { s.selCtries.delete(c); forceUpdate() }}>
-            <span className="w-1.5 h-1.5 rounded-full inline-block mr-1" style={{ background: s.ctryColors[c] }}></span>
-            {c}<span className="cx ml-1">×</span>
-          </span>
-        ))}
-      </div>
-      {matchCount && <div className="text-[11px] text-gray-500">{matchCount}</div>}
+      {/* Chips (DOM-managed) */}
+      <div id="tab-tags-cc" className="flex flex-wrap gap-1 min-h-[20px]"></div>
+      <div id="tab-tags-mc" className="text-[11px] text-gray-500 min-h-[16px]"></div>
     </div>
   )
 }
