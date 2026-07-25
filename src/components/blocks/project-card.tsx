@@ -27,7 +27,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
   return (
     <Link href={`/projects/${project.id}`}>
-      <article className="group relative overflow-hidden border border-border-metal bg-gradient-to-b from-[rgba(42,48,60,0.88)] to-[rgba(25,33,34,0.96)] shadow-[0_18px_48px_rgba(0,0,0,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_48px_rgba(0,0,0,0.32)]">
+      <article className="group relative overflow-hidden border border-border-metal bg-gradient-to-b from-[rgba(42,48,60,0.88)] to-[rgba(25,33,34,0.96)] shadow-[0_18px_48px_rgba(0,0,0,0.24)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 active:scale-[0.98] hover:shadow-[0_18px_48px_rgba(0,0,0,0.32)]">
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent translate-x-[-120%] skew-x-[-20deg] transition-transform duration-700 group-hover:translate-x-[120%]" />
         <div className="absolute inset-y-0 left-0 w-[3px] bg-border-metal" />
         {project.coverImage && (

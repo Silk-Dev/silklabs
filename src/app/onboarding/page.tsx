@@ -7,7 +7,7 @@ import Link from "next/link"
 import gsap from "gsap"
 import { useGSAP } from "@gsap/react"
 import { questions, aiMessages } from "@/lib/onboarding-questions"
-import { completeOnboarding } from "@/services/onboarding.service"
+import { completeOnboardingAndBuildTwin } from "@/services/onboarding.service"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -47,6 +47,8 @@ export default function OnboardingPage() {
   const [isPublic, setIsPublic] = useState(false)
   const [visibleRegions, setVisibleRegions] = useState<string[]>([])
   const [submitting, setSubmitting] = useState(false)
+  const [buildingTwin, setBuildingTwin] = useState(false)
+  const [buildingError, setBuildingError] = useState(false)
   const [showFollowUp, setShowFollowUp] = useState(false)
 
   const currentQuestion: Question | undefined = questions[step]
@@ -112,16 +114,23 @@ export default function OnboardingPage() {
     setStep((s) => s + 1)
   }, [inputValue, addUserMessage])
 
-  const handleRegionsSubmit = useCallback(() => {
+  const handleRegionsSubmit = useCallback(async () => {
     addUserMessage(isPublic ? "Public" : "Private")
     setSubmitting(true)
-    completeOnboarding({
-      ...answers,
-      isPublic,
-      visibleRegions,
-    }).then(() => {
-      router.push("/discover")
-    })
+    try {
+      await completeOnboardingAndBuildTwin({
+        ...answers,
+        isPublic,
+        visibleRegions,
+      })
+      setSubmitting(false)
+      setBuildingTwin(true)
+      // Redirect to matches after a brief interstitial
+      setTimeout(() => router.push("/matches"), 2000)
+    } catch {
+      setBuildingError(true)
+      setSubmitting(false)
+    }
   }, [answers, isPublic, visibleRegions, addUserMessage, router])
 
   const canProceed = (() => {
@@ -310,62 +319,112 @@ export default function OnboardingPage() {
             </div>
           </header>
 
-          {/* Chat messages */}
-          <div
-            ref={chatContainerRef}
-            className="flex-1 space-y-4 overflow-y-auto px-4 py-6"
-          >
-            {messages.length === 0 && (
-              <div className="flex items-center gap-3 text-outline">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">
-                  <span className="font-mono text-[10px] text-accent">AI</span>
+          {/* Twin Building Interstitial */}
+          {buildingTwin ? (
+            <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+              {buildingError ? (
+                <div className="text-center">
+                  <div className="mb-4 text-4xl">⚠️</div>
+                  <h2 className="font-heading text-xl font-semibold text-primary">
+                    Something went wrong
+                  </h2>
+                  <p className="mt-2 text-sm text-[var(--color-muted)]">
+                    We couldn&apos;t build your Digital Twin right now.
+                    You can do it later from the matches page.
+                  </p>
+                  <button
+                    onClick={() => router.push("/discover")}
+                    className="mx-auto mt-6 rounded-lg border border-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-[var(--color-muted)] transition-colors hover:border-[rgba(255,255,255,0.16)] hover:text-primary"
+                  >
+                    Continue to Discover
+                  </button>
                 </div>
-                <p className="font-mono text-[12px] leading-relaxed text-outline">
-                  Hey there! I&apos;m your AI Cofounder. Let&apos;s set up your profile so
-                  you can find the right people to build with.
-                </p>
-              </div>
-            )}
-            {messages.map((msg, i) => (
+              ) : (
+                <div className="text-center">
+                  <div className="mb-6 flex items-center justify-center">
+                    <div className="relative h-16 w-16">
+                      <div className="absolute inset-0 animate-ping rounded-full bg-accent/30" />
+                      <div className="relative flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
+                        <span className="text-2xl">🧬</span>
+                      </div>
+                    </div>
+                  </div>
+                  <h2 className="font-heading text-xl font-semibold text-primary">
+                    Building your Digital Twin
+                  </h2>
+                  <p className="mt-2 text-sm text-[var(--color-muted)]">
+                    Analyzing your profile, generating embeddings, and finding
+                    your optimal matches...
+                  </p>
+                  <div className="mx-auto mt-6 h-1 w-48 overflow-hidden rounded-full bg-border-metal">
+                    <div className="h-full w-1/2 animate-pulse rounded-full bg-accent" />
+                  </div>
+                  <p className="mt-4 text-xs text-[var(--color-outline)]">
+                    We&apos;ll redirect you to your matches in a moment
+                  </p>
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {/* Chat messages */}
               <div
-                key={i}
-                className={`message-bubble flex items-start gap-3 ${
-                  msg.role === "user" ? "flex-row-reverse" : ""
-                }`}
+                ref={chatContainerRef}
+                className="flex-1 space-y-4 overflow-y-auto px-4 py-6"
               >
-                {msg.role === "ai" && (
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
-                    <span className="font-mono text-[10px] text-accent">AI</span>
+                {messages.length === 0 && (
+                  <div className="flex items-center gap-3 text-outline">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent/10">
+                      <span className="font-mono text-[10px] text-accent">AI</span>
+                    </div>
+                    <p className="font-mono text-[12px] leading-relaxed text-outline">
+                      Hey there! I&apos;m your AI Cofounder. Let&apos;s set up your profile so
+                      you can find the right people to build with.
+                    </p>
                   </div>
                 )}
-                <div
-                  className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
-                    msg.role === "ai"
-                      ? "bg-surface text-primary"
-                      : "bg-accent/10 text-accent"
-                  }`}
-                >
-                  <p className="font-mono text-[13px] leading-relaxed">{msg.text}</p>
-                </div>
+                {messages.map((msg, i) => (
+                  <div
+                    key={i}
+                    className={`message-bubble flex items-start gap-3 ${
+                      msg.role === "user" ? "flex-row-reverse" : ""
+                    }`}
+                  >
+                    {msg.role === "ai" && (
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
+                        <span className="font-mono text-[10px] text-accent">AI</span>
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[80%] rounded-xl px-4 py-2.5 ${
+                        msg.role === "ai"
+                          ? "bg-surface text-primary"
+                          : "bg-accent/10 text-accent"
+                      }`}
+                    >
+                      <p className="font-mono text-[13px] leading-relaxed">{msg.text}</p>
+                    </div>
+                  </div>
+                ))}
+                {currentQuestion && !messages[messages.length - 1]?.text.startsWith(currentQuestion.text) && (
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
+                      <span className="font-mono text-[10px] text-accent">AI</span>
+                    </div>
+                    <p className="font-mono text-[13px] leading-relaxed text-primary">
+                      {currentQuestion.subtitle}
+                    </p>
+                  </div>
+                )}
+                <div ref={chatEndRef} />
               </div>
-            ))}
-            {currentQuestion && !messages[messages.length - 1]?.text.startsWith(currentQuestion.text) && (
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent/10">
-                  <span className="font-mono text-[10px] text-accent">AI</span>
-                </div>
-                <p className="font-mono text-[13px] leading-relaxed text-primary">
-                  {currentQuestion.subtitle}
-                </p>
-              </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
 
-          {/* Input area */}
-          <div className="border-t border-border-metal px-4 py-4">
-            {renderInput()}
-          </div>
+              {/* Input area */}
+              <div className="border-t border-border-metal px-4 py-4">
+                {renderInput()}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Profile preview panel */}

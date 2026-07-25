@@ -1,9 +1,11 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
+const STORAGE_KEY = "silklabs_offer_builder"
 
 type Step = {
   id: string
@@ -120,13 +122,24 @@ const STEPS: Step[] = [
 ]
 
 export default function OfferBuilderClient() {
-  const [step, setStep] = useState(0)
-  const [data, setData] = useState<Record<string, string>>({})
+  const [step, setStep] = useState(() => {
+    try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) { const p = JSON.parse(saved); return p.step ?? 0 } } catch { /* ignore */ }
+    return 0
+  })
+  const [data, setData] = useState<Record<string, string>>(() => {
+    try { const saved = localStorage.getItem(STORAGE_KEY); if (saved) { const p = JSON.parse(saved); return p.data ?? {} } } catch { /* ignore */ }
+    return {}
+  })
   const [preview, setPreview] = useState(false)
 
   const update = useCallback((field: string, value: string) => {
     setData((d) => ({ ...d, [field]: value }))
   }, [])
+
+  // Auto-save to localStorage on change
+  useEffect(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ step, data })) } catch { /* quota exceeded */ }
+  }, [step, data])
 
   const s = STEPS[step]
   const isLast = step === STEPS.length - 1
@@ -134,13 +147,18 @@ export default function OfferBuilderClient() {
 
   const goNext = () => {
     if (isLast) { setPreview(true); return }
-    setStep((s) => s + 1)
+    setStep((s: number) => s + 1)
   }
 
-  const goBack = () => setStep((s) => s - 1)
+  const goBack = () => setStep((s: number) => s - 1)
+
+  const handleReset = () => {
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
+    setData({}); setStep(0); setPreview(false)
+  }
 
   if (preview) {
-    return <OfferPreview data={data} onBack={() => setPreview(false)} onReset={() => { setData({}); setStep(0); setPreview(false) }} />
+    return <OfferPreview data={data} onBack={() => setPreview(false)} onReset={handleReset} />
   }
 
   return (
@@ -196,7 +214,19 @@ export default function OfferBuilderClient() {
 }
 
 function OfferPreview({ data, onBack, onReset }: { data: Record<string, string>; onBack: () => void; onReset: () => void }) {
-  const totalBonusValue = 0 // In a real version, calculate from user input
+  // Parse dollar values from bonus text: looks for $X, X dollars, $X value patterns
+  const totalBonusValue = (() => {
+    const text = data.bonuses || ""
+    const amounts: number[] = []
+    // Match patterns like "$497", "$497 value", "($497 value)", "$1,997"
+    const re = /\$([0-9,]+)/g
+    let m
+    while ((m = re.exec(text)) !== null) {
+      const val = parseInt(m[1].replace(/,/g, ""), 10)
+      if (!isNaN(val) && val < 1_000_000) amounts.push(val)
+    }
+    return amounts.reduce((sum, v) => sum + v, 0)
+  })()
   const coreValue = data.dreamOutcome || "your result"
   const price = data.pricing || "$X"
 

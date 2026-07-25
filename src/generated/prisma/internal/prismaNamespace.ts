@@ -400,7 +400,10 @@ export const ModelName = {
   Message: 'Message',
   Notification: 'Notification',
   Bookmark: 'Bookmark',
-  Product: 'Product'
+  Product: 'Product',
+  TwinVector: 'TwinVector',
+  ProofOfWork: 'ProofOfWork',
+  Alignment: 'Alignment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -416,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "profile" | "tag" | "profileTag" | "portfolio" | "project" | "role" | "roleTag" | "application" | "teamMember" | "message" | "notification" | "bookmark" | "product"
+    modelProps: "user" | "session" | "account" | "verification" | "profile" | "tag" | "profileTag" | "portfolio" | "project" | "role" | "roleTag" | "application" | "teamMember" | "message" | "notification" | "bookmark" | "product" | "twinVector" | "proofOfWork" | "alignment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1678,6 +1681,228 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TwinVector: {
+      payload: Prisma.$TwinVectorPayload<ExtArgs>
+      fields: Prisma.TwinVectorFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TwinVectorFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TwinVectorFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        findFirst: {
+          args: Prisma.TwinVectorFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TwinVectorFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        findMany: {
+          args: Prisma.TwinVectorFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>[]
+        }
+        create: {
+          args: Prisma.TwinVectorCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        createMany: {
+          args: Prisma.TwinVectorCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TwinVectorCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>[]
+        }
+        delete: {
+          args: Prisma.TwinVectorDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        update: {
+          args: Prisma.TwinVectorUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        deleteMany: {
+          args: Prisma.TwinVectorDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TwinVectorUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TwinVectorUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>[]
+        }
+        upsert: {
+          args: Prisma.TwinVectorUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TwinVectorPayload>
+        }
+        aggregate: {
+          args: Prisma.TwinVectorAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTwinVector>
+        }
+        groupBy: {
+          args: Prisma.TwinVectorGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwinVectorGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TwinVectorCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TwinVectorCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProofOfWork: {
+      payload: Prisma.$ProofOfWorkPayload<ExtArgs>
+      fields: Prisma.ProofOfWorkFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProofOfWorkFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProofOfWorkFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        findFirst: {
+          args: Prisma.ProofOfWorkFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProofOfWorkFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        findMany: {
+          args: Prisma.ProofOfWorkFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>[]
+        }
+        create: {
+          args: Prisma.ProofOfWorkCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        createMany: {
+          args: Prisma.ProofOfWorkCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProofOfWorkCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>[]
+        }
+        delete: {
+          args: Prisma.ProofOfWorkDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        update: {
+          args: Prisma.ProofOfWorkUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProofOfWorkDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProofOfWorkUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProofOfWorkUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProofOfWorkUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProofOfWorkPayload>
+        }
+        aggregate: {
+          args: Prisma.ProofOfWorkAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProofOfWork>
+        }
+        groupBy: {
+          args: Prisma.ProofOfWorkGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProofOfWorkGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProofOfWorkCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProofOfWorkCountAggregateOutputType> | number
+        }
+      }
+    }
+    Alignment: {
+      payload: Prisma.$AlignmentPayload<ExtArgs>
+      fields: Prisma.AlignmentFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AlignmentFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AlignmentFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        findFirst: {
+          args: Prisma.AlignmentFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AlignmentFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        findMany: {
+          args: Prisma.AlignmentFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>[]
+        }
+        create: {
+          args: Prisma.AlignmentCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        createMany: {
+          args: Prisma.AlignmentCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AlignmentCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>[]
+        }
+        delete: {
+          args: Prisma.AlignmentDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        update: {
+          args: Prisma.AlignmentUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        deleteMany: {
+          args: Prisma.AlignmentDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AlignmentUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AlignmentUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>[]
+        }
+        upsert: {
+          args: Prisma.AlignmentUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AlignmentPayload>
+        }
+        aggregate: {
+          args: Prisma.AlignmentAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAlignment>
+        }
+        groupBy: {
+          args: Prisma.AlignmentGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlignmentGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AlignmentCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AlignmentCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1952,6 +2177,62 @@ export const ProductScalarFieldEnum = {
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
 
 
+export const TwinVectorScalarFieldEnum = {
+  id: 'id',
+  ownerType: 'ownerType',
+  ownerId: 'ownerId',
+  embedding: 'embedding',
+  twinProfile: 'twinProfile',
+  preferences: 'preferences',
+  version: 'version',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  realityEmbedding: 'realityEmbedding',
+  realityScore: 'realityScore'
+} as const
+
+export type TwinVectorScalarFieldEnum = (typeof TwinVectorScalarFieldEnum)[keyof typeof TwinVectorScalarFieldEnum]
+
+
+export const ProofOfWorkScalarFieldEnum = {
+  id: 'id',
+  ownerType: 'ownerType',
+  ownerId: 'ownerId',
+  assetType: 'assetType',
+  source: 'source',
+  extractedText: 'extractedText',
+  embedding: 'embedding',
+  confidenceScore: 'confidenceScore',
+  title: 'title',
+  tags: 'tags',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProofOfWorkScalarFieldEnum = (typeof ProofOfWorkScalarFieldEnum)[keyof typeof ProofOfWorkScalarFieldEnum]
+
+
+export const AlignmentScalarFieldEnum = {
+  id: 'id',
+  userTwinId: 'userTwinId',
+  matchTwinId: 'matchTwinId',
+  overallScore: 'overallScore',
+  skillScore: 'skillScore',
+  valueScore: 'valueScore',
+  constraintScore: 'constraintScore',
+  diversityBonus: 'diversityBonus',
+  breakdown: 'breakdown',
+  report: 'report',
+  userFeedback: 'userFeedback',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlignmentScalarFieldEnum = (typeof AlignmentScalarFieldEnum)[keyof typeof AlignmentScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1966,6 +2247,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -2258,6 +2546,9 @@ export type GlobalOmitConfig = {
   notification?: Prisma.NotificationOmit
   bookmark?: Prisma.BookmarkOmit
   product?: Prisma.ProductOmit
+  twinVector?: Prisma.TwinVectorOmit
+  proofOfWork?: Prisma.ProofOfWorkOmit
+  alignment?: Prisma.AlignmentOmit
 }
 
 /* Types for Logging */

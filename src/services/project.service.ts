@@ -5,6 +5,7 @@ import { projectSchema, roleSchema, createProjectWizardSchema } from "@/lib/vali
 import { requireAuth, assertProjectOwner } from "@/lib/dal"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { autoMatchProject } from "@/services/matches.service"
 
 export async function getProject(projectId: string) {
   return prisma.project.findUnique({
@@ -38,6 +39,13 @@ export async function createProject(data: unknown) {
   await prisma.teamMember.create({
     data: { projectId: project.id, userId: session.user.id, role: "Owner" },
   })
+
+  // Auto-match: find top 3 team members
+  try {
+    await autoMatchProject(project.id, project.title || "New Project")
+  } catch {
+    // Non-critical
+  }
 
   revalidatePath("/projects")
   return { success: true, projectId: project.id }
@@ -85,6 +93,14 @@ export async function createProjectWithRoles(data: unknown) {
   })
 
   revalidatePath("/projects")
+
+  // Auto-match: find top 3 team members for this project
+  try {
+    await autoMatchProject(result.id, result.title || "New Project")
+  } catch {
+    // Non-critical — matching happens on page load anyway
+  }
+
   redirect(`/projects/${result.id}`)
 }
 

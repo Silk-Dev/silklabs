@@ -126,3 +126,18 @@ export type Bookmark = Prisma.BookmarkModel
  * 
  */
 export type Product = Prisma.ProductModel
+/**
+ * Model TwinVector
+ * 
+ */
+export type TwinVector = Prisma.TwinVectorModel
+/**
+ * Model ProofOfWork
+ * 
+ */
+export type ProofOfWork = Prisma.ProofOfWorkModel
+/**
+ * Model Alignment
+ * 
+ */
+export type Alignment = Prisma.AlignmentModel

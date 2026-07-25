@@ -1,7 +1,9 @@
 export const dynamic = "force-dynamic"
 
+import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { getSession } from "@/lib/auth"
+import { getMatchGroup } from "@/lib/ab-test"
 import { searchProjects } from "@/services/discovery.service"
 import { ProjectCard } from "@/components/blocks/project-card"
 import { BookmarkButton } from "@/components/blocks/bookmark-button"
@@ -16,6 +18,8 @@ import {
 } from "@/components/ui/pagination"
 import { DiscoverFilters } from "./_components/discover-filters"
 import { MobileFilterSheet } from "./_components/mobile-filter-sheet"
+import { ABTestBanner } from "@/components/ab-test-banner"
+import CollisionFeed from "@/components/graph/collision-feed"
 
 export default async function DiscoverPage({
   searchParams,
@@ -34,6 +38,12 @@ export default async function DiscoverPage({
     : []
   const selectedPhase = sp.phase ?? null
   const roleAvailableOnly = sp.roleAvailable === "true"
+
+  // A/B test: 50% of users see agent-curated matches
+  const matchGroup = await getMatchGroup()
+  if (matchGroup === "agent") {
+    redirect("/matches")
+  }
 
   const session = await getSession()
 
@@ -105,14 +115,17 @@ export default async function DiscoverPage({
   }
 
   return (
-    <div className="flex gap-8">
+    <CollisionFeed userId={session?.user?.id || ""}>
+    <div className="space-y-4">
+      <ABTestBanner />
+      <div className="flex gap-8">
       <div className="hidden w-64 shrink-0 lg:block">
         <div className="sticky top-20">
           <DiscoverFilters {...filterProps} />
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 min-w-0">
+      <div className="flex-1 space-y-6 min-w-0 [animation:entrance_0.5s_ease-out_both]">
         <div className="flex items-center justify-between gap-4">
           <div>
             <h1 className="font-heading text-2xl font-bold tracking-tight text-primary">
@@ -130,8 +143,8 @@ export default async function DiscoverPage({
         {projects.length > 0 ? (
           <>
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {projects.map((project) => (
-                <div key={project.id} className="relative">
+              {projects.map((project, i) => (
+                <div key={project.id} className="relative" style={{ animation: `entrance 0.5s ease-out ${i * 0.05}s both` }}>
                   <ProjectCard project={project} />
                   {session?.user && (
                     <div className="absolute top-2 right-2 z-10">
@@ -199,5 +212,7 @@ export default async function DiscoverPage({
         )}
       </div>
     </div>
+    </div>
+    </CollisionFeed>
   )
 }

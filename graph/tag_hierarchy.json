@@ -1,0 +1,489 @@
+{
+  "Artificial Intelligence": {
+    "AI Platforms": [
+      "AI",
+      "Artificial Intelligence",
+      "AI Assistant",
+      "Conversational AI",
+      "Generative AI"
+    ],
+    "Machine Learning": [
+      "Machine Learning",
+      "Deep Learning",
+      "ML",
+      "Reinforcement Learning"
+    ],
+    "NLP & Speech": [
+      "NLP",
+      "Speech Recognition",
+      "Chatbot",
+      "Chat"
+    ],
+    "Computer Vision & XR": [
+      "Computer Vision",
+      "Augmented Reality",
+      "AR",
+      "Virtual Reality",
+      "Metaverse"
+    ],
+    "AI Applications": [
+      "AI-Enhanced Learning",
+      "AIOps",
+      "Deepfake Detection",
+      "Recommendation System"
+    ]
+  },
+  "Hardware & Robotics": {
+    "Robotics": [
+      "Robotics",
+      "Medical Robotics",
+      "Robotic Surgery",
+      "Swarm Robotics",
+      "Food Service Robots & Machines"
+    ],
+    "Hardware": [
+      "Hardware",
+      "Electronics",
+      "Hard Tech"
+    ],
+    "Semiconductors": [
+      "Semiconductors",
+      "Edge Computing Semiconductors",
+      "Quantum Computing"
+    ],
+    "IoT & Sensors": [
+      "IoT",
+      "IoT Security",
+      "Batteryless IoT Sensors",
+      "Smart Locks",
+      "Smart Waste Management",
+      "Lidar",
+      "Radar",
+      "Home Automation",
+      "Smart Home Assistants"
+    ],
+    "Nanotech & Microfluidics": [
+      "Nanotechnology",
+      "Nanomedicine",
+      "Nanosensors",
+      "Microfluidics",
+      "Lab-on-a-chip"
+    ],
+    "3D Printing": [
+      "3D Printing",
+      "3D Printed Foods"
+    ],
+    "Advanced Materials": [
+      "Advanced Materials"
+    ]
+  },
+  "Enterprise Software & SaaS": {
+    "SaaS & Platforms": [
+      "SaaS",
+      "Enterprise Software",
+      "Enterprise",
+      "B2B",
+      "SMB"
+    ],
+    "Developer Tools": [
+      "Developer Tools",
+      "API",
+      "Design Tools",
+      "Web Development",
+      "GraphQL",
+      "Kubernetes",
+      "No-code"
+    ],
+    "DevOps & Infrastructure": [
+      "DevOps",
+      "DevSecOps",
+      "Application Performance Monitoring",
+      "FinOps"
+    ],
+    "Data & Analytics": [
+      "Big Data",
+      "Data Engineering",
+      "Data Science",
+      "Data Labeling",
+      "Data Visualization",
+      "Databases",
+      "Analytics",
+      "Monitoring",
+      "Time Series",
+      "Computational Storage",
+      "Search"
+    ],
+    "Automation & Workflow": [
+      "Automation",
+      "Robotic Process Automation",
+      "Workflow Automation"
+    ],
+    "CRM & Sales": [
+      "CRM",
+      "Call Center",
+      "Sales",
+      "Sales Enablement"
+    ],
+    "Customer Experience": [
+      "Customer Service",
+      "Customer Support",
+      "Customer Success"
+    ],
+    "Productivity & Collaboration": [
+      "Productivity",
+      "Collaboration",
+      "Team Collaboration",
+      "Open Source",
+      "Crowdsourcing",
+      "Feedback",
+      "Reviews",
+      "Calendar",
+      "Scheduling"
+    ],
+    "Business Operations": [
+      "Procurement",
+      "Operations",
+      "Documents",
+      "Note-taking",
+      "Customization",
+      "Personalization",
+      "International"
+    ],
+    "Communication": [
+      "Messaging",
+      "SMS",
+      "Email",
+      "Notifications"
+    ],
+    "Industrial & Manufacturing": [
+      "Industrial",
+      "Manufacturing",
+      "Mining"
+    ],
+    "Assistive Tech": [
+      "Assistive Tech"
+    ]
+  },
+  "Fintech": {
+    "Finance & Investing": [
+      "Fintech",
+      "Finance",
+      "Consumer Finance",
+      "Lending",
+      "Investing",
+      "Stocks",
+      "Trading",
+      "Income Share Agreements",
+      "Art Trading Platforms",
+      "Emerging Markets"
+    ],
+    "Banking": [
+      "Banking as a Service",
+      "Neobank",
+      "Conversational Banking"
+    ],
+    "Payments & Billing": [
+      "Payments",
+      "Billing",
+      "Payroll",
+      "Cashierless Checkout"
+    ],
+    "Insurance": [
+      "Insurance",
+      "Health Insurance",
+      "Cyber Insurance",
+      "Microinsurance"
+    ],
+    "Crypto & Web3": [
+      "Blockchain",
+      "Crypto / Web3",
+      "Cryptocurrency",
+      "Cryptography",
+      "DeFi",
+      "NFT",
+      "DAO"
+    ],
+    "Fundraising": [
+      "Crowdfunding",
+      "Fundraising",
+      "Nonprofit"
+    ],
+    "Fraud & Security": [
+      "Fraud Detection",
+      "Fraud Prevention"
+    ],
+    "Cross-border": [
+      "Remittances"
+    ]
+  },
+  "Healthcare & Biotech": {
+    "Healthcare": [
+      "Healthcare",
+      "Health Tech",
+      "Digital Health",
+      "Healthcare IT",
+      "Health & Wellness"
+    ],
+    "Telehealth & Remote Care": [
+      "Telehealth",
+      "Telemedicine",
+      "Primary Care"
+    ],
+    "Biotech": [
+      "Biotech",
+      "Biotechnology",
+      "Synthetic Biology",
+      "Genetic Engineering",
+      "Genomics",
+      "Bioplastic",
+      "CRISPR"
+    ],
+    "Drug Discovery & Therapeutics": [
+      "Drug discovery",
+      "AI-powered Drug Discovery",
+      "Therapeutics",
+      "Gene Therapy",
+      "Cell Therapy",
+      "Oncology",
+      "Drug Delivery"
+    ],
+    "Medical Devices & Diagnostics": [
+      "Medical Devices",
+      "Diagnostics",
+      "Neurotechnology"
+    ],
+    "Health Specialties": [
+      "Women's Health",
+      "Fertility Tech",
+      "Mental Health",
+      "Mental Health Tech",
+      "Pediatrics",
+      "Anti-Aging",
+      "Fitness",
+      "VR Health",
+      "Sleep Tech",
+      "Dental",
+      "Femtech",
+      "Cannabis",
+      "Psychedelics",
+      "COVID-19"
+    ],
+    "Food Science & Alt Protein": [
+      "Cultivated Meat",
+      "Plant-based Meat",
+      "Livestock Health",
+      "Food Tech"
+    ]
+  },
+  "Consumer & E-commerce": {
+    "E-commerce": [
+      "E-commerce",
+      "Automotive Commerce",
+      "Marketplace",
+      "Retail",
+      "Retail Tech"
+    ],
+    "Consumer Products & Services": [
+      "Consumer",
+      "Consumer Products",
+      "Consumer Health Services",
+      "Home Services",
+      "Subscriptions",
+      "Referrals"
+    ],
+    "Food & Beverage": [
+      "Food & Beverage",
+      "Food",
+      "Grocery",
+      "Ghost Kitchens",
+      "Restaurant Tech"
+    ],
+    "Fashion & Apparel": [
+      "Fashion",
+      "Apparel",
+      "Smart Clothing",
+      "Sustainable Fashion",
+      "Beauty",
+      "Skincare"
+    ],
+    "Real Estate & Construction": [
+      "Real Estate",
+      "Housing",
+      "Proptech",
+      "Furniture",
+      "Construction",
+      "Architecture",
+      "Design"
+    ],
+    "Travel & Booking": [
+      "Travel",
+      "Booking",
+      "Ticketing"
+    ],
+    "Community & Social": [
+      "Community",
+      "Social",
+      "Social Media",
+      "Social Network",
+      "Dating",
+      "Culture",
+      "Diversity & Inclusion"
+    ]
+  },
+  "Education & HR": {
+    "Education": [
+      "Education",
+      "Edtech",
+      "eLearning",
+      "Coding Bootcamps"
+    ],
+    "HR & Recruiting": [
+      "Human Resources",
+      "HR Tech",
+      "Recruiting",
+      "Talent Acquisition",
+      "Careers"
+    ],
+    "Workplace": [
+      "Remote Work",
+      "Remote"
+    ]
+  },
+  "Media & Entertainment": {
+    "Media": [
+      "Media",
+      "Entertainment",
+      "Content",
+      "Creator Economy"
+    ],
+    "Gaming": [
+      "Gaming",
+      "Cloud Gaming",
+      "eSports"
+    ],
+    "Video & Music": [
+      "Video",
+      "Music",
+      "Live",
+      "Podcasts"
+    ],
+    "Advertising & Marketing": [
+      "Advertising",
+      "Marketing",
+      "SEO",
+      "Market Research"
+    ]
+  },
+  "Climate & Energy": {
+    "Energy": [
+      "Energy",
+      "Renewable Energy",
+      "Solar Power",
+      "Fusion Energy",
+      "Hydrogen Energy",
+      "Alternative Fuels",
+      "Small Modular Reactors"
+    ],
+    "Climate Tech": [
+      "Climate",
+      "ClimateTech",
+      "Carbon Capture and Removal",
+      "Sustainability",
+      "Sustainable Tourism",
+      "Weather"
+    ],
+    "Agriculture": [
+      "Agriculture",
+      "Sustainable Agriculture",
+      "Cellular Agriculture",
+      "Vertical Farming",
+      "Gardening"
+    ],
+    "Clean Energy Storage": [
+      "Energy Storage",
+      "Alternative Battery Tech"
+    ]
+  },
+  "Transportation & Logistics": {
+    "Autonomous Systems": [
+      "Self-Driving Vehicles",
+      "Autonomous Trucking",
+      "Autonomous Delivery",
+      "Autonomous Shipping",
+      "Drones",
+      "Unmanned Vehicle"
+    ],
+    "Logistics & Supply Chain": [
+      "Logistics",
+      "Supply Chain",
+      "Digital Freight Brokerage",
+      "Warehouse Management Tech",
+      "Delivery"
+    ],
+    "Mobility & Travel": [
+      "Transportation",
+      "Mobility",
+      "Ridesharing",
+      "Automotive",
+      "Electric Vehicles",
+      "Air Taxis"
+    ],
+    "Aerospace": [
+      "Aerospace",
+      "Commercial Space Launch",
+      "Space Exploration",
+      "Satellites",
+      "Rocketry",
+      "Airplanes",
+      "Airlines",
+      "Maritime"
+    ],
+    "Navigation & Mapping": [
+      "Navigation",
+      "Geographic Information System",
+      "Indoor Mapping",
+      "Location-based"
+    ]
+  },
+  "Security & Infrastructure": {
+    "Cybersecurity": [
+      "Cybersecurity",
+      "Security",
+      "Privacy",
+      "Defense",
+      "Identity",
+      "Biometrics"
+    ],
+    "Network Security": [
+      "Next-gen Network Security",
+      "Security Orchestration, Automation and Response (SOAR)",
+      "Cloud Workload Protection"
+    ],
+    "Infrastructure & Telecom": [
+      "Infrastructure",
+      "Networks",
+      "Cloud Computing",
+      "Telecommunications"
+    ],
+    "Compliance & Safety": [
+      "Compliance",
+      "Trust & Safety",
+      "Industrial Workplace Safety"
+    ]
+  },
+  "Legal, Gov & Civic Tech": {
+    "Legal": [
+      "Legal",
+      "LegalTech"
+    ],
+    "Regulatory": [
+      "Regtech"
+    ],
+    "Gov & Civic": [
+      "GovTech",
+      "Civic Tech",
+      "Election Tech",
+      "Immigration"
+    ]
+  }
+}

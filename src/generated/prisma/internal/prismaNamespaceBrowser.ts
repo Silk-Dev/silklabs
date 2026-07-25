@@ -67,7 +67,10 @@ export const ModelName = {
   Message: 'Message',
   Notification: 'Notification',
   Bookmark: 'Bookmark',
-  Product: 'Product'
+  Product: 'Product',
+  TwinVector: 'TwinVector',
+  ProofOfWork: 'ProofOfWork',
+  Alignment: 'Alignment'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -321,6 +324,62 @@ export const ProductScalarFieldEnum = {
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
 
 
+export const TwinVectorScalarFieldEnum = {
+  id: 'id',
+  ownerType: 'ownerType',
+  ownerId: 'ownerId',
+  embedding: 'embedding',
+  twinProfile: 'twinProfile',
+  preferences: 'preferences',
+  version: 'version',
+  lastSyncedAt: 'lastSyncedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  realityEmbedding: 'realityEmbedding',
+  realityScore: 'realityScore'
+} as const
+
+export type TwinVectorScalarFieldEnum = (typeof TwinVectorScalarFieldEnum)[keyof typeof TwinVectorScalarFieldEnum]
+
+
+export const ProofOfWorkScalarFieldEnum = {
+  id: 'id',
+  ownerType: 'ownerType',
+  ownerId: 'ownerId',
+  assetType: 'assetType',
+  source: 'source',
+  extractedText: 'extractedText',
+  embedding: 'embedding',
+  confidenceScore: 'confidenceScore',
+  title: 'title',
+  tags: 'tags',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProofOfWorkScalarFieldEnum = (typeof ProofOfWorkScalarFieldEnum)[keyof typeof ProofOfWorkScalarFieldEnum]
+
+
+export const AlignmentScalarFieldEnum = {
+  id: 'id',
+  userTwinId: 'userTwinId',
+  matchTwinId: 'matchTwinId',
+  overallScore: 'overallScore',
+  skillScore: 'skillScore',
+  valueScore: 'valueScore',
+  constraintScore: 'constraintScore',
+  diversityBonus: 'diversityBonus',
+  breakdown: 'breakdown',
+  report: 'report',
+  userFeedback: 'userFeedback',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AlignmentScalarFieldEnum = (typeof AlignmentScalarFieldEnum)[keyof typeof AlignmentScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -335,6 +394,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {

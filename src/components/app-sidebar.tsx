@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/projects", label: "My Projects" },
   { href: "/people", label: "People" },
   { href: "/workspace", label: "Workspace" },
+  { href: "/matches", label: "Matches" },
   { href: "/offer-builder", label: "Offer Builder" },
   { href: "/graph", label: "Graph" },
 ]

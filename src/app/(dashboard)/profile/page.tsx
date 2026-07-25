@@ -7,10 +7,10 @@ export default async function ProfilePage() {
   if (!user) redirect("/login")
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
+    <div className="mx-auto max-w-2xl space-y-6 [animation:entrance_0.5s_ease-out_both]">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
-        <p className="text-muted-foreground">Manage your developer profile</p>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-primary">Profile</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-outline">Manage your developer profile</p>
       </div>
       <ProfileForm user={user} />
     </div>

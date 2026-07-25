@@ -318,3 +318,76 @@ model Product {
   @@index([status])
   @@index([ownerId])
 }
+
+model TwinVector {
+  id            String   @id @default(cuid())
+  ownerType     String   // "USER" | "PROJECT"
+  ownerId       String   // userId or projectId
+  embedding     String?  // JSON array string, e.g., "[0.01, 0.02, ...]"
+  twinProfile   Json     // { skills: [], values: [], constraints: {}, communicationStyle: "", riskTolerance: 0-1 }
+  preferences   Json     // { desiredSkills: [], minCommitment: "", locationPreference: "" }
+  version       Int      @default(1)
+  lastSyncedAt  DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Reality-corrected vector (weighted blend of base embedding + proofs)
+  realityEmbedding String?  // JSON array string of 384 floats (weighted Reality Vector)
+  realityScore     Float?   // Average confidence of all ProofOfWork assets (0.0-1.0)
+
+  proofsOfWork ProofOfWork[]
+
+  @@unique([ownerType, ownerId])
+  @@index([ownerType])
+  @@map("twin_vectors")
+}
+
+model ProofOfWork {
+  id             String   @id @default(cuid())
+  ownerType      String   // "USER" | "PROJECT"
+  ownerId        String
+
+  assetType      String   // "URL" | "PDF" | "IMAGE" | "TEXT" | "VIDEO"
+  source         String   // The URL, file path, or raw text input
+  extractedText  String   // The cleaned, semantic text extracted from the source
+
+  // The embedding of the extractedText
+  embedding      String?  // JSON array string of 384 floats
+
+  // How strongly this asset proves the user's claimed capabilities
+  confidenceScore Float  @default(0.5)
+
+  // Metadata
+  title          String?
+  tags           Json     // e.g., ["logistics", "supply-chain", "optimization"]
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  twinVector     TwinVector? @relation(fields: [ownerType, ownerId], references: [ownerType, ownerId])
+
+  @@index([ownerType, ownerId])
+  @@map("proofs_of_work")
+}
+
+model Alignment {
+  id              String   @id @default(cuid())
+  userTwinId      String   // TwinVector.id of user A (or project)
+  matchTwinId     String   // TwinVector.id of user B (or user for project)
+  overallScore    Float    // 0.0 - 1.0 composite
+  skillScore      Float    // cosine similarity of skill embeddings
+  valueScore      Float    // alignment of values/motivation
+  constraintScore Float    // fraction of hard constraints satisfied
+  diversityBonus  Float    // bonus for complementary vectors
+  breakdown       Json     // { skillMatch: {...}, constraintMatch: {...} }
+  report          String?  // Generated alignment report (markdown)
+  userFeedback    String?  // "good" | "ok" | "bad"
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userTwinId, matchTwinId])
+  @@index([userTwinId])
+  @@index([matchTwinId])
+  @@index([overallScore])
+  @@map("alignments")
+}

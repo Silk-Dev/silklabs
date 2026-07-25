@@ -18,14 +18,14 @@ export default async function AdminPage() {
   ])
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 [animation:entrance_0.5s_ease-out_both]">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">Platform overview and management</p>
+        <h1 className="font-heading text-2xl font-bold tracking-tight text-primary">Admin Dashboard</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-outline">Platform overview and management</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
+        <Card className="transition-[transform,box-shadow] duration-160 ease-out hover:scale-[1.02] active:scale-[0.98] hover:shadow-md" style={{ animation: "entrance 0.5s ease-out 0s both" }}>
           <CardHeader>
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
           </CardHeader>

@@ -80,6 +80,7 @@ export function SearchBar() {
                   onClick={() => {
                     setOpen(false)
                     setQuery("")
+                    router.push(`/people/${p.userId}`)
                   }}
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent/10"
                 >

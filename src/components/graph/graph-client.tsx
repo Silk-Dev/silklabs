@@ -34,9 +34,13 @@ const R3 = 22
 let nextUid = 0
 const uid = () => ++nextUid
 
-export default function GraphClient() {
+export default function GraphClient({ genomeMode, genomeAtoms }: {
+  genomeMode?: string
+  genomeAtoms?: string[]
+} = {}) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [ready, setReady] = useState(false)
+  const [wasmStatus, setWasmStatus] = useState<"loading" | "loaded" | "failed">("loading")
 
   // All state is stored in a ref to avoid re-renders during animation frames
   const S = useRef<any>({
@@ -53,6 +57,9 @@ export default function GraphClient() {
   const [tab, setTab] = useState("tags")
   const [ideaStatus, setIdeaStatus] = useState("")
   const SCALED = useRef<any[]>([])
+  const compareRef = useRef<{ a: (name: string) => void; b: (name: string) => void }>(null!)
+  const genomeAtomsRef = useRef<string[]>([])
+  genomeAtomsRef.current = genomeAtoms || []
   let W = 0, H = 0
 
   // ─── Data loading ───
@@ -66,8 +73,8 @@ export default function GraphClient() {
           env: {},
           wasi_snapshot_preview1: { fd_write: () => 0, fd_close: () => 0, fd_seek: () => 0, fd_read: () => 0 },
         }))
-        .then((mod) => { s.wasm = mod.instance.exports })
-        .catch(() => {}),
+        .then((mod) => { s.wasm = mod.instance.exports; setWasmStatus("loaded") })
+        .catch(() => { setWasmStatus("failed"); console.warn("Graph: WASM culling engine failed to load — falling back to full-node render. Compile graph_engine.cpp with Emscripten if needed.") }),
       fetch("/graph/companies_light.json")
         .then((r) => r.json())
         .then((cs) => {
@@ -83,6 +90,7 @@ export default function GraphClient() {
       s.tagEmbs = d.tagEmbs || []
       s.pos = d.positions
       s.counts = d.tagCounts
+      s.maxCount = Math.max(...d.tagCounts)
       s.edges = d.edges
       s.tagCos = d.tagCompanies
       s.cats = d.categories
@@ -98,6 +106,7 @@ export default function GraphClient() {
         s.countries.forEach((c: string, i: number) => { s.ctryColors[c] = CTRY_COLS[i % CTRY_COLS.length] })
       }
       computeRadialLayout(s, SCALED)
+      s.baseScales = SCALED.current.map(p => [p[0], p[1]])
       setReady(true)
     })
   }, [])
@@ -110,6 +119,14 @@ export default function GraphClient() {
     const ctx = canvas.getContext("2d")!
     const s = S.current
     let animId = 0
+    let dirty = false
+    let prevTime = 0
+    const CAM_LERP = 0.08
+
+    const scheduleAnim = () => {
+      dirty = true
+      if (!animId) animId = requestAnimationFrame(draw)
+    }
 
     const resize = () => {
       W = window.innerWidth
@@ -120,22 +137,38 @@ export default function GraphClient() {
       canvas.style.height = H + "px"
       ctx.scale(devicePixelRatio, devicePixelRatio)
       setInitialScale(s, SCALED.current, W, H)
+      scheduleAnim()
     }
 
     resize()
     window.addEventListener("resize", resize)
 
-    const draw = () => {
+    function draw(time: number) {
+      const dt = prevTime ? Math.min((time - prevTime) / (1000 / 60), 3) : 1
+      prevTime = time
+      animId = 0
+      if (!dirty && !camTarget && s.hoverIdx < 0) return
+      dirty = false
       ctx.clearRect(0, 0, W, H)
       const scaled = SCALED.current
-      if (!scaled.length) { animId = requestAnimationFrame(draw); return }
+      if (!scaled.length) { scheduleAnim(); return }
 
       // Camera animation (lerp toward target)
       if (camTarget) {
         const tx = camTarget.x, ty = camTarget.y
         const dx = tx - s.tx, dy = ty - s.ty
         if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) { s.tx = tx; s.ty = ty; camTarget = null }
-        else { s.tx += dx * CAM_LERP; s.ty += dy * CAM_LERP }
+        else { const t = 1 - Math.pow(1 - CAM_LERP, dt); s.tx += dx * t; s.ty += dy * t }
+      }
+
+      // Reset from base positions each frame so hover pull doesn't accumulate
+      if (s.baseScales) {
+        for (let i = 0; i < scaled.length; i++) {
+          if (s.baseScales[i]) {
+            scaled[i][0] = s.baseScales[i][0]
+            scaled[i][1] = s.baseScales[i][1]
+          }
+        }
       }
 
       // Hover smudge: pull connected nodes toward hovered
@@ -154,7 +187,7 @@ export default function GraphClient() {
             const dx = hx - cx, dy = hy - cy
             const dist = Math.sqrt(dx * dx + dy * dy)
             if (dist > 0) {
-              const pull = Math.min(pullMax, pullMax * (4 / dist))
+              const pull = Math.min(pullMax, pullMax * Math.min(1, dist / 15))
               scaled[ci][0] += dx * pull
               scaled[ci][1] += dy * pull
             }
@@ -170,7 +203,7 @@ export default function GraphClient() {
       ctx.scale(s.scale, s.scale)
       ctx.translate(-s.tx, -s.ty)
 
-      const maxC = Math.max(...s.counts)
+      const maxC = s.maxCount
       const sel = s.sel
       const z = s.initialScale ? s.scale / s.initialScale : 0
 
@@ -244,12 +277,20 @@ export default function GraphClient() {
           const lbl = cn.name.length > 10 ? cn.name.slice(0, 8) + ".." : cn.name
           ctx.fillStyle = cn.color
           ctx.font = `bold ${Math.min(10, 7 * z) / s.scale}px sans-serif`
-          ctx.textAlign = "left"
           ctx.textBaseline = "middle"
           ctx.save()
           ctx.translate(x, y)
-          ctx.rotate(cn.angle)
-          ctx.fillText(lbl, 5 / s.scale, 0)
+          // Flip label on left half so text isn't upside-down
+          const flip = cn.angle > Math.PI / 2 || cn.angle < -Math.PI / 2
+          if (flip) {
+            ctx.rotate(cn.angle + Math.PI)
+            ctx.textAlign = "right"
+            ctx.fillText(lbl, -5 / s.scale, 0)
+          } else {
+            ctx.rotate(cn.angle)
+            ctx.textAlign = "left"
+            ctx.fillText(lbl, 5 / s.scale, 0)
+          }
           ctx.restore()
           if (caDim) ctx.globalAlpha = 1
         }
@@ -271,7 +312,7 @@ export default function GraphClient() {
           ctx.strokeStyle = sbDim ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.1)"
           ctx.lineWidth = 0.5 / s.scale
           ctx.stroke()
-          if (z > 1.8) {
+          if (z > 2.5) {
             const fs = Math.min(12, 6 * z) / s.scale
             ctx.fillStyle = sbDim ? "#444" : "#888"
             ctx.font = `${fs}px sans-serif`
@@ -308,8 +349,8 @@ export default function GraphClient() {
         else if (isSug && sel.size > 0) ctx.globalAlpha = 0.5
         else ctx.globalAlpha = sel.size === 0 ? 1 : 0.15
 
-        // Glow (only for highlighted nodes)
-        if (hl || isSug) {
+        // Glow (only for highlighted nodes; skip when nothing selected — 16K+ redundant gradients)
+        if ((hl || isSug) && sel.size > 0) {
           const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 2.5)
           grd.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl ? 0.25 : 0.08})`)
           grd.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`)
@@ -348,8 +389,8 @@ export default function GraphClient() {
           ctx.stroke()
         }
 
-        // Label
-        if (z > 2.5 && (hl || isSug)) {
+        // Label: only for hovered, selected, or suggested nodes
+        if (z > 2.5 && (i === s.hoverIdx || sel.has(t) || isSug)) {
           const fs = Math.min(13, 7 * z) / s.scale
           ctx.fillStyle = isSug ? "#888" : hl ? "#fff" : "#666"
           ctx.font = `${fs}px sans-serif`
@@ -360,21 +401,46 @@ export default function GraphClient() {
         }
       }
 
+      // ── Genome-aware overlay ──
+      const ga = genomeAtomsRef.current
+      if (ga.length > 0) {
+        for (let i = 0; i < s.tags.length; i++) {
+          const t = s.tags[i]
+          if (ga.includes(t.toLowerCase())) {
+            const [x, y] = scaled[i]
+            const r = (8 + (s.counts[i] / maxC) * 6) / s.scale
+            // Bright highlight ring
+            ctx.beginPath()
+            ctx.arc(x, y, r + 3 / s.scale, 0, Math.PI * 2)
+            ctx.strokeStyle = "#22c55e"
+            ctx.lineWidth = 2 / s.scale
+            ctx.stroke()
+            // Glow
+            const grd = ctx.createRadialGradient(x, y, 0, x, y, r * 3)
+            grd.addColorStop(0, "rgba(34,197,94,0.15)")
+            grd.addColorStop(1, "rgba(34,197,94,0)")
+            ctx.fillStyle = grd
+            ctx.beginPath()
+            ctx.arc(x, y, r * 3, 0, Math.PI * 2)
+            ctx.fill()
+          }
+        }
+      }
+
       ctx.restore()
       ctx.globalAlpha = 1
-      animId = requestAnimationFrame(draw)
+      if (camTarget || s.hoverIdx >= 0 || s.drag) animId = requestAnimationFrame(draw)
     }
 
     // Camera animation state
     let camTarget: { x: number; y: number } | null = null
-    const CAM_LERP = 0.08
 
-    animId = requestAnimationFrame(draw)
+    scheduleAnim()
 
     // ─── Interaction handlers ───
     const hitTest = (px: number, py: number, useSmudge = false) => {
       const [wx, wy] = screenToWorld(s, px, py, W, H)
-      const maxC = Math.max(...s.counts)
+      const maxC = s.maxCount
       let best = -1
       let bestD = Infinity
       const sc = SCALED.current
@@ -400,6 +466,7 @@ export default function GraphClient() {
       s.dragTy = s.ty
       // Cancel camera animation on drag
       camTarget = null
+      scheduleAnim()
     }
 
     const onMouseMove = (e: MouseEvent) => {
@@ -407,11 +474,21 @@ export default function GraphClient() {
         s.tx = s.dragTx - (e.clientX - s.dragOx) / s.scale
         s.ty = s.dragTy - (e.clientY - s.dragOy) / s.scale
         camTarget = null
+        scheduleAnim()
       }
       const idx = hitTest(e.clientX, e.clientY)
       if (idx !== s.hoverIdx) {
+        const prevHover = s.hoverIdx
         s.hoverIdx = idx
         canvas!.style.cursor = idx >= 0 ? "pointer" : "grab"
+        // Restore base positions when hover ends so hitTest stays accurate
+        if (prevHover >= 0 && idx < 0 && s.baseScales) {
+          const sc = SCALED.current
+          for (let i = 0; i < sc.length; i++) {
+            if (s.baseScales[i]) { sc[i][0] = s.baseScales[i][0]; sc[i][1] = s.baseScales[i][1] }
+          }
+        }
+        scheduleAnim()
       }
     }
 
@@ -428,6 +505,7 @@ export default function GraphClient() {
       s.scale = ns
       s.tx = wx - (mx - W / 2) / s.scale
       s.ty = wy - (my - H / 2) / s.scale
+      scheduleAnim()
     }
 
     const onClick = (e: MouseEvent) => {
@@ -438,6 +516,7 @@ export default function GraphClient() {
         // Animate camera to center on clicked node
         const [x, y] = SCALED.current[idx] || [0, 0]
         camTarget = { x, y }
+        scheduleAnim()
       }
     }
 
@@ -585,8 +664,27 @@ export default function GraphClient() {
   // ─── Tags tab content ───
   return (
     <>
+      {/* WASM warning banner */}
+      {wasmStatus === "failed" && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-950/80 px-3 py-1.5 backdrop-blur-sm shadow-lg">
+          <span className="text-amber-400 text-[11px]">⚠</span>
+          <span className="font-mono text-[10px] text-amber-300">Graph culling unavailable — all nodes shown. No action needed.</span>
+          <button className="ml-2 text-amber-400/60 hover:text-amber-300 text-[10px]" onClick={() => setWasmStatus("loaded" satisfies any)}>✕</button>
+        </div>
+      )}
+
+      {/* Loading state */}
+      {!ready && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "#0d1515" }}>
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-6 h-6 border-2 border-outline border-t-transparent rounded-full animate-spin" />
+            <span className="text-outline font-mono text-sm">Loading graph…</span>
+          </div>
+        </div>
+      )}
+
       {/* Canvas */}
-      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" style={{ background: "#0d1515" }} />
+      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" style={{ background: "#0d1515", willChange: "transform" }} />
 
       {/* Right Panel (combined legend + tabs) */}
       <div className="fixed top-3 right-3 z-10 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
@@ -601,9 +699,9 @@ export default function GraphClient() {
         {/* Tabs */}
         <Tabs value={tab} onValueChange={setTab} className="flex flex-col flex-1 min-h-0">
           <TabsList className="w-full justify-start rounded-none border-b border-border-metal bg-transparent px-0">
-            {["tags", "gap", "companies", "compare", "decon"].map((t) => (
+            {["tags", "companies", "compare", "decon"].map((t) => (
               <TabsTrigger key={t} value={t} className="flex-1 text-[11px] h-8 rounded-none data-active:bg-transparent data-active:border-b-2 data-active:border-primary data-active:text-foreground">
-                {t === "tags" ? "Tags" : t === "gap" ? "Gap" : t === "decon" ? "Decon" : t.charAt(0).toUpperCase() + t.slice(1)}
+                {t === "tags" ? "Tags" : t === "decon" ? "Decon" : t.charAt(0).toUpperCase() + t.slice(1)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -611,9 +709,8 @@ export default function GraphClient() {
           <TabsContent value="tags" className="flex-1 overflow-y-auto p-2.5 space-y-2 mt-0">
             <TagsTab S={S} addTag={addTag} toggleTag={toggleTag} updateChipsDOM={updateChipsDOM} />
           </TabsContent>
-          <TabsContent value="gap" className="flex-1 overflow-y-auto p-2.5 mt-0"><GapTab S={S} /></TabsContent>
           <TabsContent value="companies" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompaniesTab S={S} /></TabsContent>
-          <TabsContent value="compare" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompareTab S={S} /></TabsContent>
+          <TabsContent value="compare" className="flex-1 overflow-y-auto p-2.5 mt-0"><CompareTab S={S} compareRef={compareRef} /></TabsContent>
           <TabsContent value="decon" className="flex-1 overflow-y-auto p-2.5 mt-0">
             <DeconTab S={S} ideaStatus={ideaStatus} setIdeaStatus={setIdeaStatus} />
           </TabsContent>
@@ -621,10 +718,10 @@ export default function GraphClient() {
       </div>
 
       {/* Company detail popup */}
-      <CompanyDetail S={S} addTag={addTag} setTab={setTab} />
+      <CompanyDetail S={S} addTag={addTag} setTab={setTab} compareRef={compareRef} />
 
       {/* Tooltip */}
-      <div id="tt" className="fixed z-20 bg-surface/96 border border-border-metal rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl">
+      <div id="tt" className="fixed z-20 bg-surface/96 border border-border-metal rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl transition-opacity duration-125 ease-out">
         <div className="ttn text-foreground font-medium"></div>
         <div className="ttc text-outline mt-0.5"></div>
         <div className="tcat text-muted-foreground text-[10px] mt-0.5"></div>
@@ -901,6 +998,7 @@ function GapTab({ S }: any) {
 function CompaniesTab({ S }: any) {
   const s = S.current
   const sel = Array.from(s.sel) as string[]
+  const [q, setQ] = useState("")
 
   let match: Set<string> | null = null
   let mData: any = null
@@ -922,10 +1020,11 @@ function CompaniesTab({ S }: any) {
     mData = m
   }
 
-  const sorted = match ? Array.from(match).sort() : []
+  const sorted = match ? Array.from(match).filter((n) => !q.trim() || n.toLowerCase().includes(q.toLowerCase())).sort() : []
 
   return (
     <div className="p-2.5 overflow-y-auto">
+      <Input placeholder="Search companies..." value={q} onChange={(e) => setQ(e.target.value)} className="mb-2 h-7 text-xs" />
       {sorted.length === 0 ? (
         <div className="text-xs text-muted-foreground mt-4 text-center">Select tags to see companies.</div>
       ) : (
@@ -945,11 +1044,17 @@ function CompaniesTab({ S }: any) {
   )
 }
 
-function CompareTab({ S }: any) {
+function CompareTab({ S, compareRef }: any) {
   const s = S.current
   const [aName, setAName] = useState("")
   const [bName, setBName] = useState("")
   const [result, setResult] = useState<any>(null)
+
+  // Expose setter so CompanyDetail can fill names
+  useEffect(() => {
+    compareRef.current = { a: setAName, b: setBName }
+    return () => { compareRef.current = null! }
+  }, [])
 
   const run = () => {
     if (!aName.trim() || !bName.trim() || !s.companyLookup) { setResult(null); return }
@@ -966,8 +1071,59 @@ function CompareTab({ S }: any) {
     setResult({ ca, cb, shared, onlyA, onlyB })
   }
 
+  // Country gap when 2+ countries selected
+  const ca = Array.from(s.selCtries) as string[]
+  let countryView: React.ReactNode = null
+  if (ca.length >= 2) {
+    const tagPresence: Record<string, Set<number>> = {}
+    for (const c of ca) tagPresence[c] = new Set()
+    for (const [tiStr, cc] of Object.entries(s.tagCountries)) {
+      const idx = parseInt(tiStr)
+      for (const [ctry] of Object.entries(cc as Record<string, number>)) {
+        if (tagPresence[ctry]) tagPresence[ctry].add(idx)
+      }
+    }
+    const groups: { label: string; indices: number[]; color: string }[] = [
+      { label: `Only in ${ca[0]}`, indices: [], color: s.ctryColors[ca[0]] || "#888" },
+      { label: `Only in ${ca[1]}`, indices: [], color: s.ctryColors[ca[1]] || "#888" },
+    ]
+    const both: number[] = []
+    for (let i = 0; i < s.tags.length; i++) {
+      const inA = tagPresence[ca[0]]?.has(i)
+      const inB = tagPresence[ca[1]]?.has(i)
+      if (inA && !inB) groups[0].indices.push(i)
+      else if (!inA && inB) groups[1].indices.push(i)
+      else if (inA && inB) both.push(i)
+    }
+    countryView = (
+      <div className="mb-3 pb-3 border-b border-white/5">
+        <div className="text-outline font-mono text-[11px] uppercase tracking-[0.06em] mb-2">{ca[0]} vs {ca[1]}</div>
+        <div className="space-y-1.5">
+          <div>
+            <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: groups[0].color }}></span>
+            <span className="text-foreground/80">{groups[0].label}</span>
+            <span className="text-muted-foreground ml-1">({groups[0].indices.length})</span>
+            <div className="pl-4 text-[10px] text-muted-foreground">{groups[0].indices.slice(0, 6).map((i) => s.tags[i]).join(", ")}{groups[0].indices.length > 6 ? `, +${groups[0].indices.length - 6} more` : ""}</div>
+          </div>
+          <div>
+            <span className="inline-block w-2 h-2 rounded-full mr-1.5" style={{ background: groups[1].color }}></span>
+            <span className="text-foreground/80">{groups[1].label}</span>
+            <span className="text-muted-foreground ml-1">({groups[1].indices.length})</span>
+            <div className="pl-4 text-[10px] text-muted-foreground">{groups[1].indices.slice(0, 6).map((i) => s.tags[i]).join(", ")}{groups[1].indices.length > 6 ? `, +${groups[1].indices.length - 6} more` : ""}</div>
+          </div>
+          <div>
+            <span className="inline-block w-2 h-2 rounded-full bg-outline mr-1.5"></span>
+            <span className="text-foreground/80">Both countries</span>
+            <span className="text-muted-foreground ml-1">({both.length})</span>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-2.5 overflow-y-auto text-xs">
+      {countryView}
       <div className="text-gray-500 mb-2">Compare two companies by their tags.</div>
       <div className="flex gap-2 mb-2">
         <Input placeholder="Company A..." value={aName} onChange={(e) => setAName(e.target.value)} className="flex-1 h-7 text-xs" />
@@ -1016,7 +1172,7 @@ function DeconTab({ S, ideaStatus, setIdeaStatus }: any) {
     if (loadedRef.current) return
     loadedRef.current = true
     setIdeaStatus("Loading model (23MB)...")
-    import("@xenova/transformers").then(async (mod) => {
+    import("@xenova/transformers/dist/transformers.js").then(async (mod) => {
       const p = await mod.pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
       modelRef.current = p
       setIdeaStatus("Ready.")
@@ -1078,7 +1234,7 @@ function DeconTab({ S, ideaStatus, setIdeaStatus }: any) {
   )
 }
 
-function CompanyDetail({ S, addTag, setTab }: any) {
+function CompanyDetail({ S, addTag, setTab, compareRef }: any) {
   const s = S.current
   const [visible, setVisible] = useState(false)
   const [name, setName] = useState("")
@@ -1124,8 +1280,8 @@ function CompanyDetail({ S, addTag, setTab }: any) {
             )}
             {/* Actions */}
             <div className="flex gap-2 pt-2 border-t border-border-metal">
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "A"); setTab("compare"); setVisible(false) }}>Compare as A</Button>
-              <Button variant="outline" size="sm" className="flex-1" onClick={() => { (window as any).fillCmp?.(name, "B"); setTab("compare"); setVisible(false) }}>Compare as B</Button>
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => { compareRef.current?.a(name); setTab("compare"); setVisible(false) }}>Compare as A</Button>
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => { compareRef.current?.b(name); setTab("compare"); setVisible(false) }}>Compare as B</Button>
             </div>
           </div>
         ) : (

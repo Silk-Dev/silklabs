@@ -87,3 +87,45 @@ function generateTldr(data: {
     ? parts.join(" ") + "."
     : "A new member of Silklabs."
 }
+
+/**
+ * Completes onboarding AND builds the user's Digital Twin.
+ * Called from the onboarding step 10 interstitial.
+ */
+export async function completeOnboardingAndBuildTwin(data: {
+  name?: string
+  location?: string
+  experience?: string
+  partnerships?: string
+  topSkill?: string
+  motivation?: string
+  commitment?: string
+  lookingFor?: string
+  tldr?: string
+  isPublic?: boolean
+  visibleRegions?: string[]
+}) {
+  await completeOnboarding(data)
+
+  const session = await requireAuth()
+
+  // Build the Digital Twin
+  const { buildTwin } = await import("@/lib/twin.service")
+  try {
+    await buildTwin(session.user.id, "USER")
+  } catch {
+    // Non-critical — user can build twin later from matches page
+  }
+
+  // Refresh alignments in the background
+  try {
+    const { refreshAlignments } = await import(
+      "@/services/matches.service"
+    )
+    await refreshAlignments()
+  } catch {
+    // Non-critical
+  }
+
+  return { success: true }
+}

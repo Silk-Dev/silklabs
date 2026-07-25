@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Startup Tag-Space Graph</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+#canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+#legend{position:fixed;top:0;left:0;width:300px;height:100%;z-index:10;overflow-y:auto;border-right:1px solid rgba(255,255,255,0.08);transition:transform .3s;background:rgba(15,15,19,0.96)}
+#legend.collapsed{transform:translateX(-300px)}
+
+#ltog{position:fixed;top:10px;left:310px;z-index:11;transition:left .3s}
+#legend.collapsed+#ltog{left:10px}
+#sr{max-height:280px;overflow-y:auto}
+#cd{max-height:320px;overflow-y:auto}
+#cp{max-height:50vh;overflow-y:auto}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px}
+.lsc{overflow:hidden;max-height:0;transition:max-height .3s}
+.lsc.on{max-height:2000px}
+.ltg{overflow:hidden;max-height:0;transition:max-height .2s}
+.ltg.on{max-height:2000px}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* Dynamic element styles (created by JS) */
+#sr.s{display:block}#sr .ri{padding:6px 12px;cursor:pointer;font-size:12px;color:#bbb;display:flex;align-items:center;gap:6px}#sr .ri:hover{background:rgba(255,255,255,0.04);color:#fff}#sr .ri .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}#sr .ri .sc{font-size:10px;color:#555;margin-left:auto}
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px 2px 9px;background:rgba(255,255,255,0.06);border-radius:12px;font-size:11px;color:#ccc;cursor:pointer}.chip:hover{background:rgba(255,255,255,0.12)}.chip .cx{font-size:13px;color:#555;margin-left:2px;line-height:1}.chip .cx:hover{color:#fff}
+.cpc{padding:8px 14px;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer}.cpc:hover{background:rgba(255,255,255,0.02)}.cpc .cn{font-size:13px;font-weight:500;color:#ddd}.cpc .cl{font-size:11px;color:#555;margin-top:2px}
+#cdp .cdr{font-size:12px;color:#999;padding:3px 0;display:flex;gap:8px}#cdp .cdr .cdrl{color:#555;min-width:80px;flex-shrink:0}#cdp .cdr .cdrv{color:#ccc}#cdp .cdtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}#cdp .cdtags span{padding:2px 7px;background:rgba(255,255,255,0.05);border-radius:8px;font-size:10px;color:#999}
+#cd .ce{display:flex;align-items:center;gap:6px;padding:4px 10px;cursor:pointer;font-size:11px;color:#aaa}#cd .ce:hover{background:rgba(255,255,255,0.04);color:#fff}#cd .ce .ck{width:13px;height:13px;border-radius:3px;border:1px solid rgba(255,255,255,0.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:8px}#cd .ce .ck.on{background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3)}#cd .ce .cdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lc{margin:0 6px 2px;border-radius:5px;cursor:pointer}.lc:hover{background:rgba(255,255,255,0.03)}.lch{display:flex;align-items:center;padding:6px 8px;gap:6px;font-size:12px;font-weight:500;color:#ccc;user-select:none;border-radius:5px}.lch .ar{width:14px;text-align:center;transition:transform .2s;font-size:9px;color:#555}.lch .ar.on{transform:rotate(90deg)}.lch .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}.lch .cnt{font-size:10px;color:#555;margin-left:auto}.lsc{padding-left:20px}.ls{margin:1px 0}.lsh{display:flex;align-items:center;padding:4px 6px;gap:5px;font-size:11px;color:#aaa;cursor:pointer;border-radius:3px;user-select:none}.lsh:hover{background:rgba(255,255,255,0.03)}.lsh .ar{width:10px;text-align:center;transition:transform .2s;font-size:8px;color:#555}.lsh .ar.on{transform:rotate(90deg)}.ltg{padding-left:14px}.lt{display:flex;align-items:center;padding:2px 6px;gap:5px;font-size:10px;color:#777;cursor:pointer;border-radius:2px;user-select:none;transition:all .1s}.lt:hover{background:rgba(255,255,255,0.04);color:#ccc}.lt.sel{color:#fff;font-weight:500}.lt .td{width:5px;height:5px;border-radius:50%;opacity:0.5;flex-shrink:0}.lt.sel .td{opacity:1}.lt .tc{font-size:9px;color:#555;margin-left:auto}
+#cd.o{display:block}#cdp.o{display:block}.tab-btn.active{border-color:#3B82F6;color:#e0e0e0}.tab-panel{display:none}.tab-panel.active{display:block}
+</style>
+</head>
+<body class="bg-[#0a0a0f] text-gray-200 overflow-hidden h-screen w-screen antialiased select-none">
+<div id="loading" class="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0f]">
+  <div class="w-8 h-8 border-2 border-white/10 border-t-blue-500 rounded-full animate-[spin_.8s_linear_infinite]"></div>
+  <p class="mt-3 text-xs text-gray-600">Loading...</p>
+</div>
+<canvas id="canvas"></canvas>
+
+<div id="legend" class="pt-12 pb-4">
+  <div class="px-4 pb-2 text-[11px] font-semibold tracking-widest text-gray-500 uppercase">Tags</div>
+  <div id="ltree"></div>
+</div>
+<div id="ltog" class="flex items-center justify-center w-8 h-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-gray-400 cursor-pointer text-sm transition-colors">☰</div>
+
+<div id="rp" class="fixed top-3 right-3 z-10 w-[280px] bg-[#0e0e16] border border-white/10 rounded-xl shadow-2xl flex flex-col max-h-[calc(100vh-16px)]">
+  <!-- Tab bar -->
+  <div class="flex border-b border-white/10 shrink-0">
+    <button class="tab-btn flex-1 px-2 py-2 text-[11px] font-medium text-gray-500 hover:text-gray-300 transition-colors text-center cursor-pointer border-b-2 border-transparent" data-tab="tags">Tags</button>
+    <button class="tab-btn flex-1 px-2 py-2 text-[11px] font-medium text-gray-500 hover:text-gray-300 transition-colors text-center cursor-pointer border-b-2 border-transparent" data-tab="gap">Gap</button>
+    <button class="tab-btn flex-1 px-2 py-2 text-[11px] font-medium text-gray-500 hover:text-gray-300 transition-colors text-center cursor-pointer border-b-2 border-transparent" data-tab="companies">Companies</button>
+    <button class="tab-btn flex-1 px-2 py-2 text-[11px] font-medium text-gray-500 hover:text-gray-300 transition-colors text-center cursor-pointer border-b-2 border-transparent" data-tab="compare">Compare</button>
+    <button class="tab-btn flex-1 px-2 py-2 text-[11px] font-medium text-gray-500 hover:text-gray-300 transition-colors text-center cursor-pointer border-b-2 border-transparent" data-tab="decon">Decon</button>
+  </div>
+
+  <!-- Tags tab -->
+  <div id="tab-tags" class="tab-panel p-2.5 space-y-2 overflow-y-auto">
+    <div id="sb" class="relative">
+      <input id="si" placeholder="Search tags..." autocomplete="off"
+        class="w-full px-2.5 py-1.5 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-white/20 transition-colors">
+      <div id="sr" class="absolute top-full left-0 right-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg shadow-xl hidden"></div>
+    </div>
+    <div id="cb" class="relative">
+      <div id="cbt" class="cursor-pointer px-2.5 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-xs text-gray-400 transition-colors text-center select-none">🌍 Country</div>
+      <div id="cd" class="absolute top-full left-0 mt-1 bg-[#1a1a24]/98 border border-white/10 rounded-lg w-52 shadow-xl hidden z-10">
+        <input id="csi" placeholder="Filter countries..."
+          class="w-[calc(100%-12px)] mx-1.5 my-1.5 px-2 py-1 bg-black/30 border border-white/10 rounded text-[11px] text-gray-300 outline-none">
+        <div id="clist"></div>
+      </div>
+    </div>
+    <div id="cc" class="flex flex-wrap gap-1 min-h-[20px]"></div>
+    <div id="mc" class="text-[11px] text-gray-500 min-h-[16px] leading-tight"></div>
+  </div>
+
+  <!-- Gap tab -->
+  <div id="tab-gap" class="tab-panel hidden p-2.5 overflow-y-auto flex-1">
+    <div class="text-[11px] text-gray-500 mb-2">Select 2+ countries to compare tag coverage.</div>
+    <div id="gap-content"></div>
+  </div>
+
+  <!-- Companies tab -->
+  <div id="tab-companies" class="tab-panel hidden p-2.5 overflow-y-auto flex-1">
+    <div id="cl"></div>
+  </div>
+
+  <!-- Compare tab -->
+  <div id="tab-compare" class="tab-panel hidden p-2.5 overflow-y-auto flex-1">
+    <div class="text-[11px] text-gray-500 mb-2">Compare two companies by their tags.</div>
+    <div class="flex gap-2 mb-3">
+      <input id="cmpA" placeholder="Company A..." class="flex-1 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-[11px] text-gray-200 placeholder-gray-500 outline-none focus:border-white/20 transition-colors">
+      <input id="cmpB" placeholder="Company B..." class="flex-1 px-2 py-1.5 bg-white/5 border border-white/10 rounded text-[11px] text-gray-200 placeholder-gray-500 outline-none focus:border-white/20 transition-colors">
+    </div>
+    <div id="cmp-results"></div>
+  </div>
+
+  <!-- Deconstruct tab -->
+  <div id="tab-decon" class="tab-panel hidden p-2.5 overflow-y-auto flex-1">
+    <div class="text-[11px] text-gray-500 mb-2">Describe your idea and see where it lands.</div>
+    <textarea id="idea-input" placeholder="Describe your product or idea..." class="w-full px-2.5 py-2 bg-white/5 border border-white/10 rounded-lg text-xs text-gray-200 placeholder-gray-500 outline-none focus:border-white/20 transition-colors resize-none" rows="3"></textarea>
+    <div id="decon-status" class="text-[10px] text-gray-600 mt-1"></div>
+    <div id="decon-results" class="mt-2 space-y-1"></div>
+  </div>
+</div>
+<div id="cdp" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-30 bg-[#14141c]/98 border border-white/10 rounded-xl px-5 py-4 min-w-[320px] max-w-[420px] shadow-2xl hidden">
+  <span class="float-right cursor-pointer text-gray-500 hover:text-white text-lg leading-none" onclick="closeCDP()">✕</span>
+  <h3 id="cdpn" class="text-base font-semibold text-white pr-6 mb-3"></h3>
+  <div id="cdpb"></div>
+</div>
+<div id="tt" class="fixed z-20 bg-[#14141c]/96 border border-white/10 rounded-lg px-3 py-2 text-xs pointer-events-none hidden shadow-xl">
+  <div class="ttn text-white font-medium"></div>
+  <div class="ttc text-gray-500 mt-0.5"></div>
+  <div class="tcat text-gray-600 text-[10px] mt-0.5"></div>
+</div>
+
+<script>
+// === State ===
+const S = {
+  tags:[], pos:[], counts:[], edges:[], tagCos:{}, cats:[], hier:{},
+  tagCat:{}, tagSub:{},   sel:new Set(), suggested:new Set(), idxMap:{}, wasm:null,
+  countries:[], tagCountries:{}, selCtries:new Set(), ctryColors:{},
+  tx:0, ty:0, scale:1, // camera
+  drag:false, dragOx:0, dragOy:0, dragTx:0, dragTy:0,
+  hoverIdx:-1,
+};
+
+const COLS = {
+  'Artificial Intelligence':'#9333EA','Hardware & Robotics':'#F59E0B',
+  'Enterprise Software & SaaS':'#3B82F6','Fintech':'#10B981',
+  'Healthcare & Biotech':'#EF4444','Consumer & E-commerce':'#EC4899',
+  'Education & HR':'#8B5CF6','Media & Entertainment':'#F97316',
+  'Climate & Energy':'#22C55E','Transportation & Logistics':'#06B6D4',
+   'Security & Infrastructure':'#6366F1','Legal, Gov & Civic Tech':'#A855F7'
+};
+const CATS = Object.keys(COLS);
+const COL_CACHE = new Map();
+const R1=4, R2=10, R3=22;
+const CTRY_COLS=['#FF6B6B','#4ECDC4','#FFE66D','#95E1D3','#F38181','#AA96DA','#FCBAD3','#A8D8EA','#FFD3B6','#45B7D1','#FFA07A','#98FB98','#DDA0DD','#F0E68C','#FFB347','#77DD77','#89CFF0','#FF6961','#CB99C9','#7EC8E3'];
+
+function tcol(t){
+  let c=COL_CACHE.get(t);if(c)return c;
+  c='#666';for(const cat of CATS){if(S.tagCat[t]===cat){c=COLS[cat];break}}
+  COL_CACHE.set(t,c);return c;
+}
+
+function hex2rgb(h){
+  const v=parseInt(h.slice(1),16);
+  return [(v>>16)&255,(v>>8)&255,v&255];
+}
+
+// === WASM ===
+let WASM=null;
+async function loadWasm(){
+  const r=await fetch('graph_engine.wasm');
+  const buf=await r.arrayBuffer();
+  const mod=await WebAssembly.instantiate(buf,{
+    env:{},
+    wasi_snapshot_preview1:{
+      fd_write:()=>0,fd_close:()=>0,fd_seek:()=>0,fd_read:()=>0,
+      environ_sizes_get:()=>0,environ_get:()=>0,proc_exit:()=>0,
+      args_sizes_get:()=>0,args_get:()=>0,
+    }
+  });
+  WASM=mod.instance.exports;
+}
+function cullNodes(cx,cy,vw,vh,sc){
+  if(!WASM)return null;
+  const n=SCALED.length;
+  const ptr=WASM.malloc(n*2*4);
+  const view=new Float32Array(WASM.memory.buffer,ptr,n*2);
+  for(let i=0;i<n;i++){view[i*2]=SCALED[i][0];view[i*2+1]=SCALED[i][1];}
+  const outPtr=WASM.malloc(4);
+  const rPtr=WASM.cull_nodes(ptr,n,cx,cy,vw,vh,sc,0.5,outPtr);
+  const outView=new Int32Array(WASM.memory.buffer,outPtr,1);
+  const count=outView[0];
+  const rView=new Float32Array(WASM.memory.buffer,rPtr,count*2+1);
+  const indices=[];
+  for(let i=0;i<count;i++)indices.push(rView[i*2+1]|0);
+  WASM.free(ptr);
+  WASM.free(outPtr);
+  WASM.free_result(rPtr);
+  return indices;
+}
+
+// === Data ===
+async function loadData(){
+  const r=await fetch('graph_data.json');
+  const d=await r.json();
+  S.tags=d.tags;S.tagEmbs=d.tagEmbs;S.pos=d.positions;S.counts=d.tagCounts;
+  S.edges=d.edges;S.tagCos=d.tagCompanies;S.cats=d.categories;
+  S.hier=d.hierarchy;
+  for(const c of d.categories)for(const tn of c.tagNames){
+    S.tagCat[tn]=c.path[0]||'';S.tagSub[tn]=c.path[1]||''
+  }
+  S.tags.forEach((t,i)=>{S.idxMap[t]=i});
+  if(d.countries){S.countries=d.countries;S.tagCountries=d.tagCountries||{};
+    S.countries.forEach((c,i)=>{S.ctryColors[c]=CTRY_COLS[i%CTRY_COLS.length]});
+  }
+  // Lazy-load full company data for detail view
+  S.companyLookup=null;
+  fetch('all_companies.json').then(r=>r.json()).then(cs=>{
+    S.companyLookup={};
+    for(const c of cs)S.companyLookup[c.name.toLowerCase().trim()]=c;
+  }).catch(()=>{});
+  document.getElementById('loading').style.display='none';
+}
+
+// === Normalize positions ===
+let SCALED=null,MINX=0,MINY=0,RNG=1;
+function computeRadialLayout(){
+  const cats=CATS.filter(c=>S.hier[c]);
+  const nCats=cats.length;
+  SCALED=new Array(S.tags.length);
+  const placed=new Set();
+  S.catNodes=[];
+  S.subNodes=[];
+
+  function angleDist(i,n,center,span){return center-span/2+((i+0.5)/n)*span;}
+
+  cats.forEach((cat,ci)=>{
+    const a0=ci/nCats*2*Math.PI-Math.PI/2;
+    S.catNodes.push({name:cat,angle:a0,color:COLS[cat]});
+    const subs=S.hier[cat];
+    const sk=Object.keys(subs);
+    const catArc=2*Math.PI/nCats;
+    const sArc=Math.min(catArc*0.85,Math.PI*0.8/sk.length);
+
+    sk.forEach((sub,si)=>{
+      const a1=angleDist(si,sk.length,a0,sArc);
+      S.subNodes.push({name:sub,angle:a1,color:COLS[cat],catAng:a0});
+      const tags=subs[sub];
+
+      tags.forEach((tag,ti)=>{
+        if(placed.has(tag))return;
+        placed.add(tag);
+        const idx=S.idxMap[tag];
+        if(idx===undefined)return;
+        const frac=tags.length>1?ti/(tags.length-1):0.5;
+        const r=R2+0.6+frac*(R3-R2-0.6);
+        SCALED[idx]=[r*Math.cos(a1),r*Math.sin(a1)];
+      });
+
+      // Place subcategory position (for reference, not a tag node)
+      // We need to assign this to any tag that matches the subcategory name
+      const subIdx=S.idxMap[sub];
+      if(subIdx!==undefined&&!placed.has(sub)){
+        placed.add(sub);
+        SCALED[subIdx]=[R2*Math.cos(a1),R2*Math.sin(a1)];
+      }
+    });
+
+    // Place category position for any tag that matches category name
+    const catIdx=S.idxMap[cat];
+    if(catIdx!==undefined&&!placed.has(cat)){
+      placed.add(cat);
+      SCALED[catIdx]=[R1*Math.cos(a0),R1*Math.sin(a0)];
+    }
+  });
+
+  // Any tag not placed yet (e.g. duplicates under multiple parents)
+  for(let i=0;i<S.tags.length;i++){
+    if(!SCALED[i]){
+      const t=S.tags[i];
+      // Find its category
+      const cat=S.tagCat[t];
+      const ci=cats.indexOf(cat);
+      const a0=ci>=0?ci/nCats*2*Math.PI-Math.PI/2:Math.random()*2*Math.PI;
+      const a2=a0+(Math.random()-0.5)*0.3;
+      SCALED[i]=[R3*Math.cos(a2),R3*Math.sin(a2)];
+    }
+  }
+}
+
+// === Canvas ===
+const C=document.getElementById('canvas');
+const CTX=C.getContext('2d');
+let W=0,H=0;
+
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  C.width=W*devicePixelRatio;C.height=H*devicePixelRatio;
+  C.style.width=W+'px';C.style.height=H+'px';
+  CTX.scale(devicePixelRatio,devicePixelRatio);
+  if(SCALED)setInitialScale();
+}
+function setInitialScale(){
+  let maxExt=0;
+  for(const [x,y] of SCALED){
+    const d=Math.max(Math.abs(x),Math.abs(y));
+    if(d>maxExt)maxExt=d;
+  }
+  if(maxExt>0)S.scale=Math.min(W,H)*0.85/(maxExt*2);
+  if(!S.initialScale)S.initialScale=S.scale;
+}
+
+// === Draw ===
+function draw(){
+  CTX.clearRect(0,0,W,H);
+  if(!SCALED)return;
+
+  // Visible nodes via WASM
+  const vw=W/2, vh=H/2;
+  const visible=cullNodes(S.tx,S.ty,W,H,S.scale);
+  let visSet=null;
+  if(visible)visSet=new Set(visible);
+
+  CTX.save();
+  CTX.translate(W/2,H/2);
+  CTX.scale(S.scale,S.scale);
+  CTX.translate(-S.tx,-S.ty);
+
+  const maxC=Math.max(...S.counts);
+  const sel=S.sel;
+  const z=S.initialScale?S.scale/S.initialScale:0;
+
+  // Active sets for dimming when a tag is selected
+  let activeCats,activeSubs;
+  if(sel.size>0){
+    activeCats=new Set();activeSubs=new Set();
+    for(const t of sel){
+      const c=S.tagCat[t],s=S.tagSub[t];
+      if(c)activeCats.add(c);if(s)activeSubs.add(s);
+    }
+  }
+  const dim=(v)=>sel.size>0&&!v;
+
+  // Branch spokes
+  CTX.strokeStyle='rgba(255,255,255,0.05)';
+  CTX.lineWidth=1/S.scale;
+  for(const cat of CATS){
+    const subs=S.hier[cat];if(!subs)continue;
+    for(const [sn,ts] of Object.entries(subs)){
+      if(!ts.length)continue;
+      const idx=S.idxMap[ts[0]];if(idx===undefined)continue;
+      const [x,y]=SCALED[idx];const a=Math.atan2(y,x);
+      let maxR=0;
+      for(const t of ts){
+        const i=S.idxMap[t];if(i===undefined)continue;
+        const [px,py]=SCALED[i];const r=Math.sqrt(px*px+py*py);
+        if(r>maxR)maxR=r;
+      }
+      const spDim=dim(activeSubs&&activeSubs.has(sn));
+      CTX.globalAlpha=spDim?0.01:0.05;
+      CTX.beginPath();
+      CTX.moveTo(R1*0.5*Math.cos(a),R1*0.5*Math.sin(a));
+      CTX.lineTo(maxR*Math.cos(a),maxR*Math.sin(a));
+      CTX.stroke();
+    }
+  }
+  CTX.globalAlpha=1;
+
+  // Category arcs at R1
+  if(S.catNodes){
+    CTX.lineWidth=3/S.scale;
+    for(let ci=0;ci<S.catNodes.length;ci++){
+      const cn=S.catNodes[ci];
+      const aStart=ci/S.catNodes.length*2*Math.PI-Math.PI/2+0.02;
+      const aEnd=(ci+1)/S.catNodes.length*2*Math.PI-Math.PI/2-0.02;
+      const caDim=dim(activeCats&&activeCats.has(cn.name));
+      CTX.globalAlpha=caDim?0.08:0.5;
+      CTX.beginPath();CTX.arc(0,0,R1,aStart,aEnd);
+      CTX.strokeStyle=cn.color;CTX.stroke();
+    }
+    CTX.globalAlpha=1;
+  }
+
+  // Category labels
+  if(S.catNodes&&z>1.2){
+    for(const cn of S.catNodes){
+      const x=R1*Math.cos(cn.angle),y=R1*Math.sin(cn.angle);
+      const caDim=dim(activeCats&&activeCats.has(cn.name));
+      if(caDim){CTX.globalAlpha=0.1;CTX.save()}
+      const fs=Math.min(10,7*z)/S.scale;
+      CTX.fillStyle=cn.color;
+      CTX.font=`bold ${fs}px sans-serif`;
+      CTX.textAlign='left';CTX.textBaseline='middle';
+      CTX.save();
+      CTX.translate(x,y);
+      CTX.rotate(cn.angle);
+      const lbl=cn.name.length>10?cn.name.slice(0,8)+'..':cn.name;
+      CTX.fillText(lbl,5/S.scale,0);
+      CTX.restore();
+      if(caDim)CTX.restore();
+    }
+    CTX.globalAlpha=1;
+  }
+
+  // Subcategory dots at R2
+  if(S.subNodes&&S.scale>0.5){
+    for(const sn of S.subNodes){
+      const x=R2*Math.cos(sn.angle),y=R2*Math.sin(sn.angle);
+      const dr=4/S.scale;const rgb=hex2rgb(sn.color);
+      const sbDim=dim(activeSubs&&activeSubs.has(sn.name));
+      const sa=sbDim?0.08:0.5;
+      CTX.beginPath();CTX.arc(x,y,dr,0,Math.PI*2);
+      CTX.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${sa})`;
+      CTX.fill();
+      CTX.strokeStyle=sbDim?'rgba(255,255,255,0.02)':'rgba(255,255,255,0.1)';
+      CTX.lineWidth=0.5/S.scale;CTX.stroke();
+      if(z>1.8){
+        const fs=Math.min(12,6*z)/S.scale;
+        CTX.fillStyle=sbDim?'#444':'#888';
+        CTX.font=`${fs}px sans-serif`;
+        CTX.textAlign='center';CTX.textBaseline='middle';
+        const lbl=sn.name.length>14?sn.name.slice(0,12)+'…':sn.name;
+        CTX.fillText(lbl,x,y+dr+2/S.scale);
+      }
+    }
+  }
+
+  // Nodes
+  for(let i=0;i<S.tags.length;i++){
+    if(visSet&&!visSet.has(i))continue;
+    const t=S.tags[i],c=S.counts[i];
+    const [x,y]=SCALED[i];
+    const r=(8+(c/maxC)*6)/S.scale;
+    const col=tcol(t);
+    const rgb=hex2rgb(col);
+    const ctrySel=S.selCtries.size>0;
+    let ctryMatches=[];
+    if(ctrySel){
+      const tc=S.tagCountries[String(i)];
+      if(tc)for(const c of S.selCtries){if(tc[c])ctryMatches.push(S.ctryColors[c])}
+    }
+    const ctryMatch=ctryMatches.length>0;
+    const hl=(sel.size===0||sel.has(t))&&(!ctrySel||ctryMatch);
+    const isSug=!sel.has(t)&&S.suggested&&S.suggested.has(t);
+
+    if(!hl&&!isSug){
+      CTX.globalAlpha=0.2;
+    }else if(sel.has(t)){
+      CTX.globalAlpha=1;
+    }else if(isSug&&sel.size>0){
+      CTX.globalAlpha=0.5;
+    }else{
+      CTX.globalAlpha=sel.size===0?1:0.15;
+    }
+
+    // Glow
+    const grd=CTX.createRadialGradient(x,y,0,x,y,r*2.5);
+    grd.addColorStop(0,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl?0.25:0.05})`);
+    grd.addColorStop(1,`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+    CTX.fillStyle=grd;
+    CTX.beginPath();CTX.arc(x,y,r*2.5,0,Math.PI*2);CTX.fill();
+
+    // Circle
+    CTX.beginPath();CTX.arc(x,y,r,0,Math.PI*2);
+    CTX.fillStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},${hl?0.9:0.3})`;
+    CTX.fill();
+    CTX.strokeStyle=`rgba(255,255,255,${hl?0.15:0.05})`;
+    CTX.lineWidth=1/S.scale;
+    CTX.stroke();
+
+    // Suggested dashed border
+    if(isSug&&sel.size>0){
+      CTX.setLineDash([3/S.scale,3/S.scale]);
+      CTX.beginPath();CTX.arc(x,y,r+1.5/S.scale,0,Math.PI*2);
+      CTX.strokeStyle=`rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`;
+      CTX.lineWidth=1.5/S.scale;CTX.stroke();
+      CTX.setLineDash([]);
+    }
+
+    // Country ring
+    if(ctryMatch){
+      CTX.beginPath();CTX.arc(x,y,r+1.5/S.scale,0,Math.PI*2);
+      CTX.strokeStyle=ctryMatches[0];CTX.lineWidth=2/S.scale;CTX.stroke();
+    }
+
+    // Label
+    if(z>2.5&&(hl||isSug)){
+      const fs=Math.min(13,7*z)/S.scale;
+      CTX.fillStyle=isSug?'#888':hl?'#fff':'#666';
+      CTX.font=`${fs}px sans-serif`;
+      CTX.textAlign='center';CTX.textBaseline='middle';
+      const lbl=t.length>12?t.slice(0,10)+'..':t;
+      CTX.fillText(lbl,x,y+r+2/S.scale);
+    }
+  }
+
+  CTX.restore();
+  CTX.globalAlpha=1;
+
+  requestAnimationFrame(draw);
+}
+
+// === Interaction ===
+function screenToWorld(px,py){
+  const x=(px-W/2)/S.scale+S.tx;
+  const y=(py-H/2)/S.scale+S.ty;
+  return [x,y];
+}
+
+function hitTest(px,py){
+  const [wx,wy]=screenToWorld(px,py);
+  const maxC=Math.max(...S.counts);
+  let best=-1,bestD=Infinity;
+  for(let i=0;i<S.tags.length;i++){
+    const [x,y]=SCALED[i];
+    const r=(8+(S.counts[i]/maxC)*6)/S.scale;
+    const dx=x-wx,dy=y-wy;
+    const d=dx*dx+dy*dy;
+    if(d<r*r&&d<bestD){best=i;bestD=d}
+  }
+  return best;
+}
+
+C.addEventListener('mousedown',e=>{
+  S.drag=true;
+  S.dragOx=e.clientX;S.dragOy=e.clientY;
+  S.dragTx=S.tx;S.dragTy=S.ty;
+});
+window.addEventListener('mousemove',e=>{
+  if(S.drag){
+    const dx=(e.clientX-S.dragOx)/S.scale;
+    const dy=(e.clientY-S.dragOy)/S.scale;
+    S.tx=S.dragTx-dx;S.ty=S.dragTy-dy;
+  }
+  const idx=hitTest(e.clientX,e.clientY);
+  if(idx!==S.hoverIdx){
+    S.hoverIdx=idx;
+    C.style.cursor=idx>=0?'pointer':'grab';
+    if(idx<0)hideTT();
+  }
+  if(idx>=0)showTT(e.clientX,e.clientY,S.tags[idx],S.counts[idx],S.tagCat[S.tags[idx]]||'');
+});
+window.addEventListener('mouseup',()=>{S.drag=false});
+C.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const dz=-e.deltaY*0.001;
+  const ns=Math.max(S.scale*0.1,Math.min(S.scale*5,S.scale*(1+dz)));
+  const mx=e.clientX,my=e.clientY;
+  const wx=(mx-W/2)/S.scale+S.tx;
+  const wy=(my-H/2)/S.scale+S.ty;
+  S.scale=ns;
+  // After zoom, adjust so world pos stays under mouse
+  S.tx=wx-(mx-W/2)/S.scale;
+  S.ty=wy-(my-H/2)/S.scale;
+});
+C.addEventListener('click',e=>{
+  if(S.drag&&(Math.abs(e.clientX-S.dragOx)>3||Math.abs(e.clientY-S.dragOy)>3))return;
+  const idx=hitTest(e.clientX,e.clientY);
+  if(idx>=0){
+    const t=S.tags[idx];
+    toggleTag(t);
+  }
+});
+
+// === Tooltip ===
+const TTe=document.getElementById('tt');
+function showTT(x,y,name,count,cat){
+  TTe.style.display='block';
+  TTe.style.left=(x+14)+'px';TTe.style.top=(y-10)+'px';
+  TTe.querySelector('.ttn').textContent=name;
+  TTe.querySelector('.ttc').textContent=count+' companies';
+  TTe.querySelector('.tcat').textContent=cat||'';
+}
+function hideTT(){TTe.style.display='none';}
+
+// === Tag Selection ===
+function addTag(t){if(S.sel.has(t))return;S.sel.add(t);updateUI();}
+function removeTag(t){if(!S.sel.has(t))return;S.sel.delete(t);updateUI();}
+function toggleTag(t){if(S.sel.has(t))removeTag(t);else addTag(t);}
+
+function updateUI(){
+  updateChips();updateLegendSel();updateMC();updateCP();
+}
+
+function updateChips(){
+  const el=document.getElementById('cc');
+  el.innerHTML='';
+  for(const t of S.sel){
+    const c=document.createElement('span');c.className='chip';
+    c.innerHTML=`${t}<span class="cx">×</span>`;
+    c.addEventListener('click',()=>removeTag(t));
+    el.appendChild(c);
+  }
+}
+
+function ctryFilter(cos){
+  if(!S.selCtries.size)return cos;
+  const ca=Array.from(S.selCtries);
+  return cos.filter(e=>ca.some(c=>e.c===c));
+}
+
+function updateMC(){
+  const el=document.getElementById('mc');
+  if(!S.sel.size&&!S.selCtries.size){el.textContent='';return}
+  const sel=Array.from(S.sel);
+  let match=null;
+  if(sel.length){
+    for(const t of sel){
+      const idx=S.idxMap[t];if(idx===undefined)continue;
+      const cos=S.tagCos[String(idx)];if(!cos)continue;
+      const s=new Set(ctryFilter(cos).map(c=>c.n));
+      if(match===null)match=s;else match=new Set([...match].filter(n=>s.has(n)));
+    }
+  }else{
+    // No tags selected, but countries are — count companies from those countries
+    const names=new Set();
+    for(const [,cos] of Object.entries(S.tagCos)){
+      for(const e of ctryFilter(cos))names.add(e.n);
+    }
+    match=names;
+  }
+  const n=match?match.size:0;
+  const tagPart=sel.length?`${sel.join(' & ')}: `:'';
+  let extra='';
+  if(S.selCtries.size>1){
+    // Per-country breakdown
+    const ca=Array.from(S.selCtries);
+    const parts=ca.map(ctry=>{
+      const filtered=ctryFilter(
+        sel.length?S.tagCos[String(S.idxMap[sel[0]])]||[]:[].concat(...Object.values(S.tagCos))
+      );
+      const cNames=new Set(filtered.filter(e=>e.c===ctry).map(e=>e.n));
+      return `${ctry}: ${cNames.size}`;
+    });
+    extra=` [${parts.join(', ')}]`;
+  }
+  const ctryPart=S.selCtries.size?` (${Array.from(S.selCtries).join(', ')})`:'';  
+  el.textContent=sel.length||S.selCtries.size?`${tagPart}${n} compan${n!==1?'ies':'y'}${ctryPart}${extra}`:'';
+}
+
+function updateCP(){
+  const list=document.getElementById('cl');
+  if(!S.sel.size&&!S.selCtries.size){list.innerHTML='<div class="text-xs text-gray-600 mt-4 text-center">Select tags or countries to see companies.</div>';return}
+  const sel=Array.from(S.sel);
+  let match=null,mData=null;
+  if(sel.length){
+    for(const t of sel){
+      const idx=S.idxMap[t];if(idx===undefined)continue;
+      const cos=ctryFilter(S.tagCos[String(idx)]||[]);
+      const m=new Map(cos.map(c=>[c.n,c]));
+      if(match===null){match=new Set(m.keys());mData=m}
+      else match=new Set([...match].filter(n=>m.has(n)));
+    }
+  }else{
+    const m=new Map();
+    for(const [,cos] of Object.entries(S.tagCos)){
+      for(const e of ctryFilter(cos)){
+        if(!m.has(e.n))m.set(e.n,e);
+      }
+    }
+    match=new Set(m.keys());mData=Object.fromEntries(m);
+  }
+  if(!match||!match.size){list.innerHTML='<div style="padding:12px;color:#666;font-size:11px">No companies match.</div>';return}
+  const sorted=Array.from(match).sort();
+  list.innerHTML=sorted.map(n=>{
+    const c=mData instanceof Map?mData.get(n):mData[n];
+    const loc=c&&c.l&&c.l.length<80?c.l:'';
+    const ctry=c&&c.c?'<span style="color:#666;font-size:10px;margin-left:6px">'+c.c+'</span>':'';
+    return `<div class="cpc" onclick="showCDP('${n.replace(/'/g,"\\'")}')"><div class="cn">${n}${ctry}</div><div class="cl">${loc}</div></div>`;
+  }).join('');
+}
+
+function closeCP(){} // no-op, panel is now a tab
+window.closeCP=closeCP;
+
+function showCDP(name){
+  const cdp=document.getElementById('cdp'),pn=document.getElementById('cdpn'),pb=document.getElementById('cdpb');
+  pn.textContent=name;
+  if(S.companyLookup){
+    const c=S.companyLookup[name.toLowerCase().trim()];
+    if(c){
+      let h=`<div class="cdr"><span class="cdrl">Source</span><span class="cdrv">${c.source||'—'}</span></div>`;
+      if(c.description)h+=`<div class="cdr"><span class="cdrl">Description</span><span class="cdrv">${c.description}</span></div>`;
+      if(c.location)h+=`<div class="cdr"><span class="cdrl">Location</span><span class="cdrv">${c.location}</span></div>`;
+      if(c.country)h+=`<div class="cdr"><span class="cdrl">Country</span><span class="cdrv">${c.country}</span></div>`;
+      if(c.types&&c.types.length)h+=`<div class="cdr"><span class="cdrl">Industry</span><span class="cdrv">${c.types.join(', ')}</span></div>`;
+      if(c.tags&&c.tags.length)h+=`<div class="cdtags">${c.tags.map(t=>`<span>${t}</span>`).join('')}</div>`;
+      h+=`<div style="margin-top:10px;display:flex;gap:6px"><button onclick="fillCmp('${name.replace(/'/g,"\\'")}','A');closeCDP()" class="flex-1 px-2 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[11px] text-gray-400 transition-colors cursor-pointer">Compare as A</button><button onclick="fillCmp('${name.replace(/'/g,"\\'")}','B');closeCDP()" class="flex-1 px-2 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[11px] text-gray-400 transition-colors cursor-pointer">Compare as B</button></div>`;
+      pb.innerHTML=h;
+    }else{
+      pb.innerHTML='<div class="cdr" style="color:#666">No additional data available.</div>';
+    }
+  }else{
+    pb.innerHTML='<div class="cdr" style="color:#666">Company data still loading...</div>';
+  }
+  cdp.classList.add('o');cdp.style.display='block';
+}
+function closeCDP(){document.getElementById('cdp').classList.remove('o');document.getElementById('cdp').style.display='none';}
+window.showCDP=showCDP;window.closeCDP=closeCDP;
+
+// === Legend ===
+function buildLegend(){
+  const el=document.getElementById('ltree');
+  for(const cat of CATS){
+    const subs=S.hier[cat];if(!subs)continue;
+    let tc=0;for(const t of Object.values(subs))tc+=t.length;
+    const d=document.createElement('div');d.className='lc';
+    d.innerHTML=`<div class="lch"><span class="ar">▶</span><span class="dot" style="background:${COLS[cat]}"></span><span>${cat}</span><span class="cnt">${tc}</span></div><div class="lsc"></div>`;
+    const h=d.querySelector('.lch'),sc=d.querySelector('.lsc');
+    h.addEventListener('click',()=>{sc.classList.toggle('on');h.querySelector('.ar').classList.toggle('on')});
+    for(const [sn,ts] of Object.entries(subs)){
+      const sd=document.createElement('div');sd.className='ls';
+      sd.innerHTML=`<div class="lsh"><span class="ar">▶</span><span>${sn}</span></div><div class="ltg"></div>`;
+      const sh=sd.querySelector('.lsh'),tg=sd.querySelector('.ltg');
+      sh.addEventListener('click',e=>{e.stopPropagation();tg.classList.toggle('on');sh.querySelector('.ar').classList.toggle('on')});
+      for(const tag of ts){
+        const idx=S.idxMap[tag];const cnt=idx!==undefined?S.counts[idx]:0;
+        const td=document.createElement('div');td.className='lt';
+        td.innerHTML=`<span class="td" style="background:${COLS[cat]}"></span><span>${tag}</span><span class="tc">${cnt}</span>`;
+        td.addEventListener('click',e=>{e.stopPropagation();toggleTag(tag)});
+        tg.appendChild(td);
+      }
+      if(ts.length<=3){tg.classList.add('on');sh.querySelector('.ar').classList.add('on')}
+      sc.appendChild(sd);
+    }
+    if(CATS.indexOf(cat)<3){sc.classList.add('on');h.querySelector('.ar').classList.add('on')}
+    el.appendChild(d);
+  }
+}
+
+function updateLegendSel(){
+  for(const el of document.querySelectorAll('.lt')){
+    const n=el.querySelector('span:nth-child(2)').textContent;
+    el.classList.toggle('sel',S.sel.has(n));
+  }
+}
+
+// === Search ===
+const SI=document.getElementById('si'),SR=document.getElementById('sr');
+SI.addEventListener('input',()=>{
+  const q=SI.value.toLowerCase().trim();
+  if(!q){SR.classList.remove('s');return}
+  const m=S.tags.filter(t=>t.toLowerCase().includes(q)&&!S.sel.has(t)).slice(0,15);
+  if(!m.length){SR.classList.remove('s');return}
+  SR.innerHTML=m.map(t=>{
+    const idx=S.idxMap[t],cnt=idx!==undefined?S.counts[idx]:0;
+    return `<div class="ri" data-tag="${t.replace(/"/g,'&quot;')}"><span class="dot" style="background:${tcol(t)}"></span><span>${t}</span><span class="sc">${cnt}</span></div>`;
+  }).join('');
+  SR.classList.add('s');
+});
+SR.addEventListener('click',e=>{
+  const ri=e.target.closest('.ri');if(!ri)return;
+  addTag(ri.dataset.tag);SI.value='';SR.classList.remove('s');
+});
+document.addEventListener('click',e=>{if(!e.target.closest('#sb'))SR.classList.remove('s')});
+SI.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){const f=SR.querySelector('.ri');if(f){addTag(f.dataset.tag);SI.value='';SR.classList.remove('s')}}
+  if(e.key==='Escape'){SR.classList.remove('s');SI.blur()}
+});
+
+// === Country Filter ===
+const CBT=document.getElementById('cbt'),CD=document.getElementById('cd'),CSI=document.getElementById('csi'),CL=document.getElementById('clist');
+CBT.addEventListener('click',e=>{e.stopPropagation();CD.classList.toggle('o')});
+document.addEventListener('click',e=>{if(!e.target.closest('#cb'))CD.classList.remove('o')});
+
+function buildCountryList(q){
+  const ql=q.toLowerCase().trim();
+  CL.innerHTML=S.countries.filter(c=>!ql||c.toLowerCase().includes(ql)).map(c=>{
+    const on=S.selCtries.has(c)?'on':'';
+    const cnt=S.countries.length;
+    return `<div class="ce" data-c="${c}"><span class="ck ${on}">${on?'✓':''}</span><span class="cdot" style="background:${S.ctryColors[c]}"></span><span>${c}</span></div>`;
+  }).join('');
+}
+CL.addEventListener('click',e=>{
+  const ce=e.target.closest('.ce');if(!ce)return;
+  const c=ce.dataset.c;
+  if(S.selCtries.has(c))S.selCtries.delete(c);else S.selCtries.add(c);
+  buildCountryList(CSI.value);
+  updateUI();
+});
+CSI.addEventListener('input',()=>buildCountryList(CSI.value));
+
+// Extend updateUI for country chips
+const _origUpdateUI=updateUI;
+updateUI=function(){_origUpdateUI();updateCtChips();updateSuggested()};
+
+function updateSuggested(){
+  if(!S.sel.size){S.suggested=new Set();return}
+  let inter=null;
+  for(const t of S.sel){
+    const idx=S.idxMap[t];if(idx===undefined)continue;
+    const cos=S.tagCos[String(idx)];if(!cos)continue;
+    const ns=new Set(cos.map(c=>c.n.toLowerCase()));
+    if(inter===null)inter=ns;else inter=new Set([...inter].filter(n=>ns.has(n)));
+  }
+  if(!inter||!inter.size){S.suggested=new Set();return}
+  const sug=new Set();
+  for(const t of S.tags){
+    if(S.sel.has(t))continue;
+    const idx=S.idxMap[t];if(idx===undefined)continue;
+    const cos=S.tagCos[String(idx)];if(!cos)continue;
+    for(const c of cos){if(inter.has(c.n.toLowerCase())){sug.add(t);break}}
+  }
+  S.suggested=sug;
+}
+
+function updateCtChips(){
+  const el=document.getElementById('cc');
+  for(const c of S.selCtries){
+    // Check if chip already exists
+    if(el.querySelector(`[data-ctry="${c}"]`))continue;
+    const ch=document.createElement('span');ch.className='chip';ch.dataset.ctry=c;
+    ch.innerHTML=`<span class="cdot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${S.ctryColors[c]};margin-right:2px"></span>${c}<span class="cx">×</span>`;
+    ch.addEventListener('click',()=>{S.selCtries.delete(c);buildCountryList(CSI.value);updateUI()});
+    el.appendChild(ch);
+  }
+  // Remove chips for deselected countries
+  el.querySelectorAll('[data-ctry]').forEach(ch=>{if(!S.selCtries.has(ch.dataset.ctry))ch.remove()});
+}
+
+// === Tab Switching ===
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='tab-'+tab));
+  if(tab==='gap')updateGapTab();
+  if(tab==='companies')updateCP();
+}
+document.querySelectorAll('.tab-btn').forEach(b=>{
+  b.addEventListener('click',()=>switchTab(b.dataset.tab));
+});
+switchTab('tags'); // default
+
+closeCP=function(){}; // no-op, companies are in a tab
+
+// Gap analysis
+function updateGapTab(){
+  const el=document.getElementById('gap-content');
+  if(S.selCtries.size<2){el.innerHTML='<div class="text-xs text-gray-600 mt-4 text-center">Select at least 2 countries from the Tags tab to see gap analysis.</div>';return}
+  const ca=Array.from(S.selCtries);
+  // Compute per-country tag presence
+  const tagPresence={};
+  for(const c of ca)tagPresence[c]=new Set();
+  for(const [tiStr,cc] of Object.entries(S.tagCountries)){
+    const idx=parseInt(tiStr);
+    for(const [ctry] of Object.entries(cc)){
+      if(tagPresence[ctry])tagPresence[ctry].add(idx);
+    }
+  }
+  // Categorize tags
+  const onlyA=[],onlyB=[],both=[],neither=[];
+  for(let i=0;i<S.tags.length;i++){
+    const inA=tagPresence[ca[0]].has(i);
+    const inB=tagPresence[ca[1]].has(i);
+    if(inA&&!inB)onlyA.push(i);
+    else if(!inA&&inB)onlyB.push(i);
+    else if(inA&&inB)both.push(i);
+    else neither.push(i);
+  }
+  el.innerHTML=`
+    <div class="text-xs text-gray-400 font-medium mb-2">${ca[0]} vs ${ca[1]}</div>
+    <div class="space-y-1.5">
+      <div><span class="inline-block w-2 h-2 rounded-full bg-[${S.ctryColors[ca[0]]}] mr-1.5"></span><span class="text-[11px] text-gray-300">Only in ${ca[0]}</span><span class="text-[10px] text-gray-600 ml-1">(${onlyA.length})</span>
+        <div class="pl-4 text-[10px] text-gray-600">${onlyA.slice(0,8).map(i=>S.tags[i]).join(', ')}${onlyA.length>8?', +'+(onlyA.length-8)+' more':''}</div>
+      </div>
+      <div><span class="inline-block w-2 h-2 rounded-full bg-[${S.ctryColors[ca[1]]}] mr-1.5"></span><span class="text-[11px] text-gray-300">Only in ${ca[1]}</span><span class="text-[10px] text-gray-600 ml-1">(${onlyB.length})</span>
+        <div class="pl-4 text-[10px] text-gray-600">${onlyB.slice(0,8).map(i=>S.tags[i]).join(', ')}${onlyB.length>8?', +'+(onlyB.length-8)+' more':''}</div>
+      </div>
+      <div><span class="inline-block w-2 h-2 rounded-full bg-gray-500 mr-1.5"></span><span class="text-[11px] text-gray-300">Both</span><span class="text-[10px] text-gray-600 ml-1">(${both.length})</span></div>
+      <div><span class="inline-block w-2 h-2 rounded-full bg-gray-700 mr-1.5"></span><span class="text-[11px] text-gray-300">Neither</span><span class="text-[10px] text-gray-600 ml-1">(${neither.length})</span></div>
+    </div>`;
+}
+
+// Hook gap update into country changes
+const _origBuildCountryList=buildCountryList;
+buildCountryList=function(q){_origBuildCountryList(q);if(document.getElementById('tab-gap').classList.contains('active'))updateGapTab()};
+
+// === Company Compare ===
+function fillCmp(name,slot){
+  const el=document.getElementById('cmp'+slot);
+  if(el){el.value=name;el.dispatchEvent(new Event('input'))}
+  switchTab('compare');
+}
+
+function runCompare(){
+  const el=document.getElementById('cmp-results');
+  const aName=document.getElementById('cmpA').value.trim();
+  const bName=document.getElementById('cmpB').value.trim();
+  if(!aName||!bName){el.innerHTML='<div class="text-xs text-gray-600 mt-2">Enter two company names above.</div>';return}
+  if(!S.companyLookup){el.innerHTML='<div class="text-xs text-gray-600 mt-2">Company data still loading...</div>';return}
+  const ca=S.companyLookup[aName.toLowerCase()];
+  const cb=S.companyLookup[bName.toLowerCase()];
+  if(!ca){el.innerHTML=`<div class="text-xs text-gray-600 mt-2">"${aName}" not found.</div>`;return}
+  if(!cb){el.innerHTML=`<div class="text-xs text-gray-600 mt-2">"${bName}" not found.</div>`;return}
+  const tagsA=new Set(ca.tags||[]);
+  const tagsB=new Set(cb.tags||[]);
+  const shared=[],onlyA=[],onlyB=[];
+  for(const t of tagsA)if(tagsB.has(t))shared.push(t);else onlyA.push(t);
+  for(const t of tagsB)if(!tagsA.has(t))onlyB.push(t);
+  const tag=(t,col)=>`<span style="display:inline-block;padding:1px 7px;margin:2px;background:rgba(255,255,255,0.04);border-radius:8px;font-size:10px;color:${col};cursor:pointer" onclick="addTag('${t.replace(/'/g,"\\'")}')">${t}</span>`;
+  el.innerHTML=`
+    <div class="text-xs text-gray-400 font-medium mb-2">${ca.name} vs ${cb.name}</div>
+    <div class="space-y-2">
+      <div><span class="text-[11px] text-gray-300">Shared (${shared.length})</span>
+        <div class="mt-1">${shared.length?shared.map(t=>tag(t,'#4ade80')).join(''):'<span class="text-[10px] text-gray-600">None</span>'}</div>
+      </div>
+      <div><span class="text-[11px] text-gray-300">Only in ${ca.name} (${onlyA.length})</span>
+        <div class="mt-1">${onlyA.length?onlyA.map(t=>tag(t,'#93c5fd')).join(''):'<span class="text-[10px] text-gray-600">None</span>'}</div>
+      </div>
+      <div><span class="text-[11px] text-gray-300">Only in ${cb.name} (${onlyB.length})</span>
+        <div class="mt-1">${onlyB.length?onlyB.map(t=>tag(t,'#fca5a5')).join(''):'<span class="text-[10px] text-gray-600">None</span>'}</div>
+      </div>
+    </div>`;
+}
+
+document.getElementById('cmpA').addEventListener('input',runCompare);
+document.getElementById('cmpB').addEventListener('input',runCompare);
+
+// === Idea Deconstructor ===
+const IDEA=document.getElementById('idea-input');
+const DSTAT=document.getElementById('decon-status');
+const DRES=document.getElementById('decon-results');
+let deconTimer=null;
+
+function runDecon(){
+  if(!window.__decon||!window.__decon.ready||!S.tagEmbs){DRES.innerHTML='';return}
+  const txt=IDEA.value.trim();
+  if(!txt){DRES.innerHTML='<div class="text-[10px] text-gray-600">Type an idea above.</div>';return}
+  DSTAT.textContent='Embedding...';
+  window.__decon.embed(txt).then(vec=>{
+    const sims=S.tagEmbs.map((emb,i)=>{
+      let dot=0;
+      for(let j=0;j<vec.length;j++)dot+=vec[j]*emb[j];
+      return {idx:i,sim:dot};
+    });
+    sims.sort((a,b)=>b.sim-a.sim);
+    const top=sims.slice(0,10);
+    DSTAT.textContent=`Top ${top.length} matches.`;
+    DRES.innerHTML=top.map((r,i)=>{
+      const t=S.tags[r.idx];
+      const col=tcol(t);
+      const cnt=S.counts[r.idx];
+      const pct=(r.sim*100).toFixed(0);
+      return '<div class="flex items-center gap-2 py-1 px-1.5 rounded hover:bg-white/5 cursor-pointer" onclick="addTag(\''+t.replace(/'/g,"\\'")+'\')">'+
+        '<span class="text-[10px] text-gray-500 w-4 text-right">'+(i+1)+'</span>'+
+        '<span class="w-2 h-2 rounded-full flex-shrink-0" style="background:'+col+'"></span>'+
+        '<span class="text-xs text-gray-200 flex-1">'+t+'</span>'+
+        '<span class="text-[10px] text-gray-500">'+pct+'%</span>'+
+        '<span class="text-[10px] text-gray-600">'+cnt+' co.</span>'+
+      '</div>';
+    }).join('');
+  }).catch(e=>{DSTAT.textContent='Error: '+e.message});
+}
+
+IDEA.addEventListener('input',()=>{
+  clearTimeout(deconTimer);
+  deconTimer=setTimeout(runDecon,500);
+  if(!window.__decon||!window.__decon.ready){
+    DSTAT.textContent='Loading model (23MB)...';
+    if(!window.__decon)window.__decon={ready:false};
+  }
+});
+
+const _origSwitch=switchTab;
+switchTab=function(tab){
+  _origSwitch(tab);
+  if(tab==='decon'&&(!window.__decon||!window.__decon.ready)){
+    DSTAT.textContent='Loading model (23MB)...';
+  }
+};
+
+// === Legend Toggle ===
+document.getElementById('ltog').addEventListener('click',()=>{
+  document.getElementById('legend').classList.toggle('collapsed');
+});
+
+// === Init ===
+async function init(){
+  await loadData();
+  computeRadialLayout();
+  resize();
+  window.addEventListener('resize',resize);
+  buildLegend();buildCountryList('');
+  if(WASM)draw();else{draw();draw();}
+}
+
+loadWasm().then(init).catch(()=>{init();}); // WASM optional
+</script>
+
+<script type="module">
+import { pipeline } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.js';
+
+let pipe = null;
+window.__decon = {
+  ready: false,
+  embed: async function(text) {
+    if (!pipe) throw new Error('Model not loaded');
+    const out = await pipe(text, { pooling: 'mean', normalize: true });
+    return Array.from(out.data);
+  }
+};
+
+// Preload model when idle
+requestIdleCallback(async () => {
+  try {
+    pipe = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+    window.__decon.ready = true;
+    const s = document.getElementById('decon-status');
+    if (s) s.textContent = 'Model ready.';
+    // Trigger re-run if user already typed something
+    const evt = new Event('input');
+    document.getElementById('idea-input')?.dispatchEvent(evt);
+  } catch(e) {
+    const s = document.getElementById('decon-status');
+    if (s) s.textContent = 'Failed: ' + e.message;
+  }
+});
+</script>
+</body>
+</html>

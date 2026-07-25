@@ -36,10 +36,11 @@ export function PeopleList({ people }: { people: Person[] }) {
   return (
     <>
       <div className="space-y-2">
-        {people.map((person) => (
+        {people.map((person, i) => (
           <div
             key={person.id}
-            className="flex items-center gap-4 border border-border-metal bg-gradient-to-b from-[rgba(42,48,60,0.88)] to-[rgba(25,33,34,0.96)] px-4 py-3 transition-colors hover:border-accent/30"
+            className="flex items-center gap-4 border border-border-metal bg-gradient-to-b from-[rgba(42,48,60,0.88)] to-[rgba(25,33,34,0.96)] px-4 py-3 transition-[transform,border-color] duration-160 ease-out hover:border-accent/30 active:scale-[0.99]"
+            style={{ animation: `entrance 0.5s ease-out ${i * 0.04}s both` }}
           >
             <Avatar className="h-10 w-10 shrink-0 border border-border-metal">
               <AvatarImage src={person.user.image ?? undefined} />

@@ -21,6 +21,7 @@ export function WorkspaceClient({
   const [messages, setMessages] = useState<MessagePayload[]>(initialMessages)
   const [input, setInput] = useState("")
   const [sending, setSending] = useState(false)
+  const [conStatus, setConStatus] = useState<"connected" | "reconnecting">("connected")
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -29,10 +30,17 @@ export function WorkspaceClient({
 
   useEffect(() => {
     const interval = setInterval(async () => {
-      const res = await fetch("/api/workspace/messages")
-      if (res.ok) {
-        const data = await res.json()
-        setMessages(data)
+      try {
+        const res = await fetch("/api/workspace/messages")
+        if (res.ok) {
+          const data = await res.json()
+          setMessages(data)
+          setConStatus("connected")
+        } else {
+          setConStatus("reconnecting")
+        }
+      } catch {
+        setConStatus("reconnecting")
       }
     }, 5000)
     return () => clearInterval(interval)
@@ -58,6 +66,7 @@ export function WorkspaceClient({
         </h1>
         <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-outline">
           Community chat
+          {conStatus === "reconnecting" && <span className="ml-2 text-amber-400 normal-case tracking-normal animate-pulse">reconnecting…</span>}
         </p>
       </div>
 

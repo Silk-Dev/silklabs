@@ -1,7 +1,6 @@
 export const dynamic = "force-dynamic"
+import GraphConsole from "@/components/graph/graph-console"
 
-import DynGraphClient from "./graph-client-wrapper"
-
-export default async function GraphPage() {
-  return <DynGraphClient />
+export default function GraphPage() {
+  return <GraphConsole />
 }

@@ -36,16 +36,18 @@ export default async function DashboardLayout({
         {/* Top bar with user menu on desktop */}
         <div className="hidden h-14 items-center justify-end gap-2 border-b border-border-metal bg-surface/80 px-4 md:flex">
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={session.user.image ?? undefined} />
-                  <AvatarFallback className="font-mono text-[10px] uppercase tracking-widest">
-                    {user.name?.charAt(0) ?? "U"}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={session.user.image ?? undefined} />
+                    <AvatarFallback className="font-mono text-[10px] uppercase tracking-widest">
+                      {user.name?.charAt(0) ?? "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="w-48 border-border-metal bg-surface">
               <div className="border-b border-border-metal px-2 py-2">
                 <div className="font-heading text-sm font-semibold text-primary">{user.name}</div>
