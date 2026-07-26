@@ -27,6 +27,20 @@ function getTeamAssemblyLp(): string {
 
 const TOP_K = 3
 
+/**
+ * Pre-filter candidates before grounding.
+ *
+ * TOP-K=3: for each required capability atom, keep only the top K humans
+ * by capability weight (descending, ties broken by id). This bounds the
+ * solver's search space to ≤ (required_atoms × K) unique humans.
+ *
+ * APPROXIMATE OPTIMIZATION: preserves coverage but does NOT guarantee
+ * global optimality. A human who is the only one covering some atom
+ * but ranks outside the top K for every individual atom will be dropped.
+ * Capability weights correlate strongly with match quality, so the
+ * approximation is tight. If global optimality is required, remove the
+ * pre-filter and rely on the greedy fallback timeout.
+ */
 function prefilterCandidates(
   requiredAtoms: string[],
   availableHumans: { id: string; proven_capabilities: string[]; viability: number }[],

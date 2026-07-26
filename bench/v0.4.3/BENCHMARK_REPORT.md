@@ -2,7 +2,8 @@
 
 **Provenance**
 ```
-git SHA:     5c82170b9c72210214e8cd7cc93d6fb8cdb18a90
+Artifacts at commit: 5c82170b9c72210214e8cd7cc93d6fb8cdb18a90  (substantive work)
+Tag v0.4.3:          7dc85c3e93d328150da42c504a6f081cd9a2f51a  (artifacts-only: git diff 5c82170 7dc85c3 --stat → bench/v0.4.3/* only)
 Timestamp:   2026-07-26T11:00:36.015Z
 Command:     npm run bench
 Node:        v25.2.1
@@ -28,35 +29,31 @@ Cold iterations:  1 per grid cell (fresh process via bench/cold_cell.ts)
 - **B2/B4**: Measured via direct Postgres queries (psycopg2), 50 iterations per query.
   This is what the operator functions do internally (density lookup, nearest neighbors, etc.).
 
-## Results Summary
-
-| Benchmark | p50 (ms) | p95 (ms) | Min (ms) | Max (ms) | Cold (ms) |
-|---|---|---|---|---|---|
-| clingo 2a×5h   | 3.7 | 4.7 | 2.5 | 4.8 | **62.3** |
-| clingo 2a×20h  | 2.6 | 3.9 | 2.0 | 4.0 | **68.2** |
-| clingo 4a×5h   | 2.2 | 3.1 | 1.9 | 4.3 | **65.8** |
-| clingo 4a×20h  | 2.3 | 3.3 | 1.8 | 3.5 | **79.0** |
-| clingo 6a×5h   | 1.7 | 2.8 | 1.6 | 3.0 | **57.9** |
-| clingo 6a×20h  | 1.9 | 2.3 | 1.6 | 2.7 | **68.4** |
-| hash 5 atoms   | 0.0004 | 0.0009 | — | 0.32 | — |
-| hash 10 atoms  | 0.0007 | 0.0010 | — | 1.78 | — |
-| hash 20 atoms  | 0.0017 | 0.0025 | — | 1.49 | — |
+## Results
 
 ### B1 — Clingo-WASM Team Solve
 
 All cells under 5ms p95 warm. Cold dominated by WASM init (~60ms overhead).
 
-| Required Atoms | Candidate Humans | Filtered | p50 (ms) | p95 (ms) | Cold (ms) |
-|---|---|---|---|---|---|
-| 2 | 5 | 3 | 3.7 | 4.7 | 62.3 |
-| 2 | 20 | 3 | 2.6 | 3.9 | 68.2 |
-| 4 | 5 | 3 | 2.2 | 3.1 | 65.8 |
-| 4 | 20 | 3 | 2.3 | 3.3 | 79.0 |
-| 6 | 5 | 3 | 1.7 | 2.8 | 57.9 |
-| 6 | 20 | 3 | 1.9 | 2.3 | 68.4 |
+| Required Atoms | Candidate Humans | Filtered | p50 (ms) | p95 (ms) | Min (ms) | Max (ms) | Cold (ms) |
+|---|---|---|---|---|---|---|---|
+| 2 | 5 | 3 | 3.74 | 4.71 | 2.45 | 4.77 | 62.3 |
+| 2 | 20 | 3 | 2.64 | 3.93 | 2.00 | 4.03 | 68.2 |
+| 4 | 5 | 3 | 2.17 | 3.07 | 1.91 | 4.27 | 65.8 |
+| 4 | 20 | 3 | 2.32 | 3.31 | 1.82 | 3.48 | 79.0 |
+| 6 | 5 | 3 | 1.67 | 2.76 | 1.55 | 2.97 | 57.9 |
+| 6 | 20 | 3 | 1.90 | 2.25 | 1.55 | 2.66 | 68.4 |
 
-Cold cells measured via `npx tsx bench/cold_cell.ts` — fresh process per cell.
-All cold numbers ≥ warm p50 + ~60ms WASM init overhead. Consistent across cells.
+Cold cells measured via `npx tsx bench/cold_cell.ts` — fresh process per cell:
+```
+$ npx tsx bench/cold_cell.ts 2 5   → {"atoms":2,"humans":5,"filtered":3,"cold_ms":62.3}
+$ npx tsx bench/cold_cell.ts 2 20  → {"atoms":2,"humans":20,"filtered":3,"cold_ms":68.2}
+$ npx tsx bench/cold_cell.ts 4 5   → {"atoms":4,"humans":5,"filtered":3,"cold_ms":65.8}
+$ npx tsx bench/cold_cell.ts 4 20  → {"atoms":4,"humans":20,"filtered":3,"cold_ms":79.0}
+$ npx tsx bench/cold_cell.ts 6 5   → {"atoms":6,"humans":5,"filtered":3,"cold_ms":57.9}
+$ npx tsx bench/cold_cell.ts 6 20  → {"atoms":6,"humans":20,"filtered":3,"cold_ms":68.4}
+```
+All ≥ warm p50 + ~60ms WASM init overhead. Consistent across cells.
 
 ### B2 — Operator Latency (against Postgres, 50 iterations)
 
