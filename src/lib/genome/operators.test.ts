@@ -168,9 +168,14 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A2 — Operators (integration)", (
 
   it("operators.swap rejects type mismatch", async () => {
     const { swap } = await import("./operators");
-    // ridesharing (industry) vs b2c (business_model) — different types
     await expect(swap({ companyId: UBER_ID, oldAtom: "ridesharing", newAtom: "b2c" }))
       .rejects.toThrow("different types");
+  });
+
+  it("operators.swap rejects atom not in genome", async () => {
+    const { swap } = await import("./operators");
+    await expect(swap({ companyId: UBER_ID, oldAtom: "nonexistent_atom", newAtom: "healthcare" }))
+      .rejects.toThrow("not in genome");
   });
 
   it("operators.evolve rejects duplicate atom", async () => {
@@ -270,6 +275,26 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A2 — Operators (integration)", (
       .rejects.toThrow("not in genome");
   });
 
+  it("operators.evolve rejects missing params", async () => {
+    const { evolve } = await import("./operators");
+    await expect(evolve({} as any)).rejects.toThrow("companyId");
+  });
+
+  it("operators.regress rejects missing params", async () => {
+    const { regress } = await import("./operators");
+    await expect(regress({} as any)).rejects.toThrow("companyId");
+  });
+
+  it("operators.swap rejects missing params", async () => {
+    const { swap } = await import("./operators");
+    await expect(swap({} as any)).rejects.toThrow("companyId");
+  });
+
+  it("operators.validate rejects missing atoms", async () => {
+    const { validate } = await import("./operators");
+    await expect(validate({} as any)).rejects.toThrow("atoms");
+  });
+
   it("operators.swap rejects duplicate new atom", async () => {
     const { swap } = await import("./operators");
     await expect(swap({ companyId: UBER_ID, oldAtom: "ridesharing", newAtom: "ridesharing" }))
@@ -278,12 +303,16 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A2 — Operators (integration)", (
 
   it("operators.swap success path", async () => {
     const { swap } = await import("./operators");
-    // Uber has 'air_taxis' (industry). Find another industry atom not in Uber's genome
-    // that can replace it.
-    // Skipping this test because finding two same-type atoms with opposite membership
-    // requires ontology knowledge embedded in the test. The swap type-mismatch and
-    // not-found branches are covered above. The success path is exercised through
-    // the integration test that checks ontology types directly.
-    expect(true).toBe(true);
+    // ridesharing (industry) → agriculture (industry): same type, valid swap
+    const result = await swap({ companyId: UBER_ID, oldAtom: "ridesharing", newAtom: "agriculture" });
+    expect(result.operator).toBe("swap");
+    expect(result.landing_density).toBeGreaterThanOrEqual(0);
+    expect(["WHITESPACE", "COMPETITIVE", "RED_OCEAN"]).toContain(result.classification);
+    expect(result.nearest_companies.length).toBeGreaterThanOrEqual(0);
+    // Determinism: same swap twice → identical result
+    const result2 = await swap({ companyId: UBER_ID, oldAtom: "ridesharing", newAtom: "agriculture" });
+    expect(result2.landing_hash).toBe(result.landing_hash);
+    expect(result2.landing_density).toBe(result.landing_density);
+    expect(result2.classification).toBe(result.classification);
   });
 });
