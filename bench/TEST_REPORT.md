@@ -19,7 +19,7 @@ genome_* DB: 478 atoms, 178,590 company_atom, 21,462 co_occurs, 52,650 near, 26,
 
 | Tests | Passed | Failed | Skipped |
 |---|---|---|---|
-| 66 | 66 | 0 | **0** |
+| 79 | 79 | 0 | **0** |
 
 0 skipped. All integration tests ran against Postgres.
 

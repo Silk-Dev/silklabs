@@ -2,8 +2,8 @@
 
 **Provenance**
 ```
-Artifacts at commit: 5c82170b9c72210214e8cd7cc93d6fb8cdb18a90  (substantive work)
-Tag v0.4.3:          7dc85c3e93d328150da42c504a6f081cd9a2f51a  (artifacts-only: git diff 5c82170 7dc85c3 --stat → bench/v0.4.3/* only)
+Artifacts at commit: 4e644d7e90155d56cf51a05e1b3f76c5e59cff81  (substantive work)
+Tag v0.4.3:          88fe6fb9e383b12239205f8baef6fc270fb1f953  (artifacts-only)
 Timestamp:   2026-07-26T01:41:07+01:00
 Command:     DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx vitest run
 Node:        v25.2.1
@@ -19,7 +19,7 @@ genome_* DB: 478 atoms, 178,590 company_atom, 21,462 co_occurs, 52,650 near, 26,
 
 | Tests | Passed | Failed | Skipped |
 |---|---|---|---|
-| 66 | 66 | 0 | **0** |
+| 79 | 79 | 0 | **0** |
 
 0 skipped. All integration tests ran against Postgres.
 
