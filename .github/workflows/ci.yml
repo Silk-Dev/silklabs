@@ -57,11 +57,10 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Run unit tests
+      - name: Run tests
         run: npm test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
-          SKIP_DB_TESTS: "1"
 
       - name: Run integration tests
         run: npx vitest run src/lib/genome/operators.test.ts src/lib/genome/near.test.ts
@@ -76,4 +75,4 @@ jobs:
       - name: Generate coverage report
         run: npx vitest run --coverage src/lib/genome/hash.test.ts src/lib/genome/team.test.ts src/lib/genome/concept.test.ts
         env:
-          SKIP_DB_TESTS: "1"
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
