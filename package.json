@@ -15,7 +15,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "bench": "tsx bench/run-benchmarks.ts"
+    "bench": "tsx bench/run-benchmarks.ts",
+    "postinstall": "node scripts/patch-onnx-tensor.js"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
