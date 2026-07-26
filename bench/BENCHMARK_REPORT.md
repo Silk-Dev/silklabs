@@ -2,7 +2,7 @@
 
 **Provenance**
 ```
-git SHA:     81915ab845ec28b8e7e8ca84cf3777573d3da9f2
+git SHA:     ff3fbac7ffbb6a1c20f4bd620c0a08e48f9654dc
 Timestamp:   2026-07-26T11:00:36.015Z
 Command:     npm run bench
 Node:        v25.2.1
