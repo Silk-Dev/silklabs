@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: silklabs_test
+        ports:
+          - 5444:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+
+      - name: Seed database
+        run: npx tsx prisma/seed.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+
+      - name: Build genome tables
+        run: npx tsx scripts/build_genome.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Run unit tests
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+          SKIP_DB_TESTS: "1"
+
+      - name: Run integration tests
+        run: npx vitest run src/lib/genome/operators.test.ts src/lib/genome/near.test.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+
+      - name: Verify genome parity
+        run: npx tsx scripts/verify_genome_parity.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5444/silklabs_test
+
+      - name: Generate coverage report
+        run: npx vitest run --coverage src/lib/genome/hash.test.ts src/lib/genome/team.test.ts src/lib/genome/concept.test.ts
+        env:
+          SKIP_DB_TESTS: "1"
