@@ -41,6 +41,27 @@ function percentile(sorted: number[], p: number): number {
 
 // ─── B1: Clingo-WASM Team Solve ───
 
+const TOP_K = 3;
+
+function prefilter(
+  requiredAtoms: number,
+  rawHumans: { id: string; capabilities: string[]; viability: number }[],
+): { id: string; capabilities: string[]; viability: number }[] {
+  const selected = new Set<string>();
+  for (let ai = 0; ai < requiredAtoms; ai++) {
+    const cap = `cap_${ai}`;
+    const scored = rawHumans
+      .filter((h) => h.capabilities.includes(cap))
+      .sort((a, b) => {
+        if (b.viability !== a.viability) return b.viability - a.viability;
+        return a.id.localeCompare(b.id);
+      })
+      .slice(0, TOP_K);
+    for (const s of scored) selected.add(s.id);
+  }
+  return rawHumans.filter((h) => selected.has(h.id));
+}
+
 async function benchClingoSolve(
   requiredAtoms: number,
   candidateHumans: number
@@ -50,19 +71,23 @@ async function benchClingoSolve(
   const lpPath = path.resolve(__dirname, "../graph/team_assembly.lp");
   const baseLp = fs.readFileSync(lpPath, "utf-8");
 
-  // Generate facts
-  const atoms = Array.from({ length: requiredAtoms }, (_, i) => `cap_${i}`);
-  const humans = Array.from({ length: candidateHumans }, (_, i) => `human_${i}`);
+  // Generate raw candidates then pre-filter
+  const rawHumans = Array.from({ length: candidateHumans }, (_, i) => ({
+    id: `human_${i}`,
+    capabilities: Array.from(
+      { length: Math.min(requiredAtoms + 2, 5) },
+      (_, j) => `cap_${j % requiredAtoms}`
+    ),
+    viability: Math.floor(Math.random() * 100),
+  }));
+  const humans = prefilter(requiredAtoms, rawHumans);
 
   const facts: string[] = [];
-  for (const a of atoms) facts.push(`required("${a}").`);
+  for (let ai = 0; ai < requiredAtoms; ai++) facts.push(`required("cap_${ai}").`);
   for (const h of humans) {
-    facts.push(`human("${h}").`);
-    // Each human gets ~3 random capabilities
-    for (const a of atoms.slice(0, 3)) {
-      facts.push(`proven("${h}", "${a}").`);
-    }
-    facts.push(`team_viability("${h}", ${Math.floor(Math.random() * 100)}).`);
+    facts.push(`human("${h.id}").`);
+    for (const cap of h.capabilities) facts.push(`proven("${h.id}", "${cap}").`);
+    facts.push(`team_viability("${h.id}", ${h.viability}).`);
   }
   facts.push(`max_team(${Math.min(requiredAtoms + 2, 5)}).`);
 

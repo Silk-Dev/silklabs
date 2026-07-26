@@ -38,7 +38,7 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A3 — near Semantics (integration
 
   // Verify all BFS pairs are reachable within the stated depth
   it("all near pairs have depth <= 4", async () => {
-    const rows = await prisma.$queryRawUnsafe<{ max_depth: number }[]>(
+    const rows = await prisma.$queryRawUnsafe(
       "SELECT COALESCE(MAX(depth), 0) as max_depth FROM genome_near"
     );
     expect(Number(rows[0].max_depth)).toBeLessThanOrEqual(4);
@@ -46,7 +46,7 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A3 — near Semantics (integration
 
   // Verify depth > 3 pairs (excluded from gaps) exist
   it("some pairs have depth > 3 (will be excluded from gaps feasibility)", async () => {
-    const rows = await prisma.$queryRawUnsafe<{ cnt: number }[]>(
+    const rows = await prisma.$queryRawUnsafe(
       "SELECT COUNT(*) as cnt FROM (SELECT DISTINCT atom_a, atom_b FROM genome_near WHERE depth > 3) sub"
     );
     expect(Number(rows[0].cnt)).toBeGreaterThanOrEqual(0);
@@ -54,7 +54,7 @@ describe.skipIf(!!process.env.SKIP_DB_TESTS)("A3 — near Semantics (integration
 
   // Verify every co-occurrence pair (depth 1) is in near
   it("all co-occurrence pairs are in near (depth <= 4)", async () => {
-    const missing = await prisma.$queryRawUnsafe<{ cnt: number }[]>(
+    const missing = await prisma.$queryRawUnsafe(
       `SELECT COUNT(*) as cnt FROM genome_co_occurs c
        WHERE NOT EXISTS (
          SELECT 1 FROM genome_near n
