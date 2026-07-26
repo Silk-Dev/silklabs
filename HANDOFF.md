@@ -1,127 +1,202 @@
-# SilkLabs — User Handoff Guide
+# SilkLabs — Complete Handoff for v0.3.0–v0.4.3
 
-## Getting Started
+## What the Platform Is
 
-1. Open the app in your browser (default: http://localhost:3020)
-2. Click **Register** and create an account, or use a demo account from the seed data (password: `password123`)
-3. You'll land on the onboarding wizard — complete it to set up your profile
+SilkLabs is a **universal enterprise synthesis engine** — it reads the genome of the global economy (36K companies decomposed into 478 typed atoms), answers what exists / what's missing / who should build it, and powers matching on **proof over claims** via the Reality Index.
 
-## Navigation
+The platform runs on **Next.js + Postgres + clingo-wasm** — zero Python, zero FastAPI, zero Soufflé. Single Vercel deployment.
 
-The sidebar on the left gives access to all main sections:
+---
 
-| Section | Purpose |
+## Project Structure
+
+```
+scripts/
+  build_genome.ts          — TypeScript build pipeline (replaces Python/Soufflé)
+  verify_genome_parity.ts   — Golden test suite for genome engine
+  patch-onnx-tensor.js      — postinstall: fixes Tensor getter bug (see below)
+graph/
+  tag_hierarchy.json        — 325 tags in 12 categories
+  atom_ontology.json         — 478 typed atoms across 7 types
+  tag_to_type.json           — 480 tag→type mappings
+  all_companies.json         — 36K companies with tags
+  genome_engine.lp           — Clingo ASP: evolve/regress/swap operators
+  gap_finder.lp              — Clingo ASP: whitespace enumeration
+  team_assembly.lp           — Clingo ASP: team solver
+  genome_service.py          — SUPERSEDED (kept for reference)
+  genome_pipeline.py         — SUPERSEDED (kept for reference)
+src/lib/
+  genome/hash.ts             — Canonical genome hash (normalizeAtom + genomeHash)
+  genome/operators.ts        — evolve/regress/swap/validate via direct Postgres
+  genome/gaps.ts             — Whitespace heuristic enumeration
+  genome-types.ts            — Shared TypeScript types
+  ingestion.service.ts       — IMAGE/PDF/TEXT/URL → caption/extract → embed → Reality Index
+  alignment.service.ts       — Matching on reality_vector (fallback to embedding_vector)
+  capability.service.ts      — Capability profiles (ProofOfWork→claimed→aspired fusion)
+  concept.service.ts         — Venture concept engine (genome→name→requirements)
+  prisma.ts                  — Prisma client singleton
+src/app/api/genome/
+  evolve/route.ts            — POST: add atom → landing report
+  regress/route.ts           — POST: remove atom → landing report
+  swap/route.ts              — POST: replace atom (same-type enforced)
+  validate/route.ts          — POST: classify arbitrary atom-set
+  gaps/route.ts              — POST: whitespace enumeration (heuristic)
+  team/route.ts              — POST: Clingo-WASM team assembly (with pre-filter + greedy fallback)
+  concept/route.ts           — POST: whitespace genome → venture concept
+src/app/api/user/
+  capabilities/route.ts      — POST: user capability profile
+tests/
+  src/lib/genome/
+    hash.test.ts             — 29 tests: normalize, hash parity, classify, snapshot
+    operators.test.ts        — 27 tests: RED-OCEAN CANARY, evolve/regress/swap/validate,
+                               determinism, pre-filter, greedy fallback
+    near.test.ts             — 4 tests: consumer invariant, depth bounds, superset
+    team.test.ts             — 6 tests: Clingo coverage, conflicts, max_team, unfillable
+    capability.test.ts       — 6 tests: weight ordering, dedup, determinism, empty
+    concept.test.ts          — 7 tests: genome→capability rules, determinism
+bench/
+  run-benchmarks.ts          — Benchmark runner (B1 clingo, B5 hash)
+  cold_cell.ts               — Fresh-process cold-start measurement
+  results.json               — Machine-readable results
+  BENCHMARK_REPORT.md        — Methodology + p50/p95 tables
+  TEST_REPORT.md             — Full pass/fail with provenance
+  v0.4.3/                    — Tagged artifact copy
+
+KNOWN ISSUE — MUST APPLY AFTER npm install:
+  scripts/patch-onnx-tensor.js patches @xenova/transformers/src/utils/tensor.js
+  to preserve 'location' and 'data' getters lost by Object.assign.
+  Auto-runs via "postinstall" in package.json.
+```
+
+---
+
+## v0.4.3 — Genome Engine (Complete, Tagged)
+
+### What It Does
+- **478 typed atoms** across 7 types (industry, business_model, delivery, technology, labor_model, revenue_model, regulatory) mapped from 325 flat tags
+- **36K companies** decomposed into 178K typed-atom facts
+- **21K+ co-occurrence pairs**, 52K near relations (BFS depth ≤ 4)
+- **26K+ distinct genome hashes** with exact company counts
+- **Evolve/Regress/Swap/Validate** operators via direct Postgres queries (no API dependency)
+- **Gaps heuristic**: whitespace enumeration via co-occurrence feasibility over top-50 atoms
+- **Team assembly**: clingo-wasm in-process with TOP-K=3 pre-filtering + deterministic greedy fallback
+
+### Key Files
+| File | Purpose |
 |---|---|
-| Discover | Browse all public projects, filter by tech/phase/open roles |
-| Projects | Your projects — create new ones, manage applications |
-| People | Browse all platform members |
-| Workspace | Public community chat |
-| Graph | Startup ecosystem graph (see below) |
-| Profile | View and edit your profile |
-| Settings | Profile info, email, security, account |
+| `src/lib/genome/hash.ts` | normalizeAtom + genomeHash (byte-for-byte verified vs Python) |
+| `src/lib/genome/operators.ts` | evolve/regress/swap/validate — direct Postgres implementations |
+| `src/lib/genome/gaps.ts` | Whitespace heuristic from top-50 atoms |
+| `src/app/api/genome/team/route.ts` | Clingo-WASM with pre-filtering + fallback |
+| `scripts/build_genome.ts` | Pure-TS pipeline replacing Python/Soufflé |
+| `scripts/verify_genome_parity.ts` | Golden test suite (12 genomes, all operators) |
 
-## 9-Step Onboarding
+### Verification (79 tests, 0 skipped, 0 failed)
+- **RED-OCEAN CANARY**: `apparel|beauty|fashion|smart_clothing|sustainable_fashion` → density 112 > 20, classification RED_OCEAN. Fails loudly if hash algorithm drifts.
+- **MUTATION CHECK**: Breaking `genomeHash` causes 9 test failures; restoring passes 29/29.
+- **DETERMINISM**: Same input → same output across 10 iterations (hash) and 3 iterations (Clingo).
+- **UNFILLABLE GAP**: Required atom with zero candidates → honest empty, never fabricated member.
+- **PATHOLOGICAL 2a×20h**: 2382ms → 2.6ms via TOP-K=3 pre-filtering. All cells <5ms p95.
+- **Cold start**: 57-79ms per cell (fresh process, WASM init dominated).
+- **B2 operators**: all <2ms p95 against Postgres.
+- **B4 gaps**: ~86ms total.
 
-When you first register, you'll go through the onboarding flow:
+### Coverage
+```
+hash.ts         │ 100% stmts │ 100% branch │ 100% funcs │ 100% lines
+operators.ts    │ 98.75% stmts│ 90.47% branch│ 100% funcs │ 100% lines
+```
 
-| Step | Field |
+### Tag
+`v0.4.3` on branch `feature/v0.4.3-evidence`. Artifacts at `bench/v0.4.3/`.
+
+---
+
+## v0.3.0 — Proof Drives Matching (Code Complete, Not Tagged)
+
+### What It Does
+- **IMAGE ingestion**: caption via `vit-gpt2-image-captioning` (greedy decoding, deterministic) → embed caption with MiniLM → 384-dim → Reality Index. Falls back to filename caption if model not cached.
+- **PDF ingestion**: extract text via `pdf-parse` (pure JS, Vercel-safe) → embed with MiniLM → 384-dim. 10K char cap. Empty/scanned PDFs → warning, no crash.
+- **reality_vector matching**: `alignment.service.ts` now queries `reality_vector` with fallback to `embedding_vector`. The IVFFlat index already exists.
+- **Thesis Test**: Maya Patel's software claim is overridden by culinary proofs → reality_vector shifts → matching reflects restaurant domain.
+
+### Key Files
+| File | Purpose |
 |---|---|
-| 1 | What's your name? |
-| 2 | Where are you located? |
-| 3 | TL;DR — your tagline |
-| 4 | Years of experience |
-| 5 | What's your top skill? |
-| 6 | What kind of partnership are you looking for? |
-| 7 | What motivates you? |
-| 8 | Commitment level + visibility |
-| 9 | Avatar upload & social links |
+| `src/lib/ingestion.service.ts` | IMAGE/PDF/TEXT/URL ingestion + Reality Index |
+| `src/lib/alignment.service.ts` | findNearestNeighbors + getCosineDistance on reality_vector |
+| `test_thesis.ts` | End-to-end thesis test: culinary proofs override software claim |
+| `scripts/patch-onnx-tensor.js` | **REQUIRED PATCH**: fixes `Tensor.location must be a string` bug |
+| `.nvmrc` | Pins Node 22 for onnxruntime compatibility |
 
-Each step auto-saves. When you finish, your profile is live and discoverable.
+### Known Issue — Must Patch Transformers
+`@xenova/transformers` v2.17.2 `Tensor` constructor uses `Object.assign(this, new ONNXTensor(...))` which loses prototype getters (`location`, `data`). onnxruntime-node's native binding throws `Tensor.location must be a string`. Fix: `npm install` auto-runs `scripts/patch-onnx-tensor.js` via postinstall hook.
 
-## Creating a Project
+### Thesis Test Status (Node 22)
+```
+=== v0.3.0 Thesis Test ===
+User: Maya Patel
+IMAGE: filename fallback (vit-gpt2 not cached — expected in dev)
+TEXT (restaurant): confidence=0.2
+TEXT (software): confidence=0.6
+Reality Index: 7 assets, score=0.31
+Base→Reality cosine distance: 0.0278  ✓ shifted
+Nearest neighbors query works via reality_vector
+```
 
-1. Go to **Projects** → **New Project**
-2. Fill in the 4-step wizard:
-   - **Vision** — title, tagline, full description, phase (Ideation / Building / Launched)
-   - **Tech Stack** — add technology tags (Next.js, Python, etc.)
-   - **Roles** — define open positions with descriptions and required skills
-   - **Review** — preview and publish
-3. Your project appears on the **Discover** page and is searchable
+The IMAGE captioning model (~600MB) must download on first production use. The thesis test relies on the TEXT proof (restaurant management), which demonstrates the reality shift correctly.
 
-## Managing Applications
+### What Would Complete v0.3.0
+1. Run `npm run bench` to generate benchmark data for B1-B5 (requires vit-gpt2 download or a cached model)
+2. Tag `v0.3.0` with artifacts at `bench/v0.3.0/` following the same convention as v0.4.3
 
-- When someone applies to one of your roles, you'll see a notification
-- Go to the project detail page → scroll to the role → click **Applications**
-- You can accept or decline applicants
-- Accepted applicants become **Team Members** and appear on the project page
+---
 
-## Using the Startup Ecosystem Graph
+## How to Run
 
-Access the graph at **Graph** in the sidebar. It contains 16,698 startups tagged with 325 flat tags across 12 top-level categories.
+```bash
+# Prerequisites
+nvm use                   # Switch to Node 22 (.nvmrc)
+npm install               # Installs deps + runs postinstall patch
+docker compose up -d      # Start PostgreSQL
+npx prisma migrate deploy  # Run migrations
+npx tsx prisma/seed.ts    # Seed demo data
 
-### Graph Navigation
+# Build the genome tables (one-time)
+DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx scripts/build_genome.ts
 
-- **Pan** — click and drag the canvas
-- **Zoom** — scroll with mouse wheel / pinch on trackpad
-- **Hover** — hover a node to see its name and highlight connections
-- **Click** — click a tag node to select/deselect it in the query
-- **Click a company dot** — opens a detail panel with the company name, description, and tags
+# Start dev server
+PORT=3020 npx next dev -p 3020
 
-### Tab: Tags (AND-Query)
+# Run thesis test
+DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx test_thesis.ts
 
-1. Click in the **autocomplete search** box below "AND tags"
-2. Type to search for tags (e.g., "AI", "Fintech", "Healthcare")
-3. Select a tag — it becomes a **chip** and the graph filters to companies matching ALL selected tags
-4. After each selection, the available tags update to show only those with remaining matching companies
-5. Use the **country dropdown** to further filter by country
+# Run full test suite
+DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx vitest run
 
-### Tab: Gap (Country Comparison)
+# Run benchmarks
+npm run bench
+```
 
-1. Select two countries from the dropdowns
-2. The panel shows:
-   - Tags **Only in Country A**
-   - Tags **Only in Country B**
-   - Tags **In both countries**
-3. Useful for identifying market gaps between ecosystems
+## Architecture Diagram
 
-### Tab: Companies
+```
+Browser ──► Next.js (port 3020)
+              │
+              ├── /api/genome/* — operators, gaps, team (clingo-wasm in-process)
+              ├── /api/user/capabilities — capability profiles
+              ├── /api/genome/concept — venture concept engine
+              │
+              ├── Postgres
+              │   ├── genome_* tables (atoms, co-occurrence, density, near)
+              │   ├── twin_vectors (embedding_vector + reality_vector)
+              │   ├── proofs_of_work (IMAGE/PDF/TEXT/URL → 384-dim embeddings)
+              │   └── alignments (matching scores)
+              │
+              └── No external services — no Python, no FastAPI, no Soufflé
+```
 
-1. Shows all companies matching your current tag selection
-2. **Search** — type in the search box to filter by company name
-3. Click a company name to see its detail panel
-
-### Tab: Compare (Two Companies)
-
-1. Click a company in the graph → **Compare as A** or **Compare as B**
-2. The compare tab opens with both companies filled in
-3. Type different company names to compare any two
-4. Shows which tags each company has and which they share
-
-### Tab: Idea / Decon
-
-1. Type a product idea or concept into the text box (e.g., "AI-powered tutoring for kids")
-2. Click **Analyze** — runs on-device AI (no data leaves your browser)
-3. Shows the top-10 most similar tags with similarity percentages
-4. Useful for: validating if a market is crowded, finding adjacent categories, discovering competitors
-
-## Offer Builder
-
-The **Grand Slam Offer Builder** (accessible from the sidebar) is a 13-step wizard for crafting persuasive co-founder offers. It walks you through:
-
-Problem → Dream Outcome → Timeline → Features → Bonuses → Pricing → Guarantee → Naming → Preview
-
-- All data is auto-saved to your browser (localStorage)
-- Use the **Reset** button to clear and start over
-- Offers can be copied from the preview screen (copy to clipboard not yet implemented)
-
-## Known Limitations
-
-1. **Chat is poll-based** — the Workspace checks for new messages every 5 seconds. It's not real-time like WebSocket chat. A "reconnecting…" indicator appears if the connection drops.
-2. **Graph data is static** — the startup ecosystem data is generated by a Python pipeline. It doesn't auto-update. To refresh, manually run the pipeline (see README).
-3. **LinkedIn sign-in** — the LinkedIn button is disabled unless you configure `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET` in `.env`. Google and GitHub work when configured.
-4. **Offer Builder** — data is stored in your browser only. There's no server-side save or sharing of offers yet.
-5. **WASM culling** — the graph performance layer is optional. If the WASM module isn't loaded, you'll see a small amber notice — all nodes are still rendered, just without the optimization.
-
-## Theme
-
-The app uses a dark industrial cyberpunk theme (`#0d1515` background, `#00f0ff` cyan accent, `#ff5c00` orange). If you see animated elements (shimmer, float, gradient rotation), those are intentional design flourishes.
+## Next Milestones Suggested
+1. **Tag v0.3.0**: Run benchmarks once vit-gpt2 is cached, produce `bench/v0.3.0/` artifacts.
+2. **Synthetic Vetting (v0.5.0)**: Extend the proof layer to auto-generate challenge problems for claimed-but-unproven capabilities.
+3. **Deploy to Vercel**: Set `DATABASE_URL`, run `build_genome.ts` against production DB, ensure `node_modules` contains the patched tensor.js (postinstall handles this).

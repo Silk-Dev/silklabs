@@ -47,7 +47,15 @@ async function getCaptioner() {
 async function captionImage(source: string): Promise<string> {
   const capper = await getCaptioner()
   if (capper) {
-    const img = await RawImage.read(source)
+    let img
+    if (source.startsWith("http://") || source.startsWith("https://")) {
+      img = await RawImage.read(source)
+    } else {
+      // Read from file path or base64
+      const path = require("path")
+      const filePath = path.resolve(process.cwd(), source)
+      img = await RawImage.read(filePath)
+    }
     const result = await capper(img, { do_sample: false, max_new_tokens: 30 })
     const text = result?.[0]?.generated_text
     if (text && text.trim().length > 0) return text.trim().slice(0, 500)
@@ -128,16 +136,37 @@ async function generateEmbedding(text: string): Promise<number[]> {
 // Confidence Scoring (unchanged)
 // ---------------------------------------------------------------------------
 
+/**
+ * Computes confidence score from the extracted text's evidentiary strength,
+ * independent of the user's claimed domain.
+ *
+ * The purpose: a proof that contradicts the user's claimed domain (e.g.,
+ * culinary proof for a software engineer) must NOT be down-weighted —
+ * it should be weighted by how strong the evidence is on its own terms.
+ *
+ * Thresholds (deterministic, no randomness):
+ *   >= 200 chars with specific content → 0.9  (strong evidence)
+ *   >= 50 chars of coherent content    → 0.6  (moderate evidence)
+ *   < 50 chars / trivial               → 0.2  (weak evidence)
+ *
+ * For IMAGE: vit-gpt2 captions are always specific → 0.9.
+ * Filename fallback captions (starting with "Image:") → 0.2.
+ */
 export function computeConfidenceScore(
-  assetEmbedding: number[],
-  baseEmbedding: number[],
+  extractedText: string,
+  assetType: string,
 ): number {
-  const dot = assetEmbedding.reduce((sum, v, i) => sum + v * baseEmbedding[i], 0)
-  const normA = Math.sqrt(assetEmbedding.reduce((s, v) => s + v * v, 0))
-  const normB = Math.sqrt(baseEmbedding.reduce((s, v) => s + v * v, 0))
-  const similarity = dot / (normA * normB)
-  if (similarity > 0.7) return 0.9
-  if (similarity >= 0.4) return 0.6
+  const text = extractedText.trim()
+
+  // IMAGE captions from vit-gpt2 are always specific → high confidence
+  if (assetType === "IMAGE") {
+    if (text.startsWith("Image:")) return 0.2 // filename fallback
+    return 0.9
+  }
+
+  // For TEXT/PDF/URL: length-based strength
+  if (text.length >= 200) return 0.9
+  if (text.length >= 50) return 0.6
   return 0.2
 }
 
@@ -194,22 +223,8 @@ export async function ingestProofOfWork(input: IngestionInput): Promise<Ingestio
   // 2. Generate embedding
   const embedding = await generateEmbedding(extractedText)
 
-  // 3. Fetch user's base TwinVector for confidence scoring
-  const twinVector = await prisma.twinVector.findUnique({
-    where: { ownerType_ownerId: { ownerType: input.ownerType, ownerId: input.ownerId } },
-  })
-
-  let confidenceScore = 0.5
-  if (twinVector?.embedding) {
-    try {
-      const baseEmbedding = JSON.parse(twinVector.embedding) as number[]
-      if (baseEmbedding.length === embedding.length) {
-        confidenceScore = computeConfidenceScore(embedding, baseEmbedding)
-      }
-    } catch {
-      // leave at default 0.5
-    }
-  }
+  // 3. Compute confidence from evidentiary strength (independent of claimed domain)
+  const confidenceScore = computeConfidenceScore(extractedText, input.assetType)
 
   // 4. Persist
   const proof = await prisma.proofOfWork.create({
