@@ -1,21 +1,23 @@
 /**
- * v0.3.0 Thesis Test — Proof Drives Matching (CLEAN)
+ * v0.3.0 Thesis Test — Proof Drives Matching (FULL)
  *
- * Maya Patel's base embedding points toward software/engineering.
- * She uploads ONLY culinary proofs (no software proofs).
- * After recomputing reality_vector, her matching must reflect culinary,
- * not software.
+ * Maya claims software engineer (base → software). She uploads ONLY
+ * culinary proofs. After reality_vector recomputation, her alignment
+ * with a restaurant project must STRICTLY OUTRANK a software project.
+ *
+ * This is the gate. Shift is the precondition, ranking is the thesis.
  *
  * Run: source ~/.nvm/nvm.sh && nvm use && DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx test_thesis.ts
  */
 
 import { prisma } from "@/lib/prisma"
 import { ingestProofOfWork, calculateRealityIndex } from "@/lib/ingestion.service"
-import { findNearestNeighbors } from "@/lib/alignment.service"
+import { computeAlignment, getCosineDistance } from "@/lib/alignment.service"
 
 async function main() {
-  console.log("=== v0.3.0 Thesis Test (CLEAN) ===\n")
+  console.log("=== v0.3.0 THESIS TEST (FULL) ===\n")
 
+  // ── 1. Get Maya ──
   const user = await prisma.user.findFirst({ where: { email: "maya@example.com" } })
   if (!user) { console.error("No test user"); process.exit(1) }
   console.log(`User: ${user.name} (${user.id.slice(0, 12)}...)`)
@@ -27,42 +29,34 @@ async function main() {
   const baseEmb: number[] = JSON.parse(twin.embedding || "[]")
   console.log(`Base embedding dims: ${baseEmb.length}`)
 
-  // Delete any previous culinary proofs to start clean
-  await prisma.proofOfWork.deleteMany({
-    where: { ownerType: "USER", ownerId: user.id, tags: { path: "$", array_contains: "culinary" } },
-  }).catch(() => {})
+  // ── 2. Clean slate — delete all Maya's proofs ──
+  await prisma.proofOfWork.deleteMany({ where: { ownerType: "USER", ownerId: user.id } })
 
-  // Delete previous software proofs too (clean slate)
-  await prisma.proofOfWork.deleteMany({
-    where: { ownerType: "USER", ownerId: user.id },
-  }).catch(() => {})
-
-  // 1. IMAGE proof — gourmet dish (captioned by vit-gpt2)
-  console.log("\n--- IMAGE: Gourmet dish ---")
-  const imageResult = await ingestProofOfWork({
+  // ── 3. Ingest IMAGE proof — real dish photo ──
+  console.log("\n--- IMAGE: Dish photo ---")
+  const imgResult = await ingestProofOfWork({
     ownerType: "USER", ownerId: user.id, assetType: "IMAGE",
-    source: "test_data/dish.png",
-    title: "Signature dish — mushroom risotto",
+    source: "test_data/dish_real.jpg",
+    title: "Gourmet dish",
     tags: ["culinary", "gourmet", "cooking"],
   })
-  console.log(`  Caption: ${imageResult.extractedText}`)
-  console.log(`  Confidence: ${imageResult.confidenceScore}`)
-  if (imageResult.extractedText.startsWith("Image:")) {
-    console.log("  WARNING: filename fallback used — vit-gpt2 not available")
+  console.log(`  Caption: ${imgResult.extractedText}`)
+  console.log(`  Confidence: ${imgResult.confidenceScore}`)
+  if (imgResult.extractedText.startsWith("Image:")) {
+    console.log("  FATAL: filename fallback — vit-gpt2 not used. Test invalid.")
+    process.exit(1)
   }
 
-  // 2. TEXT proof — restaurant management (PDF equivalent)
+  // ── 4. Ingest TEXT proofs (culinary only) ──
   console.log("\n--- TEXT: Restaurant management ---")
-  const pdfResult = await ingestProofOfWork({
+  const restResult = await ingestProofOfWork({
     ownerType: "USER", ownerId: user.id, assetType: "TEXT",
-    source: "Standard operating procedures for upscale dining establishments. Kitchen workflow optimization, inventory management for fresh seasonal ingredients, wine pairing selections for prix fixe menus, staff scheduling for dinner service, and customer satisfaction metrics. The restaurant achieved a 4.8-star rating through detailed attention to plating presentation, service timing precision, and sourcing ingredients from local farms and purveyors. Emergency procedures for kitchen fires and health inspection preparation.",
+    source: "Standard operating procedures for upscale dining establishments. Kitchen workflow optimization, inventory management for fresh seasonal ingredients, wine pairing selections for prix fixe menus, staff scheduling for dinner service, customer satisfaction metrics, plating presentation standards, service timing precision, sourcing from local farms and purveyors. Emergency procedures for kitchen fires and health inspection preparation.",
     title: "Restaurant Management SOP",
     tags: ["restaurant", "hospitality", "management", "culinary"],
   })
-  console.log(`  Extracted: ${pdfResult.extractedText.slice(0, 80)}...`)
-  console.log(`  Confidence: ${pdfResult.confidenceScore}`)
+  console.log(`  Confidence: ${restResult.confidenceScore}`)
 
-  // 3. TEXT proof — culinary techniques
   console.log("\n--- TEXT: Culinary techniques ---")
   const cookResult = await ingestProofOfWork({
     ownerType: "USER", ownerId: user.id, assetType: "TEXT",
@@ -70,64 +64,131 @@ async function main() {
     title: "Culinary techniques portfolio",
     tags: ["culinary", "cooking", "techniques", "gourmet"],
   })
-  console.log(`  Extracted: ${cookResult.extractedText.slice(0, 80)}...`)
   console.log(`  Confidence: ${cookResult.confidenceScore}`)
 
-  // 4. Recompute Reality Index
+  // ── 5. Recompute Reality Index ──
   console.log("\n--- Reality Index ---")
   const reality = await calculateRealityIndex(user.id)
-  console.log(`  Total assets: ${reality.assetCount}`)
-  console.log(`  Reality score: ${reality.realityScore}`)
+  console.log(`  Assets: ${reality.assetCount}`)
+  console.log(`  Score: ${reality.realityScore}`)
 
-  // 5. Compute base→reality shift
+  // Measure shift
   const dot = baseEmb.reduce((s, v, i) => s + v * reality.realityVector[i], 0)
   const nA = Math.sqrt(baseEmb.reduce((s, v) => s + v * v, 0))
   const nB = Math.sqrt(reality.realityVector.reduce((s, v) => s + v * v, 0))
-  const dist = 1 - dot / (nA * nB)
-  console.log(`  Base→Reality cosine distance: ${dist.toFixed(4)}`)
+  const shift = 1 - dot / (nA * nB)
+  console.log(`  Base→Reality shift: ${shift.toFixed(4)}`)
 
-  // 6. Verify persistence
+  // ── 6. Create test project twin embeddings ──
+  // Generate restaurant and software embeddings from descriptive text
+  const { pipeline } = await import("@xenova/transformers")
+  const embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2")
+
+  const embedText = async (text: string): Promise<string> => {
+    const r = await embedder(text, { pooling: "mean", normalize: true })
+    return JSON.stringify(Array.from((r as any).data as Float32Array))
+  }
+
+  const restaurantEmb = await embedText(
+    "Restaurant and food service business. Menu planning, kitchen operations, " +
+    "ingredient sourcing, customer dining experience, wine pairing, culinary " +
+    "team management, health code compliance, food cost optimization."
+  )
+  const softwareEmb = await embedText(
+    "Software engineering and technology. Full-stack web development, cloud " +
+    "infrastructure, API design, database architecture, CI/CD pipelines, " +
+    "agile methodology, system design, code review."
+  )
+
+  // Upsert test twin vectors for two projects
+  const makeProjectTwin = async (ownerId: string, emb: string) => {
+    const existing = await prisma.twinVector.findFirst({
+      where: { ownerType: "PROJECT", ownerId },
+    })
+    if (existing) {
+      // Update embedding
+      await prisma.twinVector.update({
+        where: { id: existing.id },
+        data: { embedding: emb },
+      })
+      // Also update raw pgvector column
+      await prisma.$executeRawUnsafe(
+        `UPDATE "twin_vectors" SET "embedding_vector" = $1::vector WHERE "id" = $2`,
+        emb, existing.id,
+      )
+      return existing.id
+    }
+    const created = await prisma.twinVector.create({
+      data: {
+        ownerType: "PROJECT",
+        ownerId,
+        embedding: emb,
+        twinProfile: { skills: [] },
+        preferences: {},
+        lastSyncedAt: new Date(),
+      },
+    })
+    await prisma.$executeRawUnsafe(
+      `UPDATE "twin_vectors" SET "embedding_vector" = $1::vector WHERE "id" = $2`,
+      emb, created.id,
+    )
+    return created.id
+  }
+
+  // Use the existing seed projects: Harbor CLI (software) and OpenFeedback (software-like)
+  // Create a virtual restaurant project for comparison
+  const softwareProjectId = "cmrh964do000jb27zcnksrioo" // Harbor CLI
+  const restaurantProjectId = "restaurant-thesis-test"   // virtual ID for test
+
+  await makeProjectTwin(softwareProjectId, softwareEmb)
+  await makeProjectTwin(restaurantProjectId, restaurantEmb)
+
+  // ── 7. Compute alignment scores ──
+  console.log("\n--- Alignment Scores ---")
+
+  // Maya's full twin
   twin = await prisma.twinVector.findUnique({
     where: { ownerType_ownerId: { ownerType: "USER", ownerId: user.id } },
   })
-  console.log(`  Has reality_vector: ${twin?.realityEmbedding !== null}`)
-  if (twin?.realityEmbedding) {
-    const re: number[] = JSON.parse(twin.realityEmbedding)
-    const match = re.reduce((s, v, i) => s + Math.abs(v - reality.realityVector[i]), 0)
-    console.log(`  Persisted realityEmbedding matches computed: ${match < 0.001 ? "YES" : "NO"}`)
-  }
+  if (!twin) { console.error("Lost twin"); process.exit(1) }
 
-  // 7. Nearest neighbors via reality_vector
-  console.log("\n--- Nearest neighbors (by reality_vector) ---")
-  const neighbors = await findNearestNeighbors(user.id, "USER", 5)
-  if (neighbors.length === 0) {
-    console.log("  (no neighbors — expected with few users in dev)")
+  const swTwin = await prisma.twinVector.findUnique({
+    where: { ownerType_ownerId: { ownerType: "PROJECT", ownerId: softwareProjectId } },
+  })
+  const restTwin = await prisma.twinVector.findUnique({
+    where: { ownerType_ownerId: { ownerType: "PROJECT", ownerId: restaurantProjectId } },
+  })
+  if (!swTwin || !restTwin) { console.error("Missing project twins"); process.exit(1) }
+
+  const softAlign = await computeAlignment(twin, swTwin)
+  const restAlign = await computeAlignment(twin, restTwin)
+
+  console.log(`  Software project (Harbor CLI):  overall=${softAlign.overallScore.toFixed(4)}  skill=${softAlign.skillScore.toFixed(4)}`)
+  console.log(`  Restaurant project (test):       overall=${restAlign.overallScore.toFixed(4)}  skill=${restAlign.skillScore.toFixed(4)}`)
+
+  // ── 8. THE GATE ──
+  console.log("\n=== GATE — RANKING ===")
+  const restaurantWins = restAlign.overallScore > softAlign.overallScore
+  if (restaurantWins) {
+    console.log(`✓ THESIS PASSED`)
+    console.log(`  Restaurant (${restAlign.overallScore.toFixed(4)}) > Software (${softAlign.overallScore.toFixed(4)})`)
+    console.log(`  Culinary proofs shifted reality_vector by ${shift.toFixed(4)} from base`)
+    console.log(`  Ranking reflects evidence, not claims.`)
   } else {
-    for (const n of neighbors) {
-      const nu = await prisma.user.findUnique({ where: { id: n.ownerId } })
-      console.log(`  ${nu?.name || n.ownerId}: distance=${n.distance.toFixed(4)}`)
-    }
+    console.log(`✗ THESIS FAILED`)
+    console.log(`  Software (${softAlign.overallScore.toFixed(4)}) >= Restaurant (${restAlign.overallScore.toFixed(4)})`)
+    console.log(`  Shift was ${shift.toFixed(4)} but not enough to flip ranking.`)
+    console.log(`  Confidence scores may need adjustment.`)
   }
 
-  // 8. The gate assertion
-  console.log("\n=== GATE CHECK ===")
-  const THESIS_PASSED = dist > 0.01
-  if (THESIS_PASSED) {
-    console.log("✓ THESIS PASSED — reality_vector shifted from base by " + dist.toFixed(4))
-    console.log("  Culinary proofs overrode the software claim.")
-  } else {
-    console.log("✗ THESIS FAILED — reality_vector did not meaningfully shift")
-    console.log("  Base→Reality distance: " + dist.toFixed(4) + " (need > 0.01)")
-    console.log("  Confidence scores may need adjustment.")
+  // Cleanup: remove the virtual restaurant twin
+  if (restTwin) {
+    await prisma.twinVector.delete({ where: { id: restTwin.id } }).catch(() => {})
   }
 
-  const eachConfidence = [imageResult.confidenceScore, pdfResult.confidenceScore, cookResult.confidenceScore]
-  console.log("\nProof confidences:", eachConfidence)
-  console.log(`Min confidence: ${Math.min(...eachConfidence)}`)
-  console.log(`Max confidence: ${Math.max(...eachConfidence)}`)
-
+  console.log("\nProof confidences:", [imgResult.confidenceScore, restResult.confidenceScore, cookResult.confidenceScore])
   await prisma.$disconnect()
-  process.exit(THESIS_PASSED ? 0 : 1)
+  process.exit(restaurantWins ? 0 : 1)
 }
 
 main().catch((e) => { console.error("FAILED:", e); process.exit(1) })

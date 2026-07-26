@@ -149,8 +149,10 @@ async function generateEmbedding(text: string): Promise<number[]> {
  *   >= 50 chars of coherent content    → 0.6  (moderate evidence)
  *   < 50 chars / trivial               → 0.2  (weak evidence)
  *
- * For IMAGE: vit-gpt2 captions are always specific → 0.9.
- * Filename fallback captions (starting with "Image:") → 0.2.
+ * For IMAGE: confidence reflects caption specificity (concrete content words
+ * beyond generic terms). "a plate of food with vegetables" → 0.9 (specific,
+ * has domain terms). "a close up of a red and white object" → 0.6 (generic).
+ * Filename fallback → 0.2.
  */
 export function computeConfidenceScore(
   extractedText: string,
@@ -158,10 +160,23 @@ export function computeConfidenceScore(
 ): number {
   const text = extractedText.trim()
 
-  // IMAGE captions from vit-gpt2 are always specific → high confidence
+  // IMAGE: specificity-based
   if (assetType === "IMAGE") {
     if (text.startsWith("Image:")) return 0.2 // filename fallback
-    return 0.9
+    // Count concrete content words beyond generic caption stock
+    const genericWords = new Set([
+      "a", "an", "the", "of", "with", "in", "on", "at", "to", "for",
+      "is", "are", "this", "that", "it", "its", "and", "or",
+      "close", "up", "photo", "image", "picture", "view", "shot",
+      "look", "looking", "seen", "showing", "taken",
+    ])
+    const words = text.toLowerCase()
+      .replace(/[^a-z ]/g, "")
+      .split(/\s+/)
+      .filter((w) => w.length > 2 && !genericWords.has(w))
+    if (words.length >= 3) return 0.9  // specific caption with domain terms
+    if (words.length >= 1) return 0.6  // somewhat specific
+    return 0.2  // fully generic
   }
 
   // For TEXT/PDF/URL: length-based strength
