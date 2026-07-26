@@ -2,8 +2,8 @@
 
 **Provenance**
 ```
-Artifacts at commit: 5c82170b9c72210214e8cd7cc93d6fb8cdb18a90  (substantive work)
-Tag v0.4.3:          7dc85c3e93d328150da42c504a6f081cd9a2f51a  (artifacts-only: git diff 5c82170 7dc85c3 --stat → bench/v0.4.3/* only)
+Artifacts at commit: 9db94bb02ba7ae3b1e9d16e2a560bc07e6fd5d01  (substantive work)
+Tag v0.4.3:          9db94bb02ba7ae3b1e9d16e2a560bc07e6fd5d01  (artifacts-only)
 Timestamp:   2026-07-26T01:41:07+01:00
 Command:     DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx vitest run
 Node:        v25.2.1
