@@ -28,7 +28,7 @@ export const auth = betterAuth({
     },
   },
   baseURL,
-  trustedOrigins: [baseURL],
+  trustedOrigins: [baseURL, "https://silklabs.vercel.app"],
   plugins: [nextCookies()],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
