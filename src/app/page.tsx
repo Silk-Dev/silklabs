@@ -148,8 +148,7 @@ export default async function HomePage() {
               Ready to build something?
             </h2>
             <p className="mx-auto mt-4 max-w-lg font-mono text-[12px] uppercase tracking-[0.06em] text-outline">
-              Join thousands of builders finding their next team. Create your profile and start
-              exploring projects today.
+              Shape your narrative. Prove what you&#39;re capable of. Build with the right team.
             </p>
             <div className="mt-8">
               <Link href="/register">

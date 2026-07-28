@@ -684,7 +684,7 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       )}
 
       {/* Canvas */}
-      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-0" style={{ background: "#0d1515", willChange: "transform" }} />
+      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-5" style={{ background: "#0d1515", willChange: "transform" }} />
 
       {/* Right Panel (combined legend + tabs) */}
       <div className="fixed top-3 right-3 z-10 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
