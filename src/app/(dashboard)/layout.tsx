@@ -12,6 +12,7 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle"
 import { signOutAction } from "@/services/auth.service"
 import { AppSidebar, MobileSidebar } from "@/components/app-sidebar"
+import { SidebarProvider } from "@/components/sidebar-context"
 
 export default async function DashboardLayout({
   children,
@@ -24,12 +25,12 @@ export default async function DashboardLayout({
   const user = session.user
 
   return (
-    <div className="flex min-h-screen">
+    <SidebarProvider>
       {/* Desktop sidebar */}
       <AppSidebar user={{ name: user.name ?? "User", email: user.email ?? "", image: user.image }} />
 
       {/* Main content area */}
-      <div className="flex flex-1 flex-col md:ml-60">
+      <div className="flex flex-1 flex-col" style={{ marginLeft: "var(--sidebar-width, 15rem)" }}>
         {/* Mobile header */}
         <MobileSidebar user={{ name: user.name ?? "User", email: user.email ?? "", image: user.image }} />
 
@@ -78,6 +79,6 @@ export default async function DashboardLayout({
 
         <main className="relative z-1 mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</main>
       </div>
-    </div>
+    </SidebarProvider>
   )
 }

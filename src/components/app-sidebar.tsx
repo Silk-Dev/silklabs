@@ -3,42 +3,63 @@
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
+import {
+  Compass,
+  FolderKanban,
+  Users,
+  MessageSquare,
+  HeartHandshake,
+  Gift,
+  Network,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { SearchBar } from "@/app/(dashboard)/search-bar"
+import { useSidebar } from "@/components/sidebar-context"
 
 const NAV_ITEMS = [
-  { href: "/discover", label: "Discover" },
-  { href: "/projects", label: "My Projects" },
-  { href: "/people", label: "People" },
-  { href: "/workspace", label: "Workspace" },
-  { href: "/matches", label: "Matches" },
-  { href: "/offer-builder", label: "Offer Builder" },
-  { href: "/graph", label: "Graph" },
+  { href: "/discover", label: "Discover", icon: Compass },
+  { href: "/projects", label: "My Projects", icon: FolderKanban },
+  { href: "/people", label: "People", icon: Users },
+  { href: "/workspace", label: "Workspace", icon: MessageSquare },
+  { href: "/matches", label: "Matches", icon: HeartHandshake },
+  { href: "/offer-builder", label: "Offer Builder", icon: Gift },
+  { href: "/graph", label: "Graph", icon: Network },
 ]
 
 export function AppSidebar({ user }: { user: { name: string; email: string; image?: string | null } }) {
   const pathname = usePathname()
+  const { collapsed, toggleCollapsed } = useSidebar()
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 flex w-60 flex-col border-r border-border-metal bg-surface max-md:hidden">
+    <aside
+      className="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border-metal bg-surface max-md:hidden transition-all duration-300"
+      style={{ width: "var(--sidebar-width, 15rem)" }}
+    >
       {/* Logo */}
-      <div className="flex h-14 items-center gap-3 border-b border-border-metal px-4">
+      <div className="flex h-14 items-center border-b border-border-metal px-4">
         <Link href="/discover" className="flex items-center gap-2">
-          <Image src="/silklearn.avif" alt="SILKLABS" width={28} height={28} />
-          <span className="font-heading text-base font-bold tracking-tight text-primary">SILKLABS</span>
+          <Image src="/silklearn.avif" alt="SILKLABS" width={28} height={28} className="shrink-0" />
+          {!collapsed && (
+            <span className="font-heading text-base font-bold tracking-tight text-primary">SILKLABS</span>
+          )}
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="border-b border-border-metal px-3 py-3">
-        <SearchBar />
-      </div>
+      {/* Search — hidden when collapsed */}
+      {!collapsed && (
+        <div className="border-b border-border-metal px-3 py-3">
+          <SearchBar />
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+          const Icon = item.icon
           return (
             <Link
               key={item.href}
@@ -47,9 +68,11 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-outline hover:bg-surface-variant hover:text-foreground"
-              }`}
+              } ${collapsed ? "justify-center px-2" : ""}`}
+              title={collapsed ? item.label : undefined}
             >
-              {item.label}
+              <Icon className="size-4 shrink-0" />
+              {!collapsed && item.label}
             </Link>
           )
         })}
@@ -57,16 +80,31 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
 
       {/* User area */}
       <div className="border-t border-border-metal p-3">
-        <div className="flex items-center gap-2 rounded-lg px-3 py-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted font-mono text-[10px] uppercase tracking-widest text-foreground">
+        <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${collapsed ? "justify-center px-2" : ""}`}>
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-[10px] uppercase tracking-widest text-foreground">
             {user.name?.charAt(0) ?? "U"}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="truncate font-heading text-xs font-semibold text-foreground">{user.name}</div>
-            <div className="truncate font-mono text-[9px] uppercase tracking-[0.06em] text-outline">{user.email}</div>
-          </div>
-          <ThemeToggle />
+          {!collapsed && (
+            <>
+              <div className="flex-1 min-w-0">
+                <div className="truncate font-heading text-xs font-semibold text-foreground">{user.name}</div>
+                <div className="truncate font-mono text-[9px] uppercase tracking-[0.06em] text-outline">{user.email}</div>
+              </div>
+              <ThemeToggle />
+            </>
+          )}
         </div>
+
+        {/* Collapse toggle */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={toggleCollapsed}
+          className="mt-2 w-full justify-center text-outline hover:text-foreground"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
+        </Button>
       </div>
     </aside>
   )
