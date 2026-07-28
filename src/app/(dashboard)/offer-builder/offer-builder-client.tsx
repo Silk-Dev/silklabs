@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef } from "react"
 import {
+  MessageScrollerProvider,
+  MessageScroller,
   MessageScrollerViewport,
   MessageScrollerContent,
   MessageScrollerItem,
@@ -207,6 +209,8 @@ function OfferChat({
   return (
     <div className="flex h-full flex-col">
       {/* Scroller */}
+      <MessageScrollerProvider>
+      <MessageScroller>
       <MessageScrollerViewport ref={viewportRef}>
         <MessageScrollerContent>
           {messages.map((msg, i) => (
@@ -231,6 +235,8 @@ function OfferChat({
           )}
         </MessageScrollerContent>
       </MessageScrollerViewport>
+      </MessageScroller>
+      </MessageScrollerProvider>
 
       {/* Input */}
       {!done && (
