@@ -521,15 +521,15 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
     el.innerHTML = ""
     for (const t of s.sel) {
       const c = document.createElement("span")
-      c.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] rounded-xl text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
+      c.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
       c.innerHTML = `${t}<span style="font-size:13px;color:#555;margin-left:2px;line-height:1">×</span>`
       c.onclick = () => { s.sel.delete(t); updateSuggested(s); updateChipsDOM() }
       el.appendChild(c)
     }
     for (const c of s.selCtries) {
       const ch = document.createElement("span")
-      ch.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] rounded-xl text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
-      ch.innerHTML = `<span class="inline-block w-1.5 h-1.5 rounded-full mr-1" style="background:${s.ctryColors[c]}"></span>${c}<span style="font-size:13px;color:#555;margin-left:2px;line-height:1">×</span>`
+      ch.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
+      ch.innerHTML = `<span class="inline-block w-1.5 h-1.5 mr-1" style="background:${s.ctryColors[c]}"></span>${c}<span style="font-size:13px;color:#555;margin-left:2px;line-height:1">×</span>`
       ch.onclick = () => { s.selCtries.delete(c); updateChipsDOM() }
       el.appendChild(ch)
     }
@@ -609,14 +609,14 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       for (const t of Object.values(subs)) tc += (t as string[]).length
       const d = document.createElement("div")
       d.className = "mx-1 mb-0.5 rounded-md cursor-pointer hover:bg-white/[0.03]"
-      d.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:500;color:#dbfcff;user-select:none;border-radius:0.375rem"><span class="ar">▶</span><span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${COLS[cat]}"></span><span style="flex:1">${cat}</span><span style="font-size:10px;color:#666;margin-left:auto">${tc}</span></div><div class="lsc"></div>`
+      d.innerHTML = `<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;font-size:12px;font-weight:500;color:#dbfcff;user-select:none"><span class="ar">▶</span><span style="width:8px;height:8px;border-radius:50%;flex-shrink:0;background:${COLS[cat]}"></span><span style="flex:1">${cat}</span><span style="font-size:10px;color:#666;margin-left:auto">${tc}</span></div><div class="lsc"></div>`
       const h = d.firstElementChild!
       const sc = d.querySelector(".lsc")!
       h.addEventListener("click", () => { sc.classList.toggle("on"); h.querySelector(".ar")!.classList.toggle("on") })
       for (const [sn, ts] of Object.entries(subs)) {
         const sd = document.createElement("div")
         sd.className = "my-0.5"
-        sd.innerHTML = `<div style="display:flex;align-items:center;gap:5px;padding:4px 6px;font-size:11px;color:#aaa;cursor:pointer;border-radius:0.25rem;user-select:none"><span class="ar" style="width:10px;font-size:8px">▶</span><span style="flex:1">${sn}</span></div><div class="ltg"></div>`
+        sd.innerHTML = `<div style="display:flex;align-items:center;gap:5px;padding:4px 6px;font-size:11px;color:#aaa;cursor:pointer;user-select:none"><span class="ar" style="width:10px;font-size:8px">▶</span><span style="flex:1">${sn}</span></div><div class="ltg"></div>`
         const sh = sd.firstElementChild!
         const tg = sd.querySelector(".ltg")!
         sh.addEventListener("click", (e) => { e.stopPropagation(); tg.classList.toggle("on"); sh.querySelector(".ar")!.classList.toggle("on") })
