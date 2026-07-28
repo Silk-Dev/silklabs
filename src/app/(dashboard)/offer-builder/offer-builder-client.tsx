@@ -4,15 +4,16 @@ import { useState, useCallback, useRef } from "react"
 import {
   MessageScrollerProvider,
   MessageScroller,
+  MessageScrollerButton,
   MessageScrollerViewport,
   MessageScrollerContent,
   MessageScrollerItem,
 } from "@/components/ui/message-scroller"
-import { Message, MessageContent } from "@/components/ui/message"
+import { Message, MessageAvatar, MessageContent } from "@/components/ui/message"
 import { Bubble, BubbleContent } from "@/components/ui/bubble"
 import { Marker } from "@/components/ui/marker"
 import { Button } from "@/components/ui/button"
-import { SendIcon } from "lucide-react"
+import { SendIcon, BotIcon, UserIcon } from "lucide-react"
 
 // ─── Chat message type ───
 interface MessageData {
@@ -207,43 +208,51 @@ function OfferChat({
   const totalSteps = STEPS.length
 
   return (
-    <div className="flex h-full flex-col">
-      {/* Scroller */}
-      <MessageScrollerProvider>
-      <MessageScroller>
-      <MessageScrollerViewport ref={viewportRef}>
-        <MessageScrollerContent>
-          {messages.map((msg, i) => (
-            <MessageScrollerItem key={i} scrollAnchor={i === messages.length - 1}>
-              <Message align={msg.role === "user" ? "end" : "start"}>
-                <MessageContent>
-                  <Bubble variant={msg.role === "user" ? "default" : "muted"} align={msg.role === "user" ? "end" : "start"}>
-                    <BubbleContent className="whitespace-pre-wrap">
-                      {msg.text}
-                    </BubbleContent>
-                  </Bubble>
-                </MessageContent>
-              </Message>
-            </MessageScrollerItem>
-          ))}
+    <>
+      {/* Scroller — flex-1 so it fills remaining space */}
+      <MessageScrollerProvider scrollPreviousItemPeek={64}>
+        <MessageScroller className="flex-1 min-h-0">
+          <MessageScrollerViewport ref={viewportRef}>
+            <MessageScrollerContent>
+              {messages.map((msg, i) => (
+                <MessageScrollerItem key={i} scrollAnchor={msg.role === "user"}>
+                  <Message align={msg.role === "user" ? "end" : "start"}>
+                    <MessageAvatar>
+                      {msg.role === "user" ? (
+                        <UserIcon className="size-4" />
+                      ) : (
+                        <BotIcon className="size-4" />
+                      )}
+                    </MessageAvatar>
+                    <MessageContent>
+                      <Bubble variant={msg.role === "user" ? "default" : "muted"} align={msg.role === "user" ? "end" : "start"}>
+                        <BubbleContent className="whitespace-pre-wrap">
+                          {msg.text}
+                        </BubbleContent>
+                      </Bubble>
+                    </MessageContent>
+                  </Message>
+                </MessageScrollerItem>
+              ))}
 
-          {/* Summary section when done */}
-          {done && (
-            <MessageScrollerItem>
-              <Marker variant="separator">Your Grand Slam Offer</Marker>
-            </MessageScrollerItem>
-          )}
-        </MessageScrollerContent>
-      </MessageScrollerViewport>
-      </MessageScroller>
+              {/* Summary section when done */}
+              {done && (
+                <MessageScrollerItem>
+                  <Marker variant="separator">Your Grand Slam Offer</Marker>
+                </MessageScrollerItem>
+              )}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
       </MessageScrollerProvider>
 
       {/* Input */}
       {!done && (
-        <div className="border-t border-border p-4">
+        <div className="border-t border-border shrink-0">
           <form
             onSubmit={(e) => { e.preventDefault(); onSend() }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 p-4"
           >
             <div className="flex-1 relative">
               <input
@@ -255,10 +264,10 @@ function OfferChat({
                     ? "Type your answer..."
                     : "Your answer..."
                 }
-                className="w-full bg-muted border border-border rounded-none px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring pr-10"
+                className="w-full bg-surface-variant border border-border rounded-none px-4 py-2.5 text-sm text-foreground placeholder:text-outline focus:outline-none focus:border-ring pr-10"
                 autoFocus
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-outline">
                 {stepIdx + 1}/{totalSteps}
               </span>
             </div>
@@ -277,13 +286,11 @@ function OfferChat({
 
       {/* Done button */}
       {done && (
-        <div className="border-t border-border p-4 text-center">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            Build Another Offer
-          </Button>
+        <div className="border-t border-border shrink-0 p-4 text-center">
+          <Button variant="outline" onClick={() => window.location.reload()}>Build Another Offer</Button>
         </div>
       )}
-    </div>
+    </>
   )
 }
 
@@ -411,7 +418,7 @@ export default function OfferBuilderClient() {
           />
         </div>
 
-        {/* Chat */}
+        {/* Chat — flex-1 so it fills remaining space */}
         <OfferChat
           stepIdx={stepIdx}
           messages={messages}
