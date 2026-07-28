@@ -65,6 +65,10 @@ export const ModelName = {
   Application: 'Application',
   TeamMember: 'TeamMember',
   Message: 'Message',
+  ForumPost: 'ForumPost',
+  ForumComment: 'ForumComment',
+  ForumTag: 'ForumTag',
+  ForumPostTag: 'ForumPostTag',
   Notification: 'Notification',
   Bookmark: 'Bookmark',
   Product: 'Product',
@@ -281,6 +285,51 @@ export const MessageScalarFieldEnum = {
 } as const
 
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
+
+
+export const ForumPostScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  title: 'title',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  upvotes: 'upvotes',
+  downvotes: 'downvotes'
+} as const
+
+export type ForumPostScalarFieldEnum = (typeof ForumPostScalarFieldEnum)[keyof typeof ForumPostScalarFieldEnum]
+
+
+export const ForumCommentScalarFieldEnum = {
+  id: 'id',
+  postId: 'postId',
+  parentId: 'parentId',
+  userId: 'userId',
+  body: 'body',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  upvotes: 'upvotes',
+  downvotes: 'downvotes'
+} as const
+
+export type ForumCommentScalarFieldEnum = (typeof ForumCommentScalarFieldEnum)[keyof typeof ForumCommentScalarFieldEnum]
+
+
+export const ForumTagScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type ForumTagScalarFieldEnum = (typeof ForumTagScalarFieldEnum)[keyof typeof ForumTagScalarFieldEnum]
+
+
+export const ForumPostTagScalarFieldEnum = {
+  postId: 'postId',
+  tagId: 'tagId'
+} as const
+
+export type ForumPostTagScalarFieldEnum = (typeof ForumPostTagScalarFieldEnum)[keyof typeof ForumPostTagScalarFieldEnum]
 
 
 export const NotificationScalarFieldEnum = {

@@ -51,6 +51,8 @@ model User {
   messages     Message[]
   notifications Notification[]
   bookmarks    Bookmark[]
+  forumPosts   ForumPost[]
+  forumComments ForumComment[]
 
   @@map("users")
 }
@@ -267,6 +269,67 @@ model Message {
 
   @@map("messages")
   @@index([createdAt])
+}
+
+model ForumPost {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments ForumComment[]
+  tags     ForumPostTag[]
+
+  @@index([createdAt])
+  @@index([upvotes])
+  @@index([userId])
+  @@map("forum_posts")
+}
+
+model ForumComment {
+  id        String   @id @default(cuid())
+  postId    String
+  parentId  String?
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  upvotes   Int      @default(0)
+  downvotes Int      @default(0)
+
+  post    ForumPost      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent  ForumComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies ForumComment[] @relation("CommentReplies")
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([userId])
+  @@map("forum_comments")
+}
+
+model ForumTag {
+  id   String @id @default(cuid())
+  name String @unique
+
+  posts ForumPostTag[]
+
+  @@map("forum_tags")
+}
+
+model ForumPostTag {
+  postId String
+  tagId  String
+
+  post ForumPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  ForumTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("forum_post_tags")
 }
 
 model Notification {

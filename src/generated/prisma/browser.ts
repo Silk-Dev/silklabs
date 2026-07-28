@@ -88,6 +88,26 @@ export type TeamMember = Prisma.TeamMemberModel
  */
 export type Message = Prisma.MessageModel
 /**
+ * Model ForumPost
+ * 
+ */
+export type ForumPost = Prisma.ForumPostModel
+/**
+ * Model ForumComment
+ * 
+ */
+export type ForumComment = Prisma.ForumCommentModel
+/**
+ * Model ForumTag
+ * 
+ */
+export type ForumTag = Prisma.ForumTagModel
+/**
+ * Model ForumPostTag
+ * 
+ */
+export type ForumPostTag = Prisma.ForumPostTagModel
+/**
  * Model Notification
  * 
  */

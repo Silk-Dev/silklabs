@@ -1,10 +1,13 @@
-import { getMessages } from "@/services/workspace.service"
+import { getPosts, getAllTags } from "@/services/forum.service"
 import { WorkspaceClient } from "./workspace-client"
 
 export const dynamic = "force-dynamic"
 
 export default async function WorkspacePage() {
-  const messages = await getMessages()
+  const [posts, tags] = await Promise.all([
+    getPosts("hot"),
+    getAllTags(),
+  ])
 
-  return <WorkspaceClient initialMessages={messages} />
+  return <WorkspaceClient initialPosts={posts} tags={tags} />
 }

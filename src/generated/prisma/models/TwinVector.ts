@@ -515,14 +515,6 @@ export type TwinVectorNullableScalarRelationFilter = {
   isNot?: Prisma.TwinVectorWhereInput | null
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type TwinVectorCreateNestedOneWithoutProofsOfWorkInput = {
   create?: Prisma.XOR<Prisma.TwinVectorCreateWithoutProofsOfWorkInput, Prisma.TwinVectorUncheckedCreateWithoutProofsOfWorkInput>
   connectOrCreate?: Prisma.TwinVectorCreateOrConnectWithoutProofsOfWorkInput
