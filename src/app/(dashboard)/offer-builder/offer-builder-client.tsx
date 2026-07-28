@@ -15,6 +15,27 @@ import { Marker } from "@/components/ui/marker"
 import { Button } from "@/components/ui/button"
 import { SendIcon, BotIcon, UserIcon } from "lucide-react"
 
+// ─── Simple markdown renderer (bold, italic, newlines) ───
+function Md({ text }: { text: string }) {
+  const parts: (string | React.ReactNode)[] = []
+  const re = /(\*\*(.+?)\*\*|\*(.+?)\*|(\n))/g
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index))
+    if (m[2]) {
+      parts.push(<strong key={parts.length}>{m[2]}</strong>)
+    } else if (m[3]) {
+      parts.push(<em key={parts.length}>{m[3]}</em>)
+    } else if (m[4]) {
+      parts.push(<br key={parts.length} />)
+    }
+    last = re.lastIndex
+  }
+  if (last < text.length) parts.push(text.slice(last))
+  return <>{parts}</>
+}
+
 // ─── Chat message type ───
 interface MessageData {
   id: string
@@ -232,8 +253,8 @@ function OfferChat({
                     </MessageAvatar>
                     <MessageContent>
                       <Bubble variant={msg.role === "user" ? "default" : "muted"} align={msg.role === "user" ? "end" : "start"}>
-                        <BubbleContent className="whitespace-pre-wrap">
-                          {msg.text}
+                        <BubbleContent>
+                          <Md text={msg.text} />
                         </BubbleContent>
                       </Bubble>
                     </MessageContent>
