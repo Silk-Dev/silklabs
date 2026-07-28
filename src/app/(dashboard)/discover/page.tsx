@@ -19,7 +19,6 @@ import {
 import { DiscoverFilters } from "./_components/discover-filters"
 import { MobileFilterSheet } from "./_components/mobile-filter-sheet"
 import { ABTestBanner } from "@/components/ab-test-banner"
-import CollisionFeed from "@/components/graph/collision-feed"
 
 export default async function DiscoverPage({
   searchParams,
@@ -115,7 +114,6 @@ export default async function DiscoverPage({
   }
 
   return (
-    <CollisionFeed userId={session?.user?.id || ""}>
     <div className="space-y-4">
       <ABTestBanner />
       <div className="flex gap-8">
@@ -213,6 +211,5 @@ export default async function DiscoverPage({
       </div>
     </div>
     </div>
-    </CollisionFeed>
   )
 }
