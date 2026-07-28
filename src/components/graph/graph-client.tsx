@@ -684,12 +684,12 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       )}
 
       {/* Canvas */}
-      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-5" style={{ background: "#0d1515", willChange: "transform" }} />
+      <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-40" style={{ background: "#0d1515", willChange: "transform" }} />
 
       {/* Right Panel (combined legend + tabs) */}
-      <div className="fixed top-3 right-3 z-10 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ maxHeight: "calc(100vh - 16px)" }}>
+      <div className="fixed top-3 right-3 z-50 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ height: "calc(100vh - 24px)" }}>
         {/* Collapsible legend section */}
-        <details className="group border-b border-border-metal [&_summary::-webkit-details-marker]:hidden" open>
+        <details className="group border-b border-border-metal [&_summary::-webkit-details-marker]:hidden">
           <summary className="flex items-center gap-2 px-3 py-2 font-mono text-[11px] font-medium tracking-[0.06em] text-outline uppercase cursor-pointer select-none hover:text-foreground">
             <span className="ar on">▶</span> Tags ({S.current.tags.length})
           </summary>
