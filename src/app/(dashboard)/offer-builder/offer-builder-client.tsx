@@ -17,9 +17,15 @@ import { SendIcon, BotIcon, UserIcon } from "lucide-react"
 
 // ─── Chat message type ───
 interface MessageData {
+  id: string
   role: "bot" | "user"
   text: string
   stepId?: string
+}
+
+let _msgCounter = 0
+function nextMsgId(): string {
+  return `msg-${++_msgCounter}`
 }
 
 // ─── Grand Slam Offer flow ───
@@ -210,12 +216,12 @@ function OfferChat({
   return (
     <>
       {/* Scroller — flex-1 so it fills remaining space */}
-      <MessageScrollerProvider scrollPreviousItemPeek={64}>
+      <MessageScrollerProvider>
         <MessageScroller className="flex-1 min-h-0">
           <MessageScrollerViewport ref={viewportRef}>
             <MessageScrollerContent>
               {messages.map((msg, i) => (
-                <MessageScrollerItem key={i} scrollAnchor={msg.role === "user"}>
+                <MessageScrollerItem key={msg.id} messageId={msg.id} scrollAnchor={msg.role === "user"}>
                   <Message align={msg.role === "user" ? "end" : "start"}>
                     <MessageAvatar>
                       {msg.role === "user" ? (
@@ -305,22 +311,23 @@ export default function OfferBuilderClient() {
   const [thinking, setThinking] = useState(false)
 
   const addBotMessage = useCallback((text: string) => {
-    setMessages((prev) => [...prev, { role: "bot", text }])
+    setMessages((prev) => [...prev, { id: nextMsgId(), role: "bot", text }])
   }, [])
 
   const addUserMessage = useCallback((text: string, stepId?: string) => {
-    setMessages((prev) => [...prev, { role: "user", text, stepId }])
+    setMessages((prev) => [...prev, { id: nextMsgId(), role: "user", text, stepId }])
   }, [])
 
   const handleStart = () => {
     setStarted(true)
     setMessages([
       {
+        id: nextMsgId(),
         role: "bot",
         text:
           "I'm your Hormozi-style Offer Coach. 🏋️\n\nWe're going to build a **Grand Slam Offer** — one so good people feel stupid saying no.\n\nI'll ask you 10 questions, one at a time. Just type your answers naturally.",
       },
-      { role: "bot", text: STEPS[0].question },
+      { id: nextMsgId(), role: "bot", text: STEPS[0].question },
     ])
     setStepIdx(0)
   }
