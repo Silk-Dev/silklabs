@@ -161,36 +161,12 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
         else { const t = 1 - Math.pow(1 - CAM_LERP, dt); s.tx += dx * t; s.ty += dy * t }
       }
 
-      // Reset from base positions each frame so hover pull doesn't accumulate
+      // Reset from base positions each frame
       if (s.baseScales) {
         for (let i = 0; i < scaled.length; i++) {
           if (s.baseScales[i]) {
             scaled[i][0] = s.baseScales[i][0]
             scaled[i][1] = s.baseScales[i][1]
-          }
-        }
-      }
-
-      // Hover smudge: pull connected nodes toward hovered
-      if (s.hoverIdx >= 0 && s.edges) {
-        const hx = scaled[s.hoverIdx][0], hy = scaled[s.hoverIdx][1]
-        const connected = new Set<number>()
-        for (const e of s.edges) {
-          const a = e[0] as number, b = e[1] as number
-          if (a === s.hoverIdx) connected.add(b)
-          if (b === s.hoverIdx) connected.add(a)
-        }
-        if (connected.size > 0) {
-          const pullMax = 0.3 / s.scale
-          for (const ci of connected) {
-            const [cx, cy] = scaled[ci] || [0, 0]
-            const dx = hx - cx, dy = hy - cy
-            const dist = Math.sqrt(dx * dx + dy * dy)
-            if (dist > 0) {
-              const pull = Math.min(pullMax, pullMax * Math.min(1, dist / 15))
-              scaled[ci][0] += dx * pull
-              scaled[ci][1] += dy * pull
-            }
           }
         }
       }
