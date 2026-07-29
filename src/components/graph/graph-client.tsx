@@ -55,6 +55,7 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
     initialScale: 1,
   })
   const [tab, setTab] = useState("tags")
+  const [panelCollapsed, setPanelCollapsed] = useState(false)
   const [ideaStatus, setIdeaStatus] = useState("")
   const SCALED = useRef<any[]>([])
   const compareRef = useRef<{ a: (name: string) => void; b: (name: string) => void }>(null!)
@@ -655,7 +656,21 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       <canvas ref={canvasRef} id="canvas" className="fixed inset-0 top-14 block z-40" style={{ background: "#0d1515", willChange: "transform" }} />
 
       {/* Right Panel (combined legend + tabs) */}
-      <div className="fixed top-3 right-3 z-50 w-[300px] bg-surface border border-border-metal rounded-xl shadow-2xl flex flex-col" style={{ height: "calc(100vh - 24px)" }}>
+      {panelCollapsed ? (
+        /* Collapsed: thin strip on the right edge with expand button */
+        <div className="fixed top-14 right-0 z-50 h-[calc(100vh-56px)] w-8 flex items-start justify-center pt-2">
+          <button onClick={() => setPanelCollapsed(false)} className="flex h-8 w-6 items-center justify-center bg-surface border border-border-metal text-outline hover:text-foreground rounded-l text-[10px] cursor-pointer" title="Expand panel">
+            ◀
+          </button>
+        </div>
+      ) : (
+      <div className="fixed top-14 right-0 z-50 w-[300px] bg-surface border-l border-border-metal shadow-2xl flex flex-col" style={{ height: "calc(100vh - 56px)" }}>
+        {/* Collapse button */}
+        <div className="absolute -left-3 top-3 z-10">
+          <button onClick={() => setPanelCollapsed(true)} className="flex h-8 w-3 items-center justify-center bg-surface border border-border-metal text-outline hover:text-foreground transition-colors text-[10px] cursor-pointer" style={{ borderRadius: "3px 0 0 3px" }} title="Collapse panel">
+            ▶
+          </button>
+        </div>
         {/* Collapsible legend section */}
         <details className="group border-b border-border-metal [&_summary::-webkit-details-marker]:hidden">
           <summary className="flex items-center gap-2 px-3 py-2 font-mono text-[11px] font-medium tracking-[0.06em] text-outline uppercase cursor-pointer select-none hover:text-foreground">
@@ -684,7 +699,8 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
           </TabsContent>
         </Tabs>
       </div>
-
+      )}
+      
       {/* Company detail popup */}
       <CompanyDetail S={S} addTag={addTag} setTab={setTab} compareRef={compareRef} />
 
