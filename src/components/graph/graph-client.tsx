@@ -641,14 +641,6 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
   return (
     <>
       {/* WASM warning banner */}
-      {wasmStatus === "failed" && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 rounded-md border border-amber-500/30 bg-amber-950/80 px-3 py-1.5 backdrop-blur-sm shadow-lg">
-          <span className="text-amber-400 text-[11px]">⚠</span>
-          <span className="font-mono text-[10px] text-amber-300">Graph culling unavailable — all nodes shown. No action needed.</span>
-          <button className="ml-2 text-amber-400/60 hover:text-amber-300 text-[10px]" onClick={() => setWasmStatus("loaded" satisfies any)}>✕</button>
-        </div>
-      )}
-
       {/* Loading state */}
       {!ready && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: "#0d1515" }}>
