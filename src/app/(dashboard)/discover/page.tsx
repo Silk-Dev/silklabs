@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/pagination"
 import { DiscoverFilters } from "./_components/discover-filters"
 import { MobileFilterSheet } from "./_components/mobile-filter-sheet"
-import { ABTestBanner } from "@/components/ab-test-banner"
 
 export default async function DiscoverPage({
   searchParams,
@@ -38,7 +37,7 @@ export default async function DiscoverPage({
   const selectedPhase = sp.phase ?? null
   const roleAvailableOnly = sp.roleAvailable === "true"
 
-  // A/B test: 50% of users see agent-curated matches
+  // 
   const matchGroup = await getMatchGroup()
   if (matchGroup === "agent") {
     redirect("/matches")
@@ -115,7 +114,6 @@ export default async function DiscoverPage({
 
   return (
     <div className="space-y-4">
-      <ABTestBanner />
       <div className="flex gap-8">
       <div className="hidden w-64 shrink-0 lg:block">
         <div className="sticky top-20">
