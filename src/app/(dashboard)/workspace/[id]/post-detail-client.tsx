@@ -131,7 +131,7 @@ export function PostDetailClient({
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 rows={3}
-                className="flex-1 bg-black border border-white/10 px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 resize-none"
+                className="flex-1 bg-transparent border border-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
               />
               <button
                 onClick={() => handleReply()}
@@ -152,7 +152,7 @@ export function PostDetailClient({
                   value={replyText}
                   onChange={(e) => setReplyText(e.target.value)}
                   rows={2}
-                  className="flex-1 bg-black border border-white/10 px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 resize-none"
+                  className="flex-1 bg-transparent border border-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
                 />
                 <div className="flex flex-col gap-1 self-end">
                   <button

@@ -183,7 +183,7 @@ export function WorkspaceClient({
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
                 rows={6}
-                className="w-full bg-black border border-white/10 px-3 py-2 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 resize-none"
+                className="w-full bg-transparent border border-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring resize-none"
               />
 
               <div>

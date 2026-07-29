@@ -1194,7 +1194,7 @@ function DeconTab({ S, ideaStatus, setIdeaStatus }: any) {
       <div className="text-[11px] text-gray-500 mb-2">Describe your idea and see where it lands.</div>
       <textarea placeholder="Describe your product or idea..." rows={3} value={text}
         onChange={(e) => setText(e.target.value)}
-        className="w-full px-2.5 py-2 bg-muted border border-input rounded-lg text-xs text-foreground placeholder-muted-foreground outline-none focus:border-ring resize-none" />
+        className="w-full px-2.5 py-2 bg-transparent border border-input text-xs text-foreground placeholder-muted-foreground outline-none focus:border-ring resize-none" />
       <div className="text-[10px] text-gray-600 mt-1">{ideaStatus}</div>
       <div className="mt-2 space-y-1">
         {results.map((r: any, i: number) => {

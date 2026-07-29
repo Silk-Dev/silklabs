@@ -601,7 +601,7 @@ export default function GraphConsole() {
                 Type any set of atoms to check if the genome exists and its classification.
               </p>
               <textarea
-                className="w-full bg-zinc-900 border border-zinc-700 rounded-sm p-2 text-xs font-mono text-zinc-200 resize-none h-20"
+                className="w-full bg-transparent border border-input p-2 text-xs font-mono text-foreground placeholder:text-muted-foreground resize-none h-20"
                 placeholder="healthcare, b2c, on_demand, app"
                 onChange={(e) => setValidateAtoms(e.target.value.split(",").map((s) => s.trim()).filter(Boolean))}
               />

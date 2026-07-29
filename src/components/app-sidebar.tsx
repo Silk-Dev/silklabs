@@ -81,7 +81,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
       {/* User area */}
       <div className="border-t border-border-metal p-3">
         <div className={`flex items-center gap-2 rounded-lg px-3 py-2 ${collapsed ? "justify-center px-2" : ""}`}>
-          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted font-mono text-[10px] uppercase tracking-widest text-foreground">
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-variant font-mono text-[10px] uppercase tracking-widest text-foreground">
             {user.name?.charAt(0) ?? "U"}
           </div>
           {!collapsed && (
@@ -124,7 +124,7 @@ export function MobileSidebar({ user }: { user: { name: string; email: string; i
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <details className="group relative">
-            <summary className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-full bg-muted font-mono text-[10px] uppercase tracking-widest text-foreground">
+            <summary className="flex h-8 w-8 cursor-pointer list-none items-center justify-center rounded-full bg-surface-variant font-mono text-[10px] uppercase tracking-widest text-foreground">
               {user.name?.charAt(0) ?? "U"}
             </summary>
             <div className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-border-metal bg-surface p-2 shadow-xl">
