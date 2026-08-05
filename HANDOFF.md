@@ -1,5 +1,13 @@
 # SilkLabs — Complete Handoff for v0.3.0–v0.4.3
 
+## Current State (post-v0.4.3)
+
+- **Genome Console UI is live** at `/graph` (`src/components/graph/graph-console.tsx`) — the 5-mode console (Decompose / Mutate / Recombine / Gaps / Validate) that v0.4.0's rc-phase called for is built and wired to the tag-space canvas. "Build This" blueprint overlay (`build-this-blueprint.tsx`) flows from a whitespace landing to a venture concept.
+- **App surface**: dashboard with Discover, Projects (wizard: Vision → Stack → Roles → Review), People, Matches, Workspace (now a **community forum** — posts/votes/tags — not a poll-based chat), Offer Builder (10-step Hormozi-style chat coach, in-memory summary only), Notifications, Settings, Admin.
+- **CI**: `.github/workflows/ci.yml` (Node 22 + Postgres 16 service): Prisma generate/migrate, seed, genome build, `tsc --noEmit`, vitest, genome integration tests, parity check.
+- **Vercel**: `.vercel/project.json` + `vercel/.env.production.local` present — deployment is configured.
+- **Tagging status**: `v0.4.3` tagged on `feature/v0.4.3-evidence`. `v0.3.0` still untagged (see Next Milestones).
+
 ## What the Platform Is
 
 SilkLabs is a **universal enterprise synthesis engine** — it reads the genome of the global economy (36K companies decomposed into 478 typed atoms), answers what exists / what's missing / who should build it, and powers matching on **proof over claims** via the Reality Index.
@@ -20,11 +28,9 @@ graph/
   atom_ontology.json         — 478 typed atoms across 7 types
   tag_to_type.json           — 480 tag→type mappings
   all_companies.json         — 36K companies with tags
-  genome_engine.lp           — Clingo ASP: evolve/regress/swap operators
-  gap_finder.lp              — Clingo ASP: whitespace enumeration
-  team_assembly.lp           — Clingo ASP: team solver
-  genome_service.py          — SUPERSEDED (kept for reference)
-  genome_pipeline.py         — SUPERSEDED (kept for reference)
+  genome_engine.lp           — Clingo ASP: evolve/regress/swap operators (reference; TS in genome/operators.ts)
+  gap_finder.lp              — Clingo ASP: whitespace enumeration (reference; TS heuristic in genome/gaps.ts)
+  team_assembly.lp           — Clingo ASP: team solver (loaded at runtime by /api/genome/team)
 src/lib/
   genome/hash.ts             — Canonical genome hash (normalizeAtom + genomeHash)
   genome/operators.ts        — evolve/regress/swap/validate via direct Postgres
@@ -199,4 +205,5 @@ Browser ──► Next.js (port 3020)
 ## Next Milestones Suggested
 1. **Tag v0.3.0**: Run benchmarks once vit-gpt2 is cached, produce `bench/v0.3.0/` artifacts.
 2. **Synthetic Vetting (v0.5.0)**: Extend the proof layer to auto-generate challenge problems for claimed-but-unproven capabilities.
-3. **Deploy to Vercel**: Set `DATABASE_URL`, run `build_genome.ts` against production DB, ensure `node_modules` contains the patched tensor.js (postinstall handles this).
+3. **Offer Builder persistence**: Currently in-memory only — decide on localStorage vs server-side save (see README Known Limitations).
+4. **Workspace real-time**: Forum fetches on request; consider SSE/WebSocket streaming.
