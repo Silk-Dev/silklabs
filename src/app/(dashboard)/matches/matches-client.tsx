@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import type { MatchResult } from "@/services/matches.service"
+import { timeAgo } from "@/app/(dashboard)/workspace/workspace-client"
 
 interface Props {
   initialMatches: MatchResult[]
@@ -313,28 +314,29 @@ function ScoreRow({ label, value }: { label: string; value: number }) {
   )
 }
 
-function timeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-  if (seconds < 60) return "just now"
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return `${Math.floor(seconds / 86400)}d ago`
-}
-
 /** Renders the markdown-like alignment report as HTML. */
 function ReportContent({ report }: { report: string }) {
   const lines = report.split("\n")
   const elements: React.ReactElement[] = []
-  let inList = false
+  let listItems: string[] = []
+
+  const flushList = (keyBase: string) => {
+    if (listItems.length === 0) return
+    elements.push(
+      <ul key={keyBase} className="ml-4 list-disc space-y-1">
+        {listItems.map((item, j) => (
+          <li key={`${keyBase}-${j}`} className="text-[var(--color-muted)]">{item}</li>
+        ))}
+      </ul>,
+    )
+    listItems = []
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
 
     if (line.startsWith("## ")) {
-      if (inList) {
-        elements.push(<br key={`br-${i}`} />)
-        inList = false
-      }
+      flushList(`list-${i}`)
       elements.push(
         <h4
           key={i}
@@ -344,35 +346,18 @@ function ReportContent({ report }: { report: string }) {
         </h4>,
       )
     } else if (line.startsWith("### ")) {
-      if (inList) {
-        elements.push(<br key={`br-${i}`} />)
-        inList = false
-      }
+      flushList(`list-${i}`)
       elements.push(
         <h5 key={i} className="mt-2 font-medium text-primary">
           {line.slice(4)}
         </h5>,
       )
     } else if (line.startsWith("- ")) {
-      inList = true
-      elements.push(
-        <li
-          key={i}
-          className="ml-4 list-disc text-[var(--color-muted)]"
-        >
-          {line.slice(2)}
-        </li>,
-      )
+      listItems.push(line.slice(2))
     } else if (line.trim() === "") {
-      if (inList) {
-        elements.push(<br key={`br-${i}`} />)
-        inList = false
-      }
+      flushList(`list-${i}`)
     } else {
-      if (inList) {
-        elements.push(<br key={`br-${i}`} />)
-        inList = false
-      }
+      flushList(`list-${i}`)
       elements.push(
         <p key={i} className="text-[var(--color-muted)]">
           {line}
@@ -380,6 +365,7 @@ function ReportContent({ report }: { report: string }) {
       )
     }
   }
+  flushList("list-end")
 
   return <div className="space-y-1">{elements}</div>
 }

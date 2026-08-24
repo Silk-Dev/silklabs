@@ -1,7 +1,14 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { projectSchema, roleSchema, createProjectWizardSchema } from "@/lib/validation"
+import {
+  projectSchema,
+  roleSchema,
+  createProjectWizardSchema,
+  projectStorySchema,
+  milestoneSchema,
+  milestoneUpdateSchema,
+} from "@/lib/validation"
 import { requireAuth, assertProjectOwner } from "@/lib/dal"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
@@ -14,8 +21,102 @@ export async function getProject(projectId: string) {
       owner: { select: { id: true, name: true, image: true } },
       roles: { include: { tags: { include: { tag: true } }, applications: true } },
       teamMembers: { include: { user: { select: { id: true, name: true, image: true, email: true } } } },
+      milestones: { orderBy: [{ status: "asc" }, { position: "asc" }] },
     },
   })
+}
+
+export async function updateProjectStory(projectId: string, data: unknown) {
+  const session = await requireAuth()
+  await assertProjectOwner(projectId, session.user.id)
+
+  const parsed = projectStorySchema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      whatWeAre: parsed.data.whatWeAre ?? null,
+      whatWereBuilding: parsed.data.whatWereBuilding ?? null,
+    },
+  })
+
+  revalidatePath(`/projects/${projectId}`)
+  return { success: true }
+}
+
+export async function addMilestone(projectId: string, data: unknown) {
+  const session = await requireAuth()
+  await assertProjectOwner(projectId, session.user.id)
+
+  const parsed = milestoneSchema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  const last = await prisma.projectMilestone.findFirst({
+    where: { projectId },
+    orderBy: { position: "desc" },
+    select: { position: true },
+  })
+
+  const milestone = await prisma.projectMilestone.create({
+    data: {
+      projectId,
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
+      status: parsed.data.status,
+      position: (last?.position ?? -1) + 1,
+    },
+  })
+
+  revalidatePath(`/projects/${projectId}`)
+  return { success: true, milestone }
+}
+
+export async function updateMilestone(milestoneId: string, data: unknown) {
+  const existing = await prisma.projectMilestone.findUnique({
+    where: { id: milestoneId },
+    select: { projectId: true },
+  })
+  if (!existing) return { error: "Milestone not found" }
+
+  const session = await requireAuth()
+  await assertProjectOwner(existing.projectId, session.user.id)
+
+  const parsed = milestoneUpdateSchema.safeParse(data)
+  if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
+
+  await prisma.projectMilestone.update({
+    where: { id: milestoneId },
+    data: {
+      ...(parsed.data.title !== undefined && { title: parsed.data.title }),
+      ...(parsed.data.description !== undefined && { description: parsed.data.description || null }),
+      ...(parsed.data.targetDate !== undefined && {
+        targetDate: parsed.data.targetDate ? new Date(parsed.data.targetDate) : null,
+      }),
+      ...(parsed.data.status !== undefined && { status: parsed.data.status }),
+      ...(parsed.data.position !== undefined && { position: parsed.data.position }),
+    },
+  })
+
+  revalidatePath(`/projects/${existing.projectId}`)
+  return { success: true }
+}
+
+export async function deleteMilestone(milestoneId: string) {
+  const existing = await prisma.projectMilestone.findUnique({
+    where: { id: milestoneId },
+    select: { projectId: true },
+  })
+  if (!existing) return { error: "Milestone not found" }
+
+  const session = await requireAuth()
+  await assertProjectOwner(existing.projectId, session.user.id)
+
+  await prisma.projectMilestone.delete({ where: { id: milestoneId } })
+
+  revalidatePath(`/projects/${existing.projectId}`)
+  return { success: true }
 }
 
 export async function getMyProjects() {
@@ -32,12 +133,16 @@ export async function createProject(data: unknown) {
   const parsed = projectSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.flatten().fieldErrors }
 
-  const project = await prisma.project.create({
-    data: { ownerId: session.user.id, ...parsed.data },
-  })
+  const project = await prisma.$transaction(async (tx) => {
+    const created = await tx.project.create({
+      data: { ownerId: session.user.id, ...parsed.data },
+    })
 
-  await prisma.teamMember.create({
-    data: { projectId: project.id, userId: session.user.id, role: "Owner" },
+    await tx.teamMember.create({
+      data: { projectId: created.id, userId: session.user.id, role: "Owner" },
+    })
+
+    return created
   })
 
   // Auto-match: find top 3 team members

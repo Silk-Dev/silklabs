@@ -51,9 +51,8 @@ src/app/api/genome/
   concept/route.ts           — POST: whitespace genome → venture concept
 src/app/api/user/
   capabilities/route.ts      — POST: user capability profile
-tests/
-  src/lib/genome/
-    hash.test.ts             — 29 tests: normalize, hash parity, classify, snapshot
+src/lib/genome/ (vitest: src/**/*.test.ts)
+  hash.test.ts               — 29 tests: normalize, hash parity, classify, snapshot
     operators.test.ts        — 27 tests: RED-OCEAN CANARY, evolve/regress/swap/validate,
                                determinism, pre-filter, greedy fallback
     near.test.ts             — 4 tests: consumer invariant, depth bounds, superset
@@ -131,7 +130,7 @@ operators.ts    │ 98.75% stmts│ 90.47% branch│ 100% funcs │ 100% lines
 |---|---|
 | `src/lib/ingestion.service.ts` | IMAGE/PDF/TEXT/URL ingestion + Reality Index |
 | `src/lib/alignment.service.ts` | findNearestNeighbors + getCosineDistance on reality_vector |
-| `test_thesis.ts` | End-to-end thesis test: culinary proofs override software claim |
+| `scripts/manual/test_thesis.ts` | End-to-end thesis test: culinary proofs override software claim |
 | `scripts/patch-onnx-tensor.js` | **REQUIRED PATCH**: fixes `Tensor.location must be a string` bug |
 | `.nvmrc` | Pins Node 22 for onnxruntime compatibility |
 
@@ -175,7 +174,7 @@ DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx scripts/bui
 PORT=3020 npx next dev -p 3020
 
 # Run thesis test
-DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx test_thesis.ts
+DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx scripts/manual/test_thesis.ts
 
 # Run full test suite
 DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx vitest run

@@ -27,8 +27,9 @@ const baseUrl = process.env.BETTER_AUTH_URL ?? "https://labs.silkdev.com.tn"
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "SILKLABS",
-  description: "Build your next project with the right team",
+  title: "SILKLABS — Find the team that ships your vision",
+  description:
+    "SilkLabs matches founders with builders whose work proves they can deliver. No recruiting roulette, no résumé theater — matched on the Reality Index.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
@@ -38,8 +39,9 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "SILKLABS",
-    description: "Build your next project with the right team",
+    title: "SILKLABS — Find the team that ships your vision",
+    description:
+      "SilkLabs matches founders with builders whose work proves they can deliver. Matched on proof, built to ship.",
     url: baseUrl,
     siteName: "SILKLABS",
     images: [{ url: "/icon-512.png", width: 512, height: 512 }],

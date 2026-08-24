@@ -39,6 +39,22 @@ export const projectSchema = z.object({
   isPublic: z.boolean().optional(),
 })
 
+export const projectStorySchema = z.object({
+  whatWeAre: z.string().max(50000).nullable().optional(),
+  whatWereBuilding: z.string().max(50000).nullable().optional(),
+})
+
+export const milestoneSchema = z.object({
+  title: z.string().min(1, "Title is required").max(140),
+  description: z.string().max(2000).optional(),
+  targetDate: z.string().optional(), // ISO date string from <input type="date">
+  status: z.enum(["Done", "Current", "Upcoming"]),
+})
+
+export const milestoneUpdateSchema = milestoneSchema.partial().extend({
+  position: z.number().int().optional(),
+})
+
 export const roleSchema = z.object({
   projectId: z.string(),
   title: z.string().min(1, "Role title is required").max(100),
@@ -85,3 +101,50 @@ export const searchSchema = z.object({
   page: z.number().int().min(1).optional().default(1),
   limit: z.number().int().min(1).max(50).optional().default(12),
 })
+
+// Strict whitelist: rejects unknown fields so clients cannot write
+// arbitrary profile columns (e.g. onboardingCompleted) via Server Actions.
+export const profileUpdateSchema = z
+  .object({
+    name: z.string().min(1).max(100).optional(),
+    location: z.string().max(120).optional(),
+    experience: z.string().max(2000).optional(),
+    partnerships: z.string().max(500).optional(),
+    commitment: z.string().max(200).optional(),
+    motivation: z.string().max(2000).optional(),
+    topSkill: z.string().max(120).optional(),
+    lookingFor: z.string().max(500).optional(),
+    tldr: z.string().max(500).optional(),
+    bio: z.string().max(500).optional(),
+    isPublic: z.boolean().optional(),
+    visibleRegions: z.array(z.string()).optional(),
+  })
+  .strict()
+
+export const socialLinksSchema = z
+  .object({
+    websiteUrl: z.string().url().optional().or(z.literal("")),
+    githubUrl: z.string().url().optional().or(z.literal("")),
+    linkedinUrl: z.string().url().optional().or(z.literal("")),
+  })
+  .strict()
+
+export const onboardingCompleteSchema = z
+  .object({
+    name: z.string().min(1).max(100).optional(),
+    location: z.string().max(120).optional(),
+    experience: z.string().max(2000).optional(),
+    partnerships: z.string().max(500).optional(),
+    topSkill: z.string().max(120).optional(),
+    motivation: z.string().max(2000).optional(),
+    commitment: z.string().max(200).optional(),
+    lookingFor: z.string().max(500).optional(),
+    tldr: z.string().max(500).optional(),
+    isPublic: z.boolean().optional(),
+    visibleRegions: z.array(z.string()).optional(),
+  })
+  .strict()
+
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
+export type SocialLinksInput = z.infer<typeof socialLinksSchema>
+export type OnboardingCompleteInput = z.infer<typeof onboardingCompleteSchema>

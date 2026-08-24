@@ -30,7 +30,7 @@ function validateFile(file: File) {
 export async function uploadFile(file: File, folder: string = "general"): Promise<UploadResult> {
   validateFile(file)
 
-  const ext = file.name.split(".").pop() ?? "bin"
+  const ext = sanitizeExtension(file.name)
   const key = `${folder}/${crypto.randomUUID()}.${ext}`
   const filePath = join(UPLOAD_DIR, key)
 
@@ -43,21 +43,16 @@ export async function uploadFile(file: File, folder: string = "general"): Promis
   return { url: `/uploads/${key}`, key }
 }
 
+function sanitizeExtension(filename: string): string {
+  const raw = filename.split(".").pop() ?? ""
+  // Only short alphanumeric extensions; anything else falls back to "bin".
+  return /^[a-zA-Z0-9]{1,8}$/.test(raw) ? raw.toLowerCase() : "bin"
+}
+
 export async function uploadImage(file: File): Promise<UploadResult> {
   return uploadFile(file, "images")
 }
 
 export async function uploadAvatar(file: File): Promise<UploadResult> {
-  validateFile(file)
-  const ext = file.name.split(".").pop() ?? "bin"
-  const key = `avatars/${crypto.randomUUID()}.${ext}`
-  const filePath = join(UPLOAD_DIR, key)
-
-  const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
-
-  await mkdir(join(UPLOAD_DIR, "avatars"), { recursive: true })
-  await writeFile(filePath, buffer)
-
-  return { url: `/uploads/${key}`, key }
+  return uploadFile(file, "avatars")
 }

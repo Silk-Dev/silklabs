@@ -2,6 +2,16 @@ import { prisma } from "@/lib/prisma"
 import { requireAuth } from "@/lib/dal"
 import { findNearestNeighbors, computeAlignment } from "@/lib/alignment.service"
 import { createNotification } from "@/services/notification.service"
+import { Prisma, type Profile } from "@/generated/prisma/client"
+
+/** Numeric score subset of computeAlignment's return used for reports. */
+interface AlignmentScores {
+  overallScore: number
+  skillScore: number
+  valueScore: number
+  constraintScore: number
+  diversityBonus: number
+}
 
 export interface MatchResult {
   userId: string
@@ -17,7 +27,7 @@ export interface MatchResult {
   valueScore: number
   constraintScore: number
   diversityBonus: number
-  breakdown: any
+  breakdown: Prisma.JsonValue
   report: string | null
   userFeedback: string | null
   lastRefreshed: Date
@@ -46,32 +56,43 @@ export async function getTopMatches(): Promise<MatchResult[]> {
 
   if (alignments.length === 0) return []
 
+  // Batch-fetch related twins/users instead of querying per alignment (N+1).
+  const matchTwinIds = [...new Set(alignments.map((a) => a.matchTwinId))]
+  const twins = await prisma.twinVector.findMany({
+    where: { id: { in: matchTwinIds }, ownerType: "USER" },
+  })
+  const twinById = new Map(twins.map((t) => [t.id, t]))
+
+  const ownerIds = [...new Set(twins.map((t) => t.ownerId))]
+  const users = await prisma.user.findMany({
+    where: { id: { in: ownerIds } },
+    include: { profile: true },
+  })
+  const userById = new Map(users.map((u) => [u.id, u]))
+
+  // One batched query for mutual high-alignment (hot) checks.
+  const hotCandidates = alignments.filter((a) => a.overallScore >= 0.8)
+  let hotReverseTwinIds = new Set<string>()
+  if (hotCandidates.length > 0) {
+    const reverses = await prisma.alignment.findMany({
+      where: {
+        userTwinId: { in: hotCandidates.map((a) => a.matchTwinId) },
+        matchTwinId: userTwin.id,
+        overallScore: { gte: 0.8 },
+      },
+      select: { userTwinId: true },
+    })
+    hotReverseTwinIds = new Set(reverses.map((r) => r.userTwinId))
+  }
+
   const results: MatchResult[] = []
 
   for (const a of alignments) {
-    const matchTwin = await prisma.twinVector.findUnique({
-      where: { id: a.matchTwinId },
-    })
-    if (!matchTwin || matchTwin.ownerType !== "USER") continue
+    const matchTwin = twinById.get(a.matchTwinId)
+    if (!matchTwin) continue
 
-    const user = await prisma.user.findUnique({
-      where: { id: matchTwin.ownerId },
-      include: { profile: true },
-    })
+    const user = userById.get(matchTwin.ownerId)
     if (!user || !user.profile) continue
-
-    // Check mutual high alignment
-    let isHotMatch = false
-    if (a.overallScore >= 0.8) {
-      const reverse = await prisma.alignment.findFirst({
-        where: {
-          userTwinId: matchTwin.id,
-          matchTwinId: userTwin.id,
-          overallScore: { gte: 0.8 },
-        },
-      })
-      isHotMatch = !!reverse
-    }
 
     results.push({
       userId: user.id,
@@ -91,7 +112,7 @@ export async function getTopMatches(): Promise<MatchResult[]> {
       report: a.report,
       userFeedback: a.userFeedback,
       lastRefreshed: a.updatedAt,
-      isHotMatch,
+      isHotMatch: hotReverseTwinIds.has(a.matchTwinId),
     })
   }
 
@@ -109,11 +130,11 @@ export async function refreshAlignments(): Promise<{
   const session = await requireAuth()
   const userId = session.user.id
 
-  // Build twin if missing
-  const userTwin = await prisma.twinVector.findUnique({
+  // Build twin if missing; refetch once after build so the loop uses fresh vectors.
+  let currentTwin = await prisma.twinVector.findUnique({
     where: { ownerType_ownerId: { ownerType: "USER", ownerId: userId } },
   })
-  if (!userTwin || !userTwin.embedding) {
+  if (!currentTwin || !currentTwin.embedding) {
     // Try building the twin
     const { buildTwin } = await import("@/lib/twin.service")
     try {
@@ -121,16 +142,20 @@ export async function refreshAlignments(): Promise<{
     } catch {
       return { alignmentsCreated: 0, matches: [] }
     }
+    currentTwin = await prisma.twinVector.findUnique({
+      where: { ownerType_ownerId: { ownerType: "USER", ownerId: userId } },
+    })
   }
+  if (!currentTwin || !currentTwin.embedding) {
+    return { alignmentsCreated: 0, matches: [] }
+  }
+  const userTwinId = currentTwin.id
 
   // Find nearest neighbors
   const nearest = await findNearestNeighbors(userId, "USER", 20)
 
   let alignmentsCreated = 0
-  const alignmentsSaved: Array<{
-    alignment: any
-    userTwinId: string
-    matchTwinId: string
+  const highAlignmentMatches: Array<{
     matchUserId: string
     overallScore: number
   }> = []
@@ -143,12 +168,7 @@ export async function refreshAlignments(): Promise<{
     })
     if (!matchTwin) continue
 
-    const updatedUserTwin = await prisma.twinVector.findUnique({
-      where: { ownerType_ownerId: { ownerType: "USER", ownerId: userId } },
-    })
-    if (!updatedUserTwin) continue
-
-    const scores = await computeAlignment(updatedUserTwin, matchTwin)
+    const scores = await computeAlignment(currentTwin, matchTwin)
 
     const user = await prisma.user.findUnique({
       where: { id: n.ownerId },
@@ -160,10 +180,10 @@ export async function refreshAlignments(): Promise<{
     const report = generateAlignmentReport(scores, user.profile)
 
     // Upsert
-    const alignment = await prisma.alignment.upsert({
+    await prisma.alignment.upsert({
       where: {
         userTwinId_matchTwinId: {
-          userTwinId: updatedUserTwin.id,
+          userTwinId,
           matchTwinId: matchTwin.id,
         },
       },
@@ -177,7 +197,7 @@ export async function refreshAlignments(): Promise<{
         report,
       },
       create: {
-        userTwinId: updatedUserTwin.id,
+        userTwinId,
         matchTwinId: matchTwin.id,
         overallScore: scores.overallScore,
         skillScore: scores.skillScore,
@@ -193,29 +213,20 @@ export async function refreshAlignments(): Promise<{
 
     // Track high-alignment matches for notification
     if (scores.overallScore >= 0.8) {
-      alignmentsSaved.push({
-        alignment,
-        userTwinId: updatedUserTwin.id,
-        matchTwinId: matchTwin.id,
+      highAlignmentMatches.push({
         matchUserId: matchTwin.ownerId,
         overallScore: scores.overallScore,
       })
     }
   }
 
-  // Send notifications for high-alignment matches (fire and forget)
-  for (const h of alignmentsSaved) {
+  // Send notifications for high-alignment matches (best-effort)
+  const currentUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true },
+  })
+  for (const h of highAlignmentMatches) {
     try {
-      const currentUser = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { name: true },
-      })
-      const matchUser = await prisma.user.findUnique({
-        where: { id: h.matchUserId },
-        select: { name: true },
-      })
-      const matchName = matchUser?.name || "a potential partner"
-
       // Notify the match that someone has high alignment with them
       await createNotification(h.matchUserId, {
         type: "match",
@@ -237,7 +248,7 @@ export async function refreshAlignments(): Promise<{
  * Generates a template-based alignment report from the scoring breakdown.
  * Fully explainable — no black-box.
  */
-function generateAlignmentReport(scores: any, profile: any): string {
+function generateAlignmentReport(scores: AlignmentScores, profile: Profile): string {
   const skillOverlap = scores.skillScore >= 0.7
     ? "Strong alignment: your skill vectors are closely related. You likely share domain expertise."
     : scores.skillScore >= 0.4
@@ -331,7 +342,8 @@ export async function autoMatchProject(
   projectId: string,
   projectTitle: string,
 ): Promise<number> {
-  const session = await requireAuth()
+  // Auth gate: only authenticated users may trigger project matching.
+  await requireAuth()
 
   // Build the project twin
   const { buildTwin } = await import("@/lib/twin.service")

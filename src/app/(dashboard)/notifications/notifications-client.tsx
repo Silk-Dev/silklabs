@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 import { markNotificationAsRead, markAllNotificationsAsRead } from "@/services/workspace.service"
 
 type Notification = {
@@ -22,21 +23,38 @@ export function NotificationsClient({
 }) {
   const router = useRouter()
   const [notifications, setNotifications] = useState(initialNotifications)
+  const [pending, setPending] = useState<string | null>(null)
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
   async function handleMarkAllRead() {
-    await markAllNotificationsAsRead()
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
-    router.refresh()
+    setPending("all")
+    try {
+      await markAllNotificationsAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))
+      router.refresh()
+    } catch (err) {
+      console.error("Failed to mark all notifications as read", err)
+      toast.error("Failed to mark all as read")
+    } finally {
+      setPending(null)
+    }
   }
 
   async function handleMarkRead(id: string) {
-    await markNotificationAsRead(id)
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    )
-    router.refresh()
+    setPending(id)
+    try {
+      await markNotificationAsRead(id)
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      )
+      router.refresh()
+    } catch (err) {
+      console.error(`Failed to mark notification ${id} as read`, err)
+      toast.error("Failed to mark as read")
+    } finally {
+      setPending(null)
+    }
   }
 
   return (
@@ -55,10 +73,11 @@ export function NotificationsClient({
         {unreadCount > 0 && (
           <Button
             onClick={handleMarkAllRead}
+            disabled={pending !== null}
             variant="ghost"
             className="font-mono text-[10px] uppercase tracking-[0.06em] text-outline hover:text-accent"
           >
-            Mark all read
+            {pending === "all" ? "Marking..." : "Mark all read"}
           </Button>
         )}
       </div>
@@ -101,10 +120,11 @@ export function NotificationsClient({
               {!n.read && (
                 <Button
                   onClick={() => handleMarkRead(n.id)}
+                  disabled={pending !== null}
                   variant="ghost"
                   className="h-7 shrink-0 font-mono text-[9px] uppercase tracking-[0.06em] text-outline hover:text-accent"
                 >
-                  Read
+                  {pending === n.id ? "..." : "Read"}
                 </Button>
               )}
             </div>

@@ -1,16 +1,21 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/dal"
+import { requireApiAuth } from "@/lib/dal"
 import { generateAndSaveAlignments } from "@/lib/alignment.service"
 import { getTopMatches } from "@/services/matches.service"
 
 export async function POST() {
+  const session = await requireApiAuth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
   try {
-    const session = await requireAuth()
     const count = await generateAndSaveAlignments(session.user.id)
     const matches = await getTopMatches()
 
     return NextResponse.json({ refreshed: true, alignmentsCreated: count, matches })
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Refresh failed" },
+      { status: 500 },
+    )
   }
 }

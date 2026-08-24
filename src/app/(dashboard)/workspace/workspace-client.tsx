@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
 import type { PostWithMeta } from "@/services/forum.service"
 
@@ -33,17 +33,28 @@ export function WorkspaceClient({
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState<CreatePostForm>({ title: "", body: "", tagInput: "", tags: [] })
 
+  const fetchTokenRef = useRef(0)
+  const skipInitialFetchRef = useRef(true)
+
   const fetchPosts = useCallback(async (s: SortMode) => {
+    const token = ++fetchTokenRef.current
     setLoading(true)
     try {
       const res = await fetch(`/api/forum/posts?sort=${s}`)
-      if (res.ok) setPosts(await res.json())
+      const data = await res.json()
+      // Drop out-of-order responses so a slow earlier sort can't overwrite a newer one.
+      if (res.ok && token === fetchTokenRef.current) setPosts(data)
     } catch {} finally {
-      setLoading(false)
+      if (token === fetchTokenRef.current) setLoading(false)
     }
   }, [])
 
   useEffect(() => {
+    // initialPosts for the default sort come from the server — only fetch on sort changes.
+    if (skipInitialFetchRef.current) {
+      skipInitialFetchRef.current = false
+      return
+    }
     fetchPosts(sort)
   }, [sort, fetchPosts])
 
@@ -239,7 +250,28 @@ export function WorkspaceClient({
 }
 
 function PostRow({ post, router }: { post: PostWithMeta; router: ReturnType<typeof useRouter> }) {
-  const score = post.upvotes - post.downvotes
+  const [voteDelta, setVoteDelta] = useState(0)
+  const baseScore = post.upvotes - post.downvotes
+  const score = baseScore + voteDelta
+
+  const handleVote = async (e: React.MouseEvent<HTMLButtonElement>, value: 1 | -1) => {
+    e.stopPropagation()
+    setVoteDelta((d) => d + value)
+    try {
+      const res = await fetch(`/api/forum/posts/${post.id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      })
+      if (!res.ok) {
+        console.error(`Vote failed (${res.status})`)
+        setVoteDelta((d) => d - value)
+      }
+    } catch {
+      console.error("Vote request failed")
+      setVoteDelta((d) => d - value)
+    }
+  }
 
   return (
     <div
@@ -249,7 +281,7 @@ function PostRow({ post, router }: { post: PostWithMeta; router: ReturnType<type
       {/* Vote column */}
       <div className="flex flex-col items-center gap-0.5 w-10 shrink-0 pt-0.5">
         <button
-          onClick={(e) => { e.stopPropagation(); fetch(`/api/forum/posts/${post.id}/vote`, { method: "POST", body: JSON.stringify({ value: 1 }) }) }}
+          onClick={(e) => handleVote(e, 1)}
           className="text-neutral-600 hover:text-orange-400 transition-colors leading-none text-xs"
         >
           ▲
@@ -260,7 +292,7 @@ function PostRow({ post, router }: { post: PostWithMeta; router: ReturnType<type
           {score}
         </span>
         <button
-          onClick={(e) => { e.stopPropagation(); fetch(`/api/forum/posts/${post.id}/vote`, { method: "POST", body: JSON.stringify({ value: -1 }) }) }}
+          onClick={(e) => handleVote(e, -1)}
           className="text-neutral-600 hover:text-blue-400 transition-colors leading-none text-xs"
         >
           ▼
@@ -294,7 +326,8 @@ function PostRow({ post, router }: { post: PostWithMeta; router: ReturnType<type
   )
 }
 
-function timeAgo(date: Date): string {
+/** Relative-time formatter shared with matches-client. */
+export function timeAgo(date: Date): string {
   const sec = (Date.now() - new Date(date).getTime()) / 1000
   if (sec < 60) return "just now"
   const min = Math.floor(sec / 60)

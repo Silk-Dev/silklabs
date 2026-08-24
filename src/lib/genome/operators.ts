@@ -48,6 +48,7 @@ async function lookupNearestCompanies(
   limit = 10
 ): Promise<NearestCompany[]> {
   if (atoms.length === 0) return []
+  if (!Number.isInteger(limit) || limit <= 0) throw new Error(`limit must be a positive integer, got ${limit}`)
 
   // Build a SQL query that computes Jaccard similarity
   const placeholders = atoms.map((_, i) => `$${i + 1}`).join(",")
@@ -63,8 +64,9 @@ async function lookupNearestCompanies(
      GROUP BY ca.company_id
      ORDER BY ${matchCount}::float /
          (${totalCount} + ${atoms.length} - ${matchCount} + 0.001) DESC
-     LIMIT ${limit}`,
-    ...atoms
+     LIMIT $${atoms.length + 1}`,
+    ...atoms,
+    limit
   )
 
   return rows.map((r: any) => ({

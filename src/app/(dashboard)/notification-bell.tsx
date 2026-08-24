@@ -5,11 +5,10 @@ import Link from "next/link"
 
 export function NotificationBell({ initialCount }: { initialCount: number }) {
   const [count, setCount] = useState(initialCount)
-  const esRef = useRef<EventSource | null>(null)
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     const es = new EventSource("/api/notifications/stream")
-    esRef.current = es
 
     es.onmessage = (event) => {
       try {
@@ -24,7 +23,9 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
 
     es.onerror = () => {
       es.close()
-      const fallback = setInterval(async () => {
+      // Only start the fallback poller once; onerror can fire repeatedly.
+      if (pollRef.current !== null) return
+      pollRef.current = setInterval(async () => {
         try {
           const res = await fetch("/api/notifications/count")
           if (res.ok) {
@@ -33,10 +34,15 @@ export function NotificationBell({ initialCount }: { initialCount: number }) {
           }
         } catch { /* ignore */ }
       }, 30000)
-      return () => clearInterval(fallback)
     }
 
-    return () => es.close()
+    return () => {
+      es.close()
+      if (pollRef.current !== null) {
+        clearInterval(pollRef.current)
+        pollRef.current = null
+      }
+    }
   }, [])
 
   return (

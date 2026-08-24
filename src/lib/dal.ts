@@ -8,9 +8,18 @@ export async function requireAuth() {
   return session
 }
 
+/** Session-or-null variant for API route handlers: map null -> 401 JSON.
+ * Unlike requireAuth(), never redirects — redirect() throws NEXT_REDIRECT,
+ * which surfaces as a 500 inside a route handler. */
+export async function requireApiAuth() {
+  const session = await getSession()
+  if (!session?.user) return null
+  return session
+}
+
 export async function requireAdmin() {
   const session = await requireAuth()
-  if (session.user.role !== "Admin") redirect("/discover")
+  if (session.user.role !== "Admin") redirect("/dashboard")
   return session
 }
 

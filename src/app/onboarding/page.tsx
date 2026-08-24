@@ -125,8 +125,8 @@ export default function OnboardingPage() {
       })
       setSubmitting(false)
       setBuildingTwin(true)
-      // Redirect to matches after a brief interstitial
-      setTimeout(() => router.push("/matches"), 2000)
+      // Redirect to dashboard after a brief interstitial
+      setTimeout(() => router.push("/dashboard"), 2000)
     } catch {
       setBuildingError(true)
       setSubmitting(false)
@@ -333,10 +333,10 @@ export default function OnboardingPage() {
                     You can do it later from the matches page.
                   </p>
                   <button
-                    onClick={() => router.push("/discover")}
+                    onClick={() => router.push("/dashboard")}
                     className="mx-auto mt-6 rounded-lg border border-[rgba(255,255,255,0.08)] px-4 py-2 text-sm text-[var(--color-muted)] transition-colors hover:border-[rgba(255,255,255,0.16)] hover:text-primary"
                   >
-                    Continue to Discover
+                    Continue to Dashboard
                   </button>
                 </div>
               ) : (

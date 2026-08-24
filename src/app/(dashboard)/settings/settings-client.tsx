@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { toast } from "sonner"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ProfileSection } from "./profile-section"
@@ -181,6 +182,24 @@ function SupportSection() {
 }
 
 function RemoveAccountSection() {
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDelete = async () => {
+    if (!window.confirm("Are you sure you want to delete your account? This cannot be undone.")) return
+    setDeleting(true)
+    try {
+      const res = await fetch("/api/auth/delete", { method: "POST" })
+      if (!res.ok) {
+        throw new Error(`Delete failed (${res.status})`)
+      }
+      window.location.href = "/"
+    } catch (err) {
+      console.error("Account deletion failed", err)
+      toast.error("Failed to delete account. Please try again.")
+      setDeleting(false)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <h2 className="font-heading text-xl font-bold tracking-tight text-primary">Remove Account</h2>
@@ -189,14 +208,11 @@ function RemoveAccountSection() {
           Permanently delete your account and all associated data. This action cannot be undone.
         </p>
         <button
-          onClick={() => {
-            if (window.confirm("Are you sure you want to delete your account? This cannot be undone.")) {
-              fetch("/api/auth/delete", { method: "POST" }).then(() => window.location.href = "/")
-            }
-          }}
-          className="border border-red-500/30 bg-red-500/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.06em] text-red-400 transition-colors hover:bg-red-500/20"
+          onClick={handleDelete}
+          disabled={deleting}
+          className="border border-red-500/30 bg-red-500/10 px-4 py-2 font-mono text-[11px] uppercase tracking-[0.06em] text-red-400 transition-colors hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Delete Account
+          {deleting ? "Deleting..." : "Delete Account"}
         </button>
       </div>
     </div>

@@ -12,6 +12,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: "Value must be 1 or -1" }, { status: 400 })
   }
 
-  const result = await votePost(id, value)
+  const result = await votePost(id, value, session.user.id)
   return NextResponse.json(result)
 }

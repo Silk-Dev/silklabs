@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import { ThemeToggle } from "@/components/theme-toggle"
 import { signOutAction } from "@/services/auth.service"
 import { AppSidebar, MobileSidebar } from "@/components/app-sidebar"
 import { SidebarProvider } from "@/components/sidebar-context"
+import { TermsGate } from "../onboarding/terms-gate"
 
 export default async function DashboardLayout({
   children,
@@ -21,6 +23,16 @@ export default async function DashboardLayout({
 }) {
   const session = await getSession()
   if (!session?.user) redirect("/login")
+
+  // Platform-wide fail-closed ToS gate: no dashboard content is rendered until
+  // the session user has a recorded acceptance (covers OAuth + legacy users).
+  const accepted = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { termsAcceptedAt: true },
+  })
+  if (!accepted?.termsAcceptedAt) {
+    return <TermsGate name={session.user.name ?? null} />
+  }
 
   const user = session.user
 

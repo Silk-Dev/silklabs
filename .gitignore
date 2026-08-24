@@ -49,3 +49,6 @@ AGENTS.md
 # repowise
 .repowise/
 .vercel
+
+# Impeccable design tool artifacts
+.impeccable/

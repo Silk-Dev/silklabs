@@ -1,7 +1,6 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { requireAuth } from "@/lib/dal"
 
 type NotificationPayload = {
   type: string
@@ -83,8 +82,12 @@ export async function notifyOnTeamMemberAdded(
 }
 
 async function notifyPg(userId: string, payload: string) {
+  const channel = `notify_${userId.replace(/-/g, "_")}`
+  // Fail closed: never interpolate an unvalidated identifier into raw SQL.
+  if (!/^[a-zA-Z0-9_]+$/.test(channel)) {
+    throw new Error(`Invalid pg_notify channel derived from userId: ${channel}`)
+  }
   try {
-    const channel = `notify_${userId.replace(/-/g, "_")}`
     await prisma.$executeRawUnsafe(
       `SELECT pg_notify('${channel}', $1)`,
       payload

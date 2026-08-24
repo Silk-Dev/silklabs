@@ -42,3 +42,12 @@ export const ProductStatus = {
 } as const
 
 export type ProductStatus = (typeof ProductStatus)[keyof typeof ProductStatus]
+
+
+export const MilestoneStatus = {
+  Done: 'Done',
+  Current: 'Current',
+  Upcoming: 'Upcoming'
+} as const
+
+export type MilestoneStatus = (typeof MilestoneStatus)[keyof typeof MilestoneStatus]

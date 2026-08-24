@@ -30,6 +30,8 @@ export type ProjectMinAggregateOutputType = {
   title: string | null
   tagline: string | null
   description: string | null
+  whatWeAre: string | null
+  whatWereBuilding: string | null
   coverImage: string | null
   phase: $Enums.ProjectPhase | null
   discordLink: string | null
@@ -45,6 +47,8 @@ export type ProjectMaxAggregateOutputType = {
   title: string | null
   tagline: string | null
   description: string | null
+  whatWeAre: string | null
+  whatWereBuilding: string | null
   coverImage: string | null
   phase: $Enums.ProjectPhase | null
   discordLink: string | null
@@ -60,6 +64,8 @@ export type ProjectCountAggregateOutputType = {
   title: number
   tagline: number
   description: number
+  whatWeAre: number
+  whatWereBuilding: number
   coverImage: number
   phase: number
   discordLink: number
@@ -77,6 +83,8 @@ export type ProjectMinAggregateInputType = {
   title?: true
   tagline?: true
   description?: true
+  whatWeAre?: true
+  whatWereBuilding?: true
   coverImage?: true
   phase?: true
   discordLink?: true
@@ -92,6 +100,8 @@ export type ProjectMaxAggregateInputType = {
   title?: true
   tagline?: true
   description?: true
+  whatWeAre?: true
+  whatWereBuilding?: true
   coverImage?: true
   phase?: true
   discordLink?: true
@@ -107,6 +117,8 @@ export type ProjectCountAggregateInputType = {
   title?: true
   tagline?: true
   description?: true
+  whatWeAre?: true
+  whatWereBuilding?: true
   coverImage?: true
   phase?: true
   discordLink?: true
@@ -195,6 +207,8 @@ export type ProjectGroupByOutputType = {
   title: string
   tagline: string | null
   description: string | null
+  whatWeAre: string | null
+  whatWereBuilding: string | null
   coverImage: string | null
   phase: $Enums.ProjectPhase
   discordLink: string | null
@@ -231,6 +245,8 @@ export type ProjectWhereInput = {
   title?: Prisma.StringFilter<"Project"> | string
   tagline?: Prisma.StringNullableFilter<"Project"> | string | null
   description?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWeAre?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWereBuilding?: Prisma.StringNullableFilter<"Project"> | string | null
   coverImage?: Prisma.StringNullableFilter<"Project"> | string | null
   phase?: Prisma.EnumProjectPhaseFilter<"Project"> | $Enums.ProjectPhase
   discordLink?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -242,6 +258,7 @@ export type ProjectWhereInput = {
   roles?: Prisma.RoleListRelationFilter
   teamMembers?: Prisma.TeamMemberListRelationFilter
   bookmarks?: Prisma.BookmarkListRelationFilter
+  milestones?: Prisma.ProjectMilestoneListRelationFilter
 }
 
 export type ProjectOrderByWithRelationInput = {
@@ -250,6 +267,8 @@ export type ProjectOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   tagline?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatWeAre?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatWereBuilding?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImage?: Prisma.SortOrderInput | Prisma.SortOrder
   phase?: Prisma.SortOrder
   discordLink?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -261,6 +280,7 @@ export type ProjectOrderByWithRelationInput = {
   roles?: Prisma.RoleOrderByRelationAggregateInput
   teamMembers?: Prisma.TeamMemberOrderByRelationAggregateInput
   bookmarks?: Prisma.BookmarkOrderByRelationAggregateInput
+  milestones?: Prisma.ProjectMilestoneOrderByRelationAggregateInput
 }
 
 export type ProjectWhereUniqueInput = Prisma.AtLeast<{
@@ -272,6 +292,8 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Project"> | string
   tagline?: Prisma.StringNullableFilter<"Project"> | string | null
   description?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWeAre?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWereBuilding?: Prisma.StringNullableFilter<"Project"> | string | null
   coverImage?: Prisma.StringNullableFilter<"Project"> | string | null
   phase?: Prisma.EnumProjectPhaseFilter<"Project"> | $Enums.ProjectPhase
   discordLink?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -283,6 +305,7 @@ export type ProjectWhereUniqueInput = Prisma.AtLeast<{
   roles?: Prisma.RoleListRelationFilter
   teamMembers?: Prisma.TeamMemberListRelationFilter
   bookmarks?: Prisma.BookmarkListRelationFilter
+  milestones?: Prisma.ProjectMilestoneListRelationFilter
 }, "id">
 
 export type ProjectOrderByWithAggregationInput = {
@@ -291,6 +314,8 @@ export type ProjectOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   tagline?: Prisma.SortOrderInput | Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatWeAre?: Prisma.SortOrderInput | Prisma.SortOrder
+  whatWereBuilding?: Prisma.SortOrderInput | Prisma.SortOrder
   coverImage?: Prisma.SortOrderInput | Prisma.SortOrder
   phase?: Prisma.SortOrder
   discordLink?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -312,6 +337,8 @@ export type ProjectScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Project"> | string
   tagline?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   description?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  whatWeAre?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
+  whatWereBuilding?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   coverImage?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
   phase?: Prisma.EnumProjectPhaseWithAggregatesFilter<"Project"> | $Enums.ProjectPhase
   discordLink?: Prisma.StringNullableWithAggregatesFilter<"Project"> | string | null
@@ -326,6 +353,8 @@ export type ProjectCreateInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -337,6 +366,7 @@ export type ProjectCreateInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateInput = {
@@ -345,6 +375,8 @@ export type ProjectUncheckedCreateInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -355,6 +387,7 @@ export type ProjectUncheckedCreateInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUpdateInput = {
@@ -362,6 +395,8 @@ export type ProjectUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -373,6 +408,7 @@ export type ProjectUpdateInput = {
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateInput = {
@@ -381,6 +417,8 @@ export type ProjectUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -391,6 +429,7 @@ export type ProjectUncheckedUpdateInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyInput = {
@@ -399,6 +438,8 @@ export type ProjectCreateManyInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -413,6 +454,8 @@ export type ProjectUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -428,6 +471,8 @@ export type ProjectUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -453,6 +498,8 @@ export type ProjectCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  whatWeAre?: Prisma.SortOrder
+  whatWereBuilding?: Prisma.SortOrder
   coverImage?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   discordLink?: Prisma.SortOrder
@@ -468,6 +515,8 @@ export type ProjectMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  whatWeAre?: Prisma.SortOrder
+  whatWereBuilding?: Prisma.SortOrder
   coverImage?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   discordLink?: Prisma.SortOrder
@@ -483,6 +532,8 @@ export type ProjectMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   tagline?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  whatWeAre?: Prisma.SortOrder
+  whatWereBuilding?: Prisma.SortOrder
   coverImage?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   discordLink?: Prisma.SortOrder
@@ -543,6 +594,20 @@ export type EnumProjectPhaseFieldUpdateOperationsInput = {
   set?: $Enums.ProjectPhase
 }
 
+export type ProjectCreateNestedOneWithoutMilestonesInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutMilestonesInput, Prisma.ProjectUncheckedCreateWithoutMilestonesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutMilestonesInput
+  connect?: Prisma.ProjectWhereUniqueInput
+}
+
+export type ProjectUpdateOneRequiredWithoutMilestonesNestedInput = {
+  create?: Prisma.XOR<Prisma.ProjectCreateWithoutMilestonesInput, Prisma.ProjectUncheckedCreateWithoutMilestonesInput>
+  connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutMilestonesInput
+  upsert?: Prisma.ProjectUpsertWithoutMilestonesInput
+  connect?: Prisma.ProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProjectUpdateToOneWithWhereWithoutMilestonesInput, Prisma.ProjectUpdateWithoutMilestonesInput>, Prisma.ProjectUncheckedUpdateWithoutMilestonesInput>
+}
+
 export type ProjectCreateNestedOneWithoutRolesInput = {
   create?: Prisma.XOR<Prisma.ProjectCreateWithoutRolesInput, Prisma.ProjectUncheckedCreateWithoutRolesInput>
   connectOrCreate?: Prisma.ProjectCreateOrConnectWithoutRolesInput
@@ -590,6 +655,8 @@ export type ProjectCreateWithoutOwnerInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -600,6 +667,7 @@ export type ProjectCreateWithoutOwnerInput = {
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutOwnerInput = {
@@ -607,6 +675,8 @@ export type ProjectUncheckedCreateWithoutOwnerInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -617,6 +687,7 @@ export type ProjectUncheckedCreateWithoutOwnerInput = {
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutOwnerInput = {
@@ -654,6 +725,8 @@ export type ProjectScalarWhereInput = {
   title?: Prisma.StringFilter<"Project"> | string
   tagline?: Prisma.StringNullableFilter<"Project"> | string | null
   description?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWeAre?: Prisma.StringNullableFilter<"Project"> | string | null
+  whatWereBuilding?: Prisma.StringNullableFilter<"Project"> | string | null
   coverImage?: Prisma.StringNullableFilter<"Project"> | string | null
   phase?: Prisma.EnumProjectPhaseFilter<"Project"> | $Enums.ProjectPhase
   discordLink?: Prisma.StringNullableFilter<"Project"> | string | null
@@ -663,11 +736,109 @@ export type ProjectScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Project"> | Date | string
 }
 
+export type ProjectCreateWithoutMilestonesInput = {
+  id?: string
+  title: string
+  tagline?: string | null
+  description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
+  coverImage?: string | null
+  phase?: $Enums.ProjectPhase
+  discordLink?: string | null
+  repoLink?: string | null
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutProjectsInput
+  roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
+  teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectUncheckedCreateWithoutMilestonesInput = {
+  id?: string
+  ownerId: string
+  title: string
+  tagline?: string | null
+  description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
+  coverImage?: string | null
+  phase?: $Enums.ProjectPhase
+  discordLink?: string | null
+  repoLink?: string | null
+  isPublic?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
+  teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+  bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ProjectCreateOrConnectWithoutMilestonesInput = {
+  where: Prisma.ProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutMilestonesInput, Prisma.ProjectUncheckedCreateWithoutMilestonesInput>
+}
+
+export type ProjectUpsertWithoutMilestonesInput = {
+  update: Prisma.XOR<Prisma.ProjectUpdateWithoutMilestonesInput, Prisma.ProjectUncheckedUpdateWithoutMilestonesInput>
+  create: Prisma.XOR<Prisma.ProjectCreateWithoutMilestonesInput, Prisma.ProjectUncheckedCreateWithoutMilestonesInput>
+  where?: Prisma.ProjectWhereInput
+}
+
+export type ProjectUpdateToOneWithWhereWithoutMilestonesInput = {
+  where?: Prisma.ProjectWhereInput
+  data: Prisma.XOR<Prisma.ProjectUpdateWithoutMilestonesInput, Prisma.ProjectUncheckedUpdateWithoutMilestonesInput>
+}
+
+export type ProjectUpdateWithoutMilestonesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
+  discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
+  roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
+  teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
+}
+
+export type ProjectUncheckedUpdateWithoutMilestonesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
+  discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  repoLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isPublic?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
+  teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
+  bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+}
+
 export type ProjectCreateWithoutRolesInput = {
   id?: string
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -678,6 +849,7 @@ export type ProjectCreateWithoutRolesInput = {
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutRolesInput = {
@@ -686,6 +858,8 @@ export type ProjectUncheckedCreateWithoutRolesInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -695,6 +869,7 @@ export type ProjectUncheckedCreateWithoutRolesInput = {
   updatedAt?: Date | string
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutRolesInput = {
@@ -718,6 +893,8 @@ export type ProjectUpdateWithoutRolesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -728,6 +905,7 @@ export type ProjectUpdateWithoutRolesInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutRolesInput = {
@@ -736,6 +914,8 @@ export type ProjectUncheckedUpdateWithoutRolesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -745,6 +925,7 @@ export type ProjectUncheckedUpdateWithoutRolesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutTeamMembersInput = {
@@ -752,6 +933,8 @@ export type ProjectCreateWithoutTeamMembersInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -762,6 +945,7 @@ export type ProjectCreateWithoutTeamMembersInput = {
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutTeamMembersInput = {
@@ -770,6 +954,8 @@ export type ProjectUncheckedCreateWithoutTeamMembersInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -779,6 +965,7 @@ export type ProjectUncheckedCreateWithoutTeamMembersInput = {
   updatedAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   bookmarks?: Prisma.BookmarkUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutTeamMembersInput = {
@@ -802,6 +989,8 @@ export type ProjectUpdateWithoutTeamMembersInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -812,6 +1001,7 @@ export type ProjectUpdateWithoutTeamMembersInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutTeamMembersInput = {
@@ -820,6 +1010,8 @@ export type ProjectUncheckedUpdateWithoutTeamMembersInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -829,6 +1021,7 @@ export type ProjectUncheckedUpdateWithoutTeamMembersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateWithoutBookmarksInput = {
@@ -836,6 +1029,8 @@ export type ProjectCreateWithoutBookmarksInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -846,6 +1041,7 @@ export type ProjectCreateWithoutBookmarksInput = {
   owner: Prisma.UserCreateNestedOneWithoutProjectsInput
   roles?: Prisma.RoleCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectUncheckedCreateWithoutBookmarksInput = {
@@ -854,6 +1050,8 @@ export type ProjectUncheckedCreateWithoutBookmarksInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -863,6 +1061,7 @@ export type ProjectUncheckedCreateWithoutBookmarksInput = {
   updatedAt?: Date | string
   roles?: Prisma.RoleUncheckedCreateNestedManyWithoutProjectInput
   teamMembers?: Prisma.TeamMemberUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
 }
 
 export type ProjectCreateOrConnectWithoutBookmarksInput = {
@@ -886,6 +1085,8 @@ export type ProjectUpdateWithoutBookmarksInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -896,6 +1097,7 @@ export type ProjectUpdateWithoutBookmarksInput = {
   owner?: Prisma.UserUpdateOneRequiredWithoutProjectsNestedInput
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutBookmarksInput = {
@@ -904,6 +1106,8 @@ export type ProjectUncheckedUpdateWithoutBookmarksInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -913,6 +1117,7 @@ export type ProjectUncheckedUpdateWithoutBookmarksInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectCreateManyOwnerInput = {
@@ -920,6 +1125,8 @@ export type ProjectCreateManyOwnerInput = {
   title: string
   tagline?: string | null
   description?: string | null
+  whatWeAre?: string | null
+  whatWereBuilding?: string | null
   coverImage?: string | null
   phase?: $Enums.ProjectPhase
   discordLink?: string | null
@@ -934,6 +1141,8 @@ export type ProjectUpdateWithoutOwnerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -944,6 +1153,7 @@ export type ProjectUpdateWithoutOwnerInput = {
   roles?: Prisma.RoleUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateWithoutOwnerInput = {
@@ -951,6 +1161,8 @@ export type ProjectUncheckedUpdateWithoutOwnerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -961,6 +1173,7 @@ export type ProjectUncheckedUpdateWithoutOwnerInput = {
   roles?: Prisma.RoleUncheckedUpdateManyWithoutProjectNestedInput
   teamMembers?: Prisma.TeamMemberUncheckedUpdateManyWithoutProjectNestedInput
   bookmarks?: Prisma.BookmarkUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
 }
 
 export type ProjectUncheckedUpdateManyWithoutOwnerInput = {
@@ -968,6 +1181,8 @@ export type ProjectUncheckedUpdateManyWithoutOwnerInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   tagline?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWeAre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatWereBuilding?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   coverImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phase?: Prisma.EnumProjectPhaseFieldUpdateOperationsInput | $Enums.ProjectPhase
   discordLink?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -986,12 +1201,14 @@ export type ProjectCountOutputType = {
   roles: number
   teamMembers: number
   bookmarks: number
+  milestones: number
 }
 
 export type ProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   roles?: boolean | ProjectCountOutputTypeCountRolesArgs
   teamMembers?: boolean | ProjectCountOutputTypeCountTeamMembersArgs
   bookmarks?: boolean | ProjectCountOutputTypeCountBookmarksArgs
+  milestones?: boolean | ProjectCountOutputTypeCountMilestonesArgs
 }
 
 /**
@@ -1025,6 +1242,13 @@ export type ProjectCountOutputTypeCountBookmarksArgs<ExtArgs extends runtime.Typ
   where?: Prisma.BookmarkWhereInput
 }
 
+/**
+ * ProjectCountOutputType without action
+ */
+export type ProjectCountOutputTypeCountMilestonesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProjectMilestoneWhereInput
+}
+
 
 export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1032,6 +1256,8 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   title?: boolean
   tagline?: boolean
   description?: boolean
+  whatWeAre?: boolean
+  whatWereBuilding?: boolean
   coverImage?: boolean
   phase?: boolean
   discordLink?: boolean
@@ -1043,6 +1269,7 @@ export type ProjectSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   roles?: boolean | Prisma.Project$rolesArgs<ExtArgs>
   teamMembers?: boolean | Prisma.Project$teamMembersArgs<ExtArgs>
   bookmarks?: boolean | Prisma.Project$bookmarksArgs<ExtArgs>
+  milestones?: boolean | Prisma.Project$milestonesArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["project"]>
 
@@ -1052,6 +1279,8 @@ export type ProjectSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   tagline?: boolean
   description?: boolean
+  whatWeAre?: boolean
+  whatWereBuilding?: boolean
   coverImage?: boolean
   phase?: boolean
   discordLink?: boolean
@@ -1068,6 +1297,8 @@ export type ProjectSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   title?: boolean
   tagline?: boolean
   description?: boolean
+  whatWeAre?: boolean
+  whatWereBuilding?: boolean
   coverImage?: boolean
   phase?: boolean
   discordLink?: boolean
@@ -1084,6 +1315,8 @@ export type ProjectSelectScalar = {
   title?: boolean
   tagline?: boolean
   description?: boolean
+  whatWeAre?: boolean
+  whatWereBuilding?: boolean
   coverImage?: boolean
   phase?: boolean
   discordLink?: boolean
@@ -1093,12 +1326,13 @@ export type ProjectSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "title" | "tagline" | "description" | "coverImage" | "phase" | "discordLink" | "repoLink" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
+export type ProjectOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "ownerId" | "title" | "tagline" | "description" | "whatWeAre" | "whatWereBuilding" | "coverImage" | "phase" | "discordLink" | "repoLink" | "isPublic" | "createdAt" | "updatedAt", ExtArgs["result"]["project"]>
 export type ProjectInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   owner?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   roles?: boolean | Prisma.Project$rolesArgs<ExtArgs>
   teamMembers?: boolean | Prisma.Project$teamMembersArgs<ExtArgs>
   bookmarks?: boolean | Prisma.Project$bookmarksArgs<ExtArgs>
+  milestones?: boolean | Prisma.Project$milestonesArgs<ExtArgs>
   _count?: boolean | Prisma.ProjectCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProjectIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1115,6 +1349,7 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     roles: Prisma.$RolePayload<ExtArgs>[]
     teamMembers: Prisma.$TeamMemberPayload<ExtArgs>[]
     bookmarks: Prisma.$BookmarkPayload<ExtArgs>[]
+    milestones: Prisma.$ProjectMilestonePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1122,6 +1357,8 @@ export type $ProjectPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     title: string
     tagline: string | null
     description: string | null
+    whatWeAre: string | null
+    whatWereBuilding: string | null
     coverImage: string | null
     phase: $Enums.ProjectPhase
     discordLink: string | null
@@ -1527,6 +1764,7 @@ export interface Prisma__ProjectClient<T, Null = never, ExtArgs extends runtime.
   roles<T extends Prisma.Project$rolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$rolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   teamMembers<T extends Prisma.Project$teamMembersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$teamMembersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TeamMemberPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   bookmarks<T extends Prisma.Project$bookmarksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$bookmarksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BookmarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  milestones<T extends Prisma.Project$milestonesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Project$milestonesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectMilestonePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1561,6 +1799,8 @@ export interface ProjectFieldRefs {
   readonly title: Prisma.FieldRef<"Project", 'String'>
   readonly tagline: Prisma.FieldRef<"Project", 'String'>
   readonly description: Prisma.FieldRef<"Project", 'String'>
+  readonly whatWeAre: Prisma.FieldRef<"Project", 'String'>
+  readonly whatWereBuilding: Prisma.FieldRef<"Project", 'String'>
   readonly coverImage: Prisma.FieldRef<"Project", 'String'>
   readonly phase: Prisma.FieldRef<"Project", 'ProjectPhase'>
   readonly discordLink: Prisma.FieldRef<"Project", 'String'>
@@ -2038,6 +2278,30 @@ export type Project$bookmarksArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.BookmarkScalarFieldEnum | Prisma.BookmarkScalarFieldEnum[]
+}
+
+/**
+ * Project.milestones
+ */
+export type Project$milestonesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProjectMilestone
+   */
+  select?: Prisma.ProjectMilestoneSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProjectMilestone
+   */
+  omit?: Prisma.ProjectMilestoneOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProjectMilestoneInclude<ExtArgs> | null
+  where?: Prisma.ProjectMilestoneWhereInput
+  orderBy?: Prisma.ProjectMilestoneOrderByWithRelationInput | Prisma.ProjectMilestoneOrderByWithRelationInput[]
+  cursor?: Prisma.ProjectMilestoneWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProjectMilestoneScalarFieldEnum | Prisma.ProjectMilestoneScalarFieldEnum[]
 }
 
 /**

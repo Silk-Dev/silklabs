@@ -11,9 +11,8 @@ const nextConfig: NextConfig = {
   },
 
   // clingo-wasm bundles are large; increase the serverless function size limit
-  experimental: {
-    serverComponentsExternalPackages: ["clingo-wasm"],
-  },
+  // (Next 16 moved this out of experimental)
+  serverExternalPackages: ["clingo-wasm", "@prisma/adapter-pg", "pg"],
 };
 
 export default nextConfig;

@@ -28,20 +28,26 @@ export function ProfileForm({ user }: ProfileFormProps) {
     e.preventDefault()
     setLoading(true)
     const form = new FormData(e.currentTarget)
-    const result = await upsertProfile({
-      bio: form.get("bio"),
-      timezone: form.get("timezone"),
-      githubUrl: form.get("githubUrl"),
-      linkedinUrl: form.get("linkedinUrl"),
-      websiteUrl: form.get("websiteUrl"),
-    })
-    if (result.success) {
-      toast.success("Profile updated")
-      router.refresh()
-    } else {
+    try {
+      const result = await upsertProfile({
+        bio: form.get("bio"),
+        timezone: form.get("timezone"),
+        githubUrl: form.get("githubUrl"),
+        linkedinUrl: form.get("linkedinUrl"),
+        websiteUrl: form.get("websiteUrl"),
+      })
+      if (result.success) {
+        toast.success("Profile updated")
+        router.refresh()
+      } else {
+        toast.error("Failed to update profile")
+      }
+    } catch (err) {
+      console.error("Profile update failed", err)
       toast.error("Failed to update profile")
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (

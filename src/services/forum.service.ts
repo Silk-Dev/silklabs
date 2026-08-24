@@ -214,8 +214,15 @@ export async function createComment(
 // ─── Voting (simple ±1, no double-vote) ───
 // Since we don't have a ForumVote model, we use simple +/- directly on the counts.
 // This is stateless voting (no per-user tracking on first pass).
+// TODO(schema gap): no ForumVote table exists in prisma/schema.prisma, so userId cannot
+// be persisted yet — votes stay stateless and unattributed. Once a per-user vote
+// relation is added, use userId here to dedupe/unvote instead of blind increments.
 
-export async function votePost(postId: string, value: 1 | -1): Promise<{ upvotes: number; downvotes: number }> {
+export async function votePost(
+  postId: string,
+  value: 1 | -1,
+  _userId: string, // eslint-disable-line @typescript-eslint/no-unused-vars -- reserved for per-user vote storage
+): Promise<{ upvotes: number; downvotes: number }> {
   if (value === 1) {
     await prisma.forumPost.update({ where: { id: postId }, data: { upvotes: { increment: 1 } } })
   } else {
@@ -225,7 +232,11 @@ export async function votePost(postId: string, value: 1 | -1): Promise<{ upvotes
   return { upvotes: post!.upvotes, downvotes: post!.downvotes }
 }
 
-export async function voteComment(commentId: string, value: 1 | -1): Promise<{ upvotes: number; downvotes: number }> {
+export async function voteComment(
+  commentId: string,
+  value: 1 | -1,
+  _userId: string, // eslint-disable-line @typescript-eslint/no-unused-vars -- reserved for per-user vote storage
+): Promise<{ upvotes: number; downvotes: number }> {
   if (value === 1) {
     await prisma.forumComment.update({ where: { id: commentId }, data: { upvotes: { increment: 1 } } })
   } else {

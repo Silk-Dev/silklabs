@@ -292,10 +292,10 @@ export default function GraphConsole() {
           { operator: "validate", label: atoms.join(", "), classification: data.classification, atoms },
         ])
       }
+      setGenomeStatus("online")
     } catch {
       setGenomeStatus("offline")
     }
-    setGenomeStatus("online")
   }, [])
 
   // ── Mutate company ──

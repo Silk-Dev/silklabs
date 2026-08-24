@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { searchSchema } from "@/lib/validation"
+import type { ProjectWhereInput } from "@/generated/prisma/models"
 
 export async function getExploreFeed(page: number = 1, limit: number = 12) {
   const skip = (page - 1) * limit
@@ -39,7 +40,7 @@ export async function searchProjects(data: unknown) {
   const { query, techStack, phase, roleAvailable, page, limit } = parsed.data
   const skip = (page - 1) * limit
 
-  const where: Record<string, unknown> = { isPublic: true }
+  const where: ProjectWhereInput = { isPublic: true }
 
   if (query) {
     where.OR = [
@@ -65,9 +66,9 @@ export async function searchProjects(data: unknown) {
 
   if (roleAvailable) {
     where.roles = {
-      ...(where.roles as Record<string, unknown>),
+      ...where.roles,
       some: {
-        ...((where.roles as Record<string, unknown>)?.some as Record<string, unknown>) ?? {},
+        ...where.roles?.some,
         isFilled: false,
       },
     }
@@ -75,7 +76,7 @@ export async function searchProjects(data: unknown) {
 
   const [projects, total] = await Promise.all([
     prisma.project.findMany({
-      where: where as any,
+      where,
       include: {
         owner: { select: { id: true, name: true, image: true } },
         roles: { include: { tags: { include: { tag: true } } } },
@@ -85,7 +86,7 @@ export async function searchProjects(data: unknown) {
       skip,
       take: limit,
     }),
-    prisma.project.count({ where: where as any }),
+    prisma.project.count({ where }),
   ])
 
   return {

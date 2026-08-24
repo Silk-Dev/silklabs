@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import {
+  LayoutDashboard,
   Compass,
   FolderKanban,
   Users,
@@ -16,10 +17,10 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { SearchBar } from "@/app/(dashboard)/search-bar"
 import { useSidebar } from "@/components/sidebar-context"
 
 const NAV_ITEMS = [
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/discover", label: "Discover", icon: Compass },
   { href: "/projects", label: "My Projects", icon: FolderKanban },
   { href: "/people", label: "People", icon: Users },
@@ -38,22 +39,24 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
       className="fixed inset-y-0 left-0 z-30 flex flex-col border-r border-border-metal bg-surface max-md:hidden transition-all duration-300"
       style={{ width: "var(--sidebar-width, 15rem)" }}
     >
-      {/* Logo */}
-      <div className="flex h-14 items-center border-b border-border-metal px-4">
-        <Link href="/discover" className="flex items-center gap-2">
-          <Image src="/silklearn.avif" alt="SILKLABS" width={28} height={28} className="shrink-0" />
+      {/* Logo + collapse toggle */}
+      <div className="flex h-14 items-center justify-between gap-2 border-b border-border-metal px-4">
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2">
+          <Image src="/silklearn.avif" alt="SILKLABS" width={36} height={36} className="shrink-0" />
           {!collapsed && (
             <span className="font-heading text-base font-bold tracking-tight text-primary">SILKLABS</span>
           )}
         </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleCollapsed}
+          className="shrink-0 text-outline hover:text-foreground"
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          {collapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
+        </Button>
       </div>
-
-      {/* Search — hidden when collapsed */}
-      {!collapsed && (
-        <div className="border-b border-border-metal px-3 py-3">
-          <SearchBar />
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
@@ -94,17 +97,6 @@ export function AppSidebar({ user }: { user: { name: string; email: string; imag
             </>
           )}
         </div>
-
-        {/* Collapse toggle */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={toggleCollapsed}
-          className="mt-2 w-full justify-center text-outline hover:text-foreground"
-          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          {collapsed ? <PanelLeft className="size-4" /> : <PanelLeftClose className="size-4" />}
-        </Button>
       </div>
     </aside>
   )
@@ -116,7 +108,7 @@ export function MobileSidebar({ user }: { user: { name: string; email: string; i
   return (
     <header className="sticky top-0 z-50 border-b border-border-metal bg-surface/80 backdrop-blur-md md:hidden">
       <div className="flex h-14 items-center justify-between gap-4 px-4">
-        <Link href="/discover" className="flex items-center gap-2 shrink-0">
+        <Link href="/dashboard" className="flex items-center gap-2 shrink-0">
           <Image src="/silklearn.avif" alt="SILKLABS" width={36} height={36} />
           <span className="font-heading text-lg font-bold tracking-tight text-primary">SILKLABS</span>
         </Link>

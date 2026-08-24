@@ -58,11 +58,7 @@ export function ApplyDialog({ roleId, roleTitle, hasApplied, userId }: ApplyDial
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button size="sm" className="w-full">
-          Apply Now
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button size="sm" className="w-full" />}>Apply Now</DialogTrigger>
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>

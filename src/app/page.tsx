@@ -6,6 +6,39 @@ import { getHomePageData } from "./home-data"
 
 export const dynamic = "force-dynamic"
 
+const PAINS = [
+  {
+    title: "Co-founder roulette",
+    body: "Hackathons, Slack groups, cold DMs. You spend months vetting people who talk a great game and disappear at the first commit.",
+  },
+  {
+    title: "Résumé theater",
+    body: "Polished profiles hide thin track records. By the time you discover someone can't ship, you've already burned your runway.",
+  },
+  {
+    title: "Vision without traction",
+    body: "Investors and early collaborators want evidence, not pitch decks. You need to show momentum before anyone commits.",
+  },
+]
+
+const STEPS = [
+  {
+    step: "01",
+    title: "Post your vision",
+    body: "Describe what you're building and the roles you need. SilkLabs turns your idea into a structured project brief with concrete, fillable positions.",
+  },
+  {
+    step: "02",
+    title: "Get matched on proof",
+    body: "Our Reality Index ranks builders by their actual shipped work — repos, launches, proofs — not by what their profile claims.",
+  },
+  {
+    step: "03",
+    title: "Assemble and ship",
+    body: "Review applicants, fill roles with verified talent, and run your build inside a shared workspace built for shipping.",
+  },
+]
+
 export default async function HomePage() {
   const data = await getHomePageData()
   const projectCount = data?.projectCount ?? 0
@@ -30,6 +63,11 @@ export default async function HomePage() {
             </span>
           </Link>
           <nav className="flex items-center gap-3">
+            <Link href="/product">
+              <Button variant="ghost" className="font-mono text-[11px] uppercase tracking-[0.06em]">
+                Product
+              </Button>
+            </Link>
             <Link href="/login">
               <Button variant="ghost" className="font-mono text-[11px] uppercase tracking-[0.06em]">
                 Sign In
@@ -37,7 +75,7 @@ export default async function HomePage() {
             </Link>
             <Link href="/register">
               <Button className="border border-primary-container/40 bg-primary-container/10 font-mono text-[11px] uppercase tracking-[0.06em] text-primary-container hover:bg-primary-container/20">
-                Get Started
+                Start Your Project
               </Button>
             </Link>
           </nav>
@@ -55,19 +93,19 @@ export default async function HomePage() {
                 <span className="relative inline-flex size-2 rounded-full bg-[#ff4d4f]" />
               </span>
               <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-outline">
-                {projectCount} projects looking for collaborators
+                {projectCount} projects looking for their team right now
               </span>
             </div>
             <h1 className="font-heading max-w-3xl text-5xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
-              Find your team.
+              Find the team
               <br />
               <span className="bg-gradient-to-r from-primary-container to-primary bg-clip-text text-transparent">
-                Build something great.
+                that ships your vision.
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-xl font-mono text-[13px] uppercase tracking-[0.06em] text-outline">
-              SILKLABS connects builders with the projects they care about. Discover roles, join
-              teams, and ship together.
+              SilkLabs matches founders with builders whose work proves they can
+              deliver. No recruiting roulette. No résumé theater.
             </p>
             <div className="mt-8 flex items-center justify-center gap-4">
               <Link href="/register">
@@ -75,19 +113,71 @@ export default async function HomePage() {
                   size="lg"
                   className="h-11 border border-primary-container/40 bg-primary-container/10 px-8 font-mono text-[12px] uppercase tracking-[0.08em] text-primary-container hover:bg-primary-container/20"
                 >
-                  Create Account
+                  Start Your Project
                 </Button>
               </Link>
-              <Link href="/discover">
+              <Link href="/product">
                 <Button
                   size="lg"
                   variant="outline"
                   className="h-11 border-border-metal bg-surface/40 px-8 font-mono text-[12px] uppercase tracking-[0.08em] text-outline hover:bg-surface hover:text-primary"
                 >
-                  Browse Projects
+                  How Matching Works
                 </Button>
               </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Problem */}
+        <section className="border-y border-border-metal py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <p className="text-center font-mono text-[10px] uppercase tracking-[0.08em] text-outline">
+              The problem
+            </p>
+            <h2 className="mt-3 text-center font-heading text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              Most ventures don&apos;t die from bad ideas.
+              <br />
+              They die waiting for the right people.
+            </h2>
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {PAINS.map((pain) => (
+                <div key={pain.title} className="border border-border-metal bg-surface/40 p-6">
+                  <h3 className="font-heading text-lg font-bold text-primary">{pain.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-outline">{pain.body}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <p className="text-center font-mono text-[10px] uppercase tracking-[0.08em] text-outline">
+              How it works
+            </p>
+            <h2 className="mt-3 text-center font-heading text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+              From idea to team in three moves
+            </h2>
+            <div className="mt-12 grid gap-6 md:grid-cols-3">
+              {STEPS.map((s) => (
+                <div key={s.step} className="border border-border-metal bg-surface/40 p-6">
+                  <p className="bg-gradient-to-r from-primary-container to-primary bg-clip-text font-mono text-sm font-bold text-transparent">
+                    {s.step}
+                  </p>
+                  <h3 className="mt-3 font-heading text-lg font-bold text-primary">{s.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-outline">{s.body}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-8 text-center font-mono text-[11px] uppercase tracking-[0.06em] text-outline">
+              Backed by the{" "}
+              <Link href="/product" className="text-primary underline underline-offset-4 hover:text-primary-container">
+                Reality Index
+              </Link>{" "}
+              — matching on evidence, not claims
+            </p>
           </div>
         </section>
 
@@ -119,10 +209,10 @@ export default async function HomePage() {
             <div className="mx-auto max-w-7xl px-6">
               <div className="mb-10">
                 <h2 className="font-heading text-3xl font-bold tracking-tight text-primary">
-                  Featured Projects
+                  Ventures hiring now
                 </h2>
                 <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.06em] text-outline">
-                  Discover projects looking for talent like yours
+                  Founders looking for proven builders like you
                 </p>
               </div>
               <FeaturedProjects projects={featuredProjects} />
@@ -143,12 +233,13 @@ export default async function HomePage() {
 
         {/* CTA */}
         <section className="border-t border-border-metal py-16 sm:py-24">
-          <div className="mx-auto max-w-7xl px-6 text-center">
+          <div className="mx-auto max-w-7xl text-center">
             <h2 className="font-heading text-3xl font-bold tracking-tight text-primary sm:text-4xl">
-              Ready to build something?
+              Your vision is ready. Your team is here.
             </h2>
             <p className="mx-auto mt-4 max-w-lg font-mono text-[12px] uppercase tracking-[0.06em] text-outline">
-              Shape your narrative. Prove what you&#39;re capable of. Build with the right team.
+              Post your project today. Meet builders who&apos;ve already proven
+              they can ship it.
             </p>
             <div className="mt-8">
               <Link href="/register">
@@ -156,7 +247,7 @@ export default async function HomePage() {
                   size="lg"
                   className="h-11 border border-primary-container/40 bg-primary-container/10 px-8 font-mono text-[12px] uppercase tracking-[0.08em] text-primary-container hover:bg-primary-container/20"
                 >
-                  Get Started
+                  Start Your Project
                 </Button>
               </Link>
             </div>
@@ -166,7 +257,10 @@ export default async function HomePage() {
 
       <footer className="border-t border-border-metal py-8">
         <div className="mx-auto max-w-7xl px-6 text-center font-mono text-[10px] uppercase tracking-[0.06em] text-outline">
-          SILKLABS &mdash; Build your next project with the right team.
+          SILKLABS &mdash; Matched on proof. Built to ship. &nbsp;&middot;&nbsp;{" "}
+          <Link href="/terms" className="hover:text-primary">
+            Terms
+          </Link>
         </div>
       </footer>
     </div>

@@ -28,7 +28,12 @@ export const auth = betterAuth({
     },
   },
   baseURL,
-  trustedOrigins: [baseURL, "https://silklabs.vercel.app"],
+  trustedOrigins: [
+    baseURL,
+    "https://silklabs.vercel.app",
+    // Local development only — never in production builds
+    ...(process.env.NODE_ENV !== "production" ? ["http://localhost:3000", "http://127.0.0.1:3000"] : []),
+  ],
   plugins: [nextCookies()],
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",

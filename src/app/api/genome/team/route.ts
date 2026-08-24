@@ -1,18 +1,37 @@
 import { NextRequest, NextResponse } from "next/server"
 import fs from "fs"
 import path from "path"
+import { requireApiAuth } from "@/lib/dal"
+import type { ClingoError, ClingoResult } from "clingo-wasm"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
 
 // ─── Clingo init ───
 
-let clingoWasm: any = null
-async function getClingo() {
+type ClingoRunFn = (program: string, models?: number) => Promise<ClingoError | ClingoResult>
+
+type ClingoModuleShape = {
+  run?: ClingoRunFn
+  default?: ClingoRunFn | { run?: ClingoRunFn }
+}
+
+let clingoWasm: ClingoRunFn | null = null
+async function getClingo(): Promise<ClingoRunFn> {
   if (!clingoWasm) {
-    clingoWasm = await import("clingo-wasm")
+    const mod = (await import("clingo-wasm")) as unknown as ClingoModuleShape
+    const candidates: unknown[] = [
+      mod.run,
+      typeof mod.default === "function" ? mod.default : undefined,
+      mod.default && typeof mod.default === "object" ? mod.default.run : undefined,
+    ]
+    const runFn = candidates.find((c): c is ClingoRunFn => typeof c === "function")
+    if (!runFn) {
+      throw new Error("clingo-wasm: unexpected module shape (no callable run export)")
+    }
+    clingoWasm = runFn
   }
-  return clingoWasm.default || clingoWasm
+  return clingoWasm
 }
 
 let teamAssemblyLp: string | null = null
@@ -26,6 +45,12 @@ function getTeamAssemblyLp(): string {
 // ─── Pre-filter: top-K humans per required capability ───
 
 const TOP_K = 3
+
+type Candidate = {
+  id: string
+  proven_capabilities?: string[]
+  viability?: number
+}
 
 /**
  * Pre-filter candidates before grounding.
@@ -43,8 +68,8 @@ const TOP_K = 3
  */
 function prefilterCandidates(
   requiredAtoms: string[],
-  availableHumans: { id: string; proven_capabilities: string[]; viability: number }[],
-): { id: string; proven_capabilities: string[]; viability: number }[] {
+  availableHumans: Candidate[],
+): Candidate[] {
   if (!availableHumans || availableHumans.length === 0) return []
 
   // For each required atom, score each human by presence + viability weight
@@ -64,13 +89,8 @@ function prefilterCandidates(
     for (const s of scored) selected.add(s.id)
   }
 
-  // Also include humans with conflicts referenced by selected
-  for (const h of availableHumans) {
-    if (selected.has(h.id)) continue
-    // If selected includes anyone this human conflicts with, include both
-    // (conflict resolution is clingo's job)
-  }
-
+  // NOTE: humans with conflicts referenced by selected are NOT force-included here;
+  // conflict resolution is clingo's job (hard_conflict facts are grounded below).
   return availableHumans.filter((h) => selected.has(h.id))
 }
 
@@ -78,7 +98,7 @@ function prefilterCandidates(
 
 function greedyTeam(
   requiredAtoms: string[],
-  availableHumans: { id: string; proven_capabilities: string[]; viability: number }[],
+  availableHumans: Candidate[],
   maxTeamSize: number,
 ): { team: string[]; coverage: { human: string; capability: string }[] } {
   const uncovered = new Set(requiredAtoms)
@@ -135,39 +155,81 @@ function greedyTeam(
   return { team, coverage }
 }
 
+// ─── Deterministic greedy fallback (shared response builder) ───
+
+function greedyFallbackResponse(
+  requiredAtoms: string[],
+  filteredHumans: Candidate[],
+  maxTeamSize: number,
+  note: string,
+) {
+  const greedy = greedyTeam(requiredAtoms, filteredHumans, maxTeamSize)
+  const covered = new Set(greedy.coverage.map((c) => c.capability))
+  const missing = requiredAtoms.filter((a) => !covered.has(a))
+  const totalViability = greedy.team.reduce((sum, id) => {
+    const h = filteredHumans.find((f) => f.id === id)
+    return sum + (h?.viability || 0)
+  }, 0)
+
+  return NextResponse.json({
+    feasible: missing.length === 0,
+    optimal_team: greedy.team,
+    capability_coverage: greedy.coverage,
+    total_viability: Math.round(totalViability * 100) / 100,
+    missing_capabilities: missing,
+    note,
+  })
+}
+
 // ─── API handler ───
 
 export async function POST(req: NextRequest) {
-  try {
-    const { required_atoms, available_humans, hard_conflicts, max_team_size } = await req.json()
+  const session = await requireApiAuth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-    if (!required_atoms || required_atoms.length === 0) {
-      return NextResponse.json({ error: "required_atoms required" }, { status: 400 })
+  try {
+    const body = (await req.json()) as {
+      required_atoms?: unknown
+      available_humans?: { id: string; proven_capabilities?: string[]; viability?: number }[]
+      hard_conflicts?: [string, string][]
+      max_team_size?: number
     }
+    const max_team_size = body.max_team_size
+
+    const rawAtoms = body.required_atoms
+    if (!Array.isArray(rawAtoms) || rawAtoms.length === 0 || !rawAtoms.every((a) => typeof a === "string")) {
+      return NextResponse.json({ error: "required_atoms must be a non-empty array of strings" }, { status: 400 })
+    }
+    const required_atoms = rawAtoms as string[]
 
     // Pre-filter candidates to bound search space
-    const filteredHumans = prefilterCandidates(required_atoms, available_humans || [])
+    const filteredHumans = prefilterCandidates(required_atoms, body.available_humans || [])
 
     // Build facts
     const facts: string[] = []
     for (const atom of required_atoms) facts.push(`required("${atom}").`)
     for (const h of filteredHumans) {
       facts.push(`human("${h.id}").`)
-      for (const cap of h.proven_capabilities || []) facts.push(`proven("${h.id}", "${cap}").`)
+      for (const cap of h.proven_capabilities ?? []) facts.push(`proven("${h.id}", "${cap}").`)
       if (h.viability !== undefined) facts.push(`team_viability("${h.id}", ${Math.round(h.viability)}).`)
     }
-    if (hard_conflicts && hard_conflicts.length > 0) {
-      for (const [a, b] of hard_conflicts) facts.push(`hard_conflict("${a}", "${b}").`)
+    if (body.hard_conflicts && body.hard_conflicts.length > 0) {
+      for (const pair of body.hard_conflicts) {
+        if (!Array.isArray(pair) || pair.length !== 2 || !pair.every((p) => typeof p === "string")) {
+          return NextResponse.json({ error: "hard_conflicts must be pairs of user ids" }, { status: 400 })
+        }
+        facts.push(`hard_conflict("${pair[0]}", "${pair[1]}").`)
+      }
     }
     facts.push(`max_team(${max_team_size || 4}).`)
 
     const program = facts.join("\n") + "\n" + getTeamAssemblyLp()
 
     // Run clingo with 500ms timeout
-    let clingo
+    let runClingo: ClingoRunFn
     try {
-      clingo = await getClingo()
-    } catch (wasmErr: any) {
+      runClingo = await getClingo()
+    } catch (wasmErr) {
       console.error("clingo-wasm instantiation failed:", wasmErr)
       return NextResponse.json(
         {
@@ -182,76 +244,49 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    let result: any
+    let result: Awaited<ReturnType<ClingoRunFn>>
+    let timer: ReturnType<typeof setTimeout> | undefined
     try {
       result = await Promise.race([
-        clingo.run(program, 0),
-        new Promise<any>((_, reject) =>
-          setTimeout(() => reject(new Error("clingo timeout")), 500),
-        ),
+        runClingo(program, 0),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("clingo timeout")), 500)
+        }),
       ])
-    } catch (solveErr: any) {
+    } catch (solveErr) {
       // Fall back to greedy
-      console.warn("clingo solve failed or timed out; using greedy fallback:", solveErr.message)
-      const greedy = greedyTeam(required_atoms, filteredHumans, max_team_size || 4)
-      const covered = new Set(greedy.coverage.map((c) => c.capability))
-      const missing = required_atoms.filter((a: string) => !covered.has(a))
-      const totalViability = greedy.team.reduce((sum, id) => {
-        const h = filteredHumans.find((f) => f.id === id)
-        return sum + (h?.viability || 0)
-      }, 0)
-
-      return NextResponse.json({
-        feasible: missing.length === 0,
-        optimal_team: greedy.team,
-        capability_coverage: greedy.coverage,
-        total_viability: Math.round(totalViability * 100) / 100,
-        missing_capabilities: missing,
-        note: "Team assembled via greedy fallback (clingo timed out). Deterministic, no randomness.",
-      })
+      const detail = solveErr instanceof Error ? solveErr.message : String(solveErr)
+      console.warn("clingo solve failed or timed out; using greedy fallback:", detail)
+      return greedyFallbackResponse(
+        required_atoms,
+        filteredHumans,
+        max_team_size || 4,
+        "Team assembled via greedy fallback (clingo timed out). Deterministic, no randomness.",
+      )
+    } finally {
+      if (timer !== undefined) clearTimeout(timer)
     }
 
     if (result.Result === "ERROR") {
       // Fall back to greedy
       console.warn("clingo solver error; using greedy fallback:", result.Error)
-      const greedy = greedyTeam(required_atoms, filteredHumans, max_team_size || 4)
-      const covered = new Set(greedy.coverage.map((c) => c.capability))
-      const missing = required_atoms.filter((a: string) => !covered.has(a))
-      const totalViability = greedy.team.reduce((sum, id) => {
-        const h = filteredHumans.find((f) => f.id === id)
-        return sum + (h?.viability || 0)
-      }, 0)
-
-      return NextResponse.json({
-        feasible: missing.length === 0,
-        optimal_team: greedy.team,
-        capability_coverage: greedy.coverage,
-        total_viability: Math.round(totalViability * 100) / 100,
-        missing_capabilities: missing,
-        note: "Team assembled via greedy fallback (clingo error). Deterministic, no randomness.",
-      })
+      return greedyFallbackResponse(
+        required_atoms,
+        filteredHumans,
+        max_team_size || 4,
+        "Team assembled via greedy fallback (clingo error). Deterministic, no randomness.",
+      )
     }
 
     // Parse optimal model
     const witnesses = result.Call?.[0]?.Witnesses || []
     if (witnesses.length === 0) {
-      const greedy = greedyTeam(required_atoms, filteredHumans, max_team_size || 4)
-      // ... same greedy fallback
-      const covered = new Set(greedy.coverage.map((c) => c.capability))
-      const missing = required_atoms.filter((a: string) => !covered.has(a))
-      const totalViability = greedy.team.reduce((sum, id) => {
-        const h = filteredHumans.find((f) => f.id === id)
-        return sum + (h?.viability || 0)
-      }, 0)
-
-      return NextResponse.json({
-        feasible: missing.length === 0,
-        optimal_team: greedy.team,
-        capability_coverage: greedy.coverage,
-        total_viability: Math.round(totalViability * 100) / 100,
-        missing_capabilities: missing,
-        note: "Team assembled via greedy fallback (no clingo solutions). Deterministic.",
-      })
+      return greedyFallbackResponse(
+        required_atoms,
+        filteredHumans,
+        max_team_size || 4,
+        "Team assembled via greedy fallback (no clingo solutions). Deterministic.",
+      )
     }
 
     // Find best witness
@@ -283,7 +318,7 @@ export async function POST(req: NextRequest) {
     }
 
     const covered = new Set(coverage.map((c) => c.capability))
-    const missing = required_atoms.filter((a: string) => !covered.has(a))
+    const missing = required_atoms.filter((a) => !covered.has(a))
 
     return NextResponse.json({
       feasible: missing.length === 0,
@@ -293,7 +328,7 @@ export async function POST(req: NextRequest) {
       missing_capabilities: missing,
       note: "Team assembled via clingo-wasm (5.8.0). Optimal solution found.",
     })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
   }
 }

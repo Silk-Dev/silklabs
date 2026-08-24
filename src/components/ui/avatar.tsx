@@ -25,10 +25,14 @@ function Avatar({
   )
 }
 
-function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
+function AvatarImage({ src, className, ...props }: AvatarPrimitive.Image.Props) {
+  // No src => render nothing so the fallback shows. An <img> without src never
+  // fires load/error, which would keep the fallback hidden forever.
+  if (!src) return null
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
+      src={src}
       className={cn(
         "aspect-square size-full rounded-full object-cover",
         className
@@ -46,7 +50,9 @@ function AvatarFallback({
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
       className={cn(
-        "flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+        // bg-muted is light (#b9cacb) and --color-muted-foreground aliases it,
+        // so inherit-free muted text is invisible here — use the app's dark base.
+        "flex size-full items-center justify-center rounded-full bg-muted text-sm font-semibold text-[#0d1515] group-data-[size=sm]/avatar:text-xs",
         className
       )}
       {...props}

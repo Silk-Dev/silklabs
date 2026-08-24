@@ -26,7 +26,7 @@ export async function applyForRole(data: unknown) {
     data: { userId: session.user.id, ...parsed.data },
   })
 
-  notifyOnApplication(role.projectId, session.user.name ?? "Someone", role.title)
+  await notifyOnApplication(role.projectId, session.user.name ?? "Someone", role.title)
 
   revalidatePath(`/projects/${role.projectId}`)
   return { success: true }
@@ -70,36 +70,38 @@ export async function updateApplicationStatus(
   const session = await requireAuth()
   await assertProjectOwner(application.role.projectId, session.user.id)
 
-  await prisma.application.update({
-    where: { id: applicationId },
-    data: { status },
-  })
-
   const projectTitle = application.role.project.title
 
-  if (status === "Accepted") {
-    await prisma.teamMember.upsert({
-      where: {
-        projectId_userId: {
+  await prisma.$transaction(async (tx) => {
+    await tx.application.update({
+      where: { id: applicationId },
+      data: { status },
+    })
+
+    if (status === "Accepted") {
+      await tx.teamMember.upsert({
+        where: {
+          projectId_userId: {
+            projectId: application.role.projectId,
+            userId: application.userId,
+          },
+        },
+        create: {
           projectId: application.role.projectId,
           userId: application.userId,
+          role: application.role.title,
         },
-      },
-      create: {
-        projectId: application.role.projectId,
-        userId: application.userId,
-        role: application.role.title,
-      },
-      update: {},
-    })
+        update: {},
+      })
 
-    await prisma.role.update({
-      where: { id: application.roleId },
-      data: { isFilled: true },
-    })
-  }
+      await tx.role.update({
+        where: { id: application.roleId },
+        data: { isFilled: true },
+      })
+    }
+  })
 
-  notifyOnApplicationStatus(
+  await notifyOnApplicationStatus(
     application.userId,
     projectTitle,
     application.role.title,

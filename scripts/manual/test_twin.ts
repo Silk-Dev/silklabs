@@ -1,4 +1,4 @@
-import { buildTwin } from "./src/lib/twin.service"
+import { buildTwin } from "../../src/lib/twin.service"
 
 async function main() {
   const userId = "UVGWEWTGTWXwKSiqsgoYgBspk5H5ZP3Q" // Maya Patel

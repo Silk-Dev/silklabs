@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Dialog, DialogContent, DialogClose, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -61,6 +61,11 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
   const compareRef = useRef<{ a: (name: string) => void; b: (name: string) => void }>(null!)
   const genomeAtomsRef = useRef<string[]>([])
   genomeAtomsRef.current = genomeAtoms || []
+  // Precomputed lowercase set for O(1) overlay membership checks (avoids per-frame includes scans)
+  const genomeAtomSetRef = useRef<Set<string>>(new Set())
+  useEffect(() => {
+    genomeAtomSetRef.current = new Set((genomeAtoms || []).map((a) => a.toLowerCase()))
+  }, [genomeAtoms])
   let W = 0, H = 0
 
   // ─── Data loading ───
@@ -74,7 +79,17 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
           env: {},
           wasi_snapshot_preview1: { fd_write: () => 0, fd_close: () => 0, fd_seek: () => 0, fd_read: () => 0 },
         }))
-        .then((mod) => { s.wasm = mod.instance.exports; setWasmStatus("loaded") })
+        .then((mod) => {
+          const ex = mod.instance.exports as unknown as Record<string, unknown>
+          const required = ["malloc", "cull_nodes", "free_result"] as const
+          if (!required.every((fn) => typeof ex[fn] === "function")) {
+            setWasmStatus("failed")
+            console.warn("Graph: WASM culling engine is missing required exports (malloc/cull_nodes/free_result) — falling back to full-node render. Recompile graph/graph_engine.cpp with Emscripten.")
+            return
+          }
+          s.wasm = mod.instance.exports
+          setWasmStatus("loaded")
+        })
         .catch(() => { setWasmStatus("failed"); console.warn("Graph: WASM culling engine failed to load — falling back to full-node render. Compile graph_engine.cpp with Emscripten if needed.") }),
       fetch("/graph/companies_light.json")
         .then((r) => r.json())
@@ -148,7 +163,7 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       const dt = prevTime ? Math.min((time - prevTime) / (1000 / 60), 3) : 1
       prevTime = time
       animId = 0
-      if (!dirty && !camTarget && s.hoverIdx < 0) return
+      if (!dirty && !camTarget) return
       dirty = false
       ctx.clearRect(0, 0, W, H)
       const scaled = SCALED.current
@@ -379,11 +394,11 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       }
 
       // ── Genome-aware overlay ──
-      const ga = genomeAtomsRef.current
-      if (ga.length > 0) {
+      const ga = genomeAtomSetRef.current
+      if (ga.size > 0) {
         for (let i = 0; i < s.tags.length; i++) {
           const t = s.tags[i]
-          if (ga.includes(t.toLowerCase())) {
+          if (ga.has(t.toLowerCase())) {
             const [x, y] = scaled[i]
             const r = (8 + (s.counts[i] / maxC) * 6) / s.scale
             // Bright highlight ring
@@ -406,7 +421,9 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
 
       ctx.restore()
       ctx.globalAlpha = 1
-      if (camTarget || s.hoverIdx >= 0 || s.drag) animId = requestAnimationFrame(draw)
+      // Only keep a continuous loop while the camera is animating; hover/drag changes
+      // schedule their own frames via scheduleAnim(), so no per-frame requeue is needed.
+      if (camTarget) animId = requestAnimationFrame(draw)
     }
 
     // Camera animation state
@@ -435,8 +452,15 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       return best
     }
 
+    // Pointer-down coords for click-vs-drag discrimination. Tracked separately from
+    // s.dragOx/dragOy because s.drag is cleared in onMouseUp before the click event fires.
+    let downX = 0
+    let downY = 0
+
     const onMouseDown = (e: MouseEvent) => {
       s.drag = true
+      downX = e.clientX
+      downY = e.clientY
       s.dragOx = e.clientX
       s.dragOy = e.clientY
       s.dragTx = s.tx
@@ -486,7 +510,8 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
     }
 
     const onClick = (e: MouseEvent) => {
-      if (s.drag && (Math.abs(e.clientX - s.dragOx) > 3 || Math.abs(e.clientY - s.dragOy) > 3)) return
+      // Suppress selection when the click ended a drag (movement beyond ~4px)
+      if (Math.abs(e.clientX - downX) > 4 || Math.abs(e.clientY - downY) > 4) return
       const idx = hitTest(e.clientX, e.clientY)
       if (idx >= 0) {
         toggleTag(s.tags[idx])
@@ -523,14 +548,27 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
     for (const t of s.sel) {
       const c = document.createElement("span")
       c.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
-      c.innerHTML = `${t}<span style="font-size:13px;color:#555;margin-left:2px;line-height:1">×</span>`
+      const label = document.createElement("span")
+      label.textContent = t
+      const x = document.createElement("span")
+      x.style.cssText = "font-size:13px;color:#555;margin-left:2px;line-height:1"
+      x.textContent = "×"
+      c.append(label, x)
       c.onclick = () => { s.sel.delete(t); updateSuggested(s); updateChipsDOM() }
       el.appendChild(c)
     }
     for (const c of s.selCtries) {
       const ch = document.createElement("span")
       ch.className = "inline-flex items-center gap-0.5 px-2 py-0.5 bg-white/[0.06] text-[11px] text-gray-300 cursor-pointer hover:bg-white/[0.12]"
-      ch.innerHTML = `<span class="inline-block w-1.5 h-1.5 mr-1" style="background:${s.ctryColors[c]}"></span>${c}<span style="font-size:13px;color:#555;margin-left:2px;line-height:1">×</span>`
+      const dot = document.createElement("span")
+      dot.className = "inline-block w-1.5 h-1.5 mr-1"
+      dot.style.background = s.ctryColors[c]
+      const label = document.createElement("span")
+      label.textContent = c
+      const x = document.createElement("span")
+      x.style.cssText = "font-size:13px;color:#555;margin-left:2px;line-height:1"
+      x.textContent = "×"
+      ch.append(dot, label, x)
       ch.onclick = () => { s.selCtries.delete(c); updateChipsDOM() }
       el.appendChild(ch)
     }
@@ -636,6 +674,8 @@ export default function GraphClient({ genomeMode, genomeAtoms }: {
       if (CATS.indexOf(cat) < 3) { sc.classList.add("on"); h.querySelector(".ar")!.classList.add("on") }
       el.appendChild(d)
     }
+    // Teardown: drop listener-bound DOM so nothing leaks across re-runs
+    return () => { el.innerHTML = "" }
   }, [ready, toggleTag])
 
   // ─── Tags tab content ───
@@ -723,11 +763,14 @@ function hex2rgb(h: string) {
 
 const COL_CACHE = new Map<string, string>()
 function tcol(S: any, t: string) {
-  let c = COL_CACHE.get(t)
+  // Key includes the tag's category so a dataset reload that remaps categories
+  // cannot serve stale colors cached under the bare tag name.
+  const key = `${S.tagCat[t] || ""}|${t}`
+  let c = COL_CACHE.get(key)
   if (c) return c
   c = "#666"
   for (const cat of CATS) { if (S.tagCat[t] === cat) { c = COLS[cat]; break } }
-  COL_CACHE.set(t, c)
+  COL_CACHE.set(key, c)
   return c
 }
 
@@ -979,30 +1022,46 @@ function GapTab({ S }: any) {
   )
 }
 
+interface CompanyEntry {
+  n: string
+  l?: string
+  c?: string
+}
+
 function CompaniesTab({ S }: any) {
   const s = S.current
-  const sel = Array.from(s.sel) as string[]
   const [q, setQ] = useState("")
 
-  let match: Set<string> | null = null
-  let mData: any = null
-
-  if (sel.length) {
-    for (const t of sel) {
-      const idx = s.idxMap[t]
-      if (idx === undefined) continue
-      const cos = s.tagCos[String(idx)] || []
-      const m = new Map(cos.map((c: any) => [c.n, c]))
-      if (match === null) { match = new Set(m.keys()) as Set<string>; mData = m } else match = new Set([...match].filter((n) => m.has(n))) as Set<string>
+  // The tag-intersection over tagCos is the expensive part; recompute it only when
+  // the selection or the loaded dataset changes — not on every search keystroke.
+  const selKey = (Array.from(s.sel) as string[]).join("\u0000")
+  const { match, mData } = useMemo(() => {
+    const compute = (): { match: Set<string> | null; mData: Map<string, CompanyEntry> | null } => {
+      if (selKey) {
+        let m: Set<string> | null = null
+        let md: Map<string, CompanyEntry> | null = null
+        for (const t of selKey.split("\u0000")) {
+          const idx = s.idxMap[t]
+          if (idx === undefined) continue
+          const cos = (s.tagCos[String(idx)] || []) as CompanyEntry[]
+          const cm = new Map(cos.map((c) => [c.n, c]))
+          if (m === null) { m = new Set(cm.keys()); md = cm } else {
+            const next = new Set<string>()
+            for (const n of m) if (cm.has(n)) next.add(n)
+            m = next
+          }
+        }
+        return { match: m, mData: md }
+      }
+      const m = new Map<string, CompanyEntry>()
+      for (const cos of Object.values(s.tagCos) as CompanyEntry[][]) {
+        for (const e of cos) if (!m.has(e.n)) m.set(e.n, e)
+      }
+      return { match: new Set(m.keys()), mData: m }
     }
-  } else {
-    const m = new Map()
-    for (const cos of Object.values(s.tagCos) as any) {
-      for (const e of cos) if (!m.has(e.n)) m.set(e.n, e)
-    }
-    match = new Set(m.keys())
-    mData = m
-  }
+    return compute()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selKey, s.tagCos])
 
   const sorted = match ? Array.from(match).filter((n) => !q.trim() || n.toLowerCase().includes(q.toLowerCase())).sort() : []
 
@@ -1013,8 +1072,8 @@ function CompaniesTab({ S }: any) {
         <div className="text-xs text-muted-foreground mt-4 text-center">Select tags to see companies.</div>
       ) : (
         sorted.map((n: string) => {
-          const c = mData instanceof Map ? mData.get(n) : mData[n]
-          const loc = c?.l?.length < 80 ? c.l : ""
+          const c = mData?.get(n)
+          const loc = c?.l && c.l.length < 80 ? c.l : ""
           const ctry = c?.c ? <span className="text-muted-foreground text-[10px] ml-1.5">{c.c}</span> : null
           return (
             <div key={n} className="px-3.5 py-2 border-b border-white/[0.03] cursor-pointer hover:bg-white/[0.02]" onClick={() => (window as any).showCDP?.(n)}>

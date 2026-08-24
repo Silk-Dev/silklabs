@@ -15,8 +15,8 @@ export async function POST(request: Request) {
 
     await submitMatchFeedback(alignmentId, feedback as "good" | "ok" | "bad")
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    const message = error.message || "Internal server error"
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
     const status = message === "Not your alignment" ? 403 : 500
     return NextResponse.json({ error: message }, { status })
   }

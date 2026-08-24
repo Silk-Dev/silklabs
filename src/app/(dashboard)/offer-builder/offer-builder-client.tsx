@@ -44,11 +44,6 @@ interface MessageData {
   stepId?: string
 }
 
-let _msgCounter = 0
-function nextMsgId(): string {
-  return `msg-${++_msgCounter}`
-}
-
 // ─── Grand Slam Offer flow ───
 interface OfferStep {
   id: string
@@ -223,6 +218,7 @@ function OfferChat({
   onSend,
   onInputChange,
   input,
+  onReset,
 }: {
   stepIdx: number
   messages: MessageData[]
@@ -230,6 +226,7 @@ function OfferChat({
   onSend: () => void
   onInputChange: (v: string) => void
   input: string
+  onReset: () => void
 }) {
   const viewportRef = useRef<HTMLDivElement>(null)
   const totalSteps = STEPS.length
@@ -314,7 +311,7 @@ function OfferChat({
       {/* Done button */}
       {done && (
         <div className="border-t border-border shrink-0 p-4 text-center">
-          <Button variant="outline" onClick={() => window.location.reload()}>Build Another Offer</Button>
+          <Button variant="outline" onClick={onReset}>Build Another Offer</Button>
         </div>
       )}
     </>
@@ -331,13 +328,27 @@ export default function OfferBuilderClient() {
   const [done, setDone] = useState(false)
   const [thinking, setThinking] = useState(false)
 
+  // Ref-based id generator: survives StrictMode double-render and HMR without
+  // colliding with ids already present in state (unlike a module-level counter).
+  const msgIdRef = useRef(0)
+  const nextMsgId = useCallback(() => `msg-${++msgIdRef.current}`, [])
+
+  const reset = useCallback(() => {
+    setStarted(false)
+    setStepIdx(0)
+    setMessages([])
+    setOfferData({})
+    setInput("")
+    setDone(false)
+  }, [])
+
   const addBotMessage = useCallback((text: string) => {
     setMessages((prev) => [...prev, { id: nextMsgId(), role: "bot", text }])
-  }, [])
+  }, [nextMsgId])
 
   const addUserMessage = useCallback((text: string, stepId?: string) => {
     setMessages((prev) => [...prev, { id: nextMsgId(), role: "user", text, stepId }])
-  }, [])
+  }, [nextMsgId])
 
   const handleStart = () => {
     setStarted(true)
@@ -399,7 +410,7 @@ export default function OfferBuilderClient() {
           <h1 className="text-3xl font-bold mb-4 leading-tight">Build Your<br />Grand Slam Offer</h1>
           <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
             A guided conversation to build an offer so good people feel stupid saying no.
-            Based on Alex Hormozi's Grand Slam Offer framework.
+            Based on Alex Hormozi&rsquo;s Grand Slam Offer framework.
           </p>
           <Button onClick={handleStart}>
             Start Building
@@ -425,14 +436,7 @@ export default function OfferBuilderClient() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => {
-              setStarted(false)
-              setStepIdx(0)
-              setMessages([])
-              setOfferData({})
-              setInput("")
-              setDone(false)
-            }}
+            onClick={reset}
           >
             Reset
           </Button>
@@ -454,6 +458,7 @@ export default function OfferBuilderClient() {
           onSend={handleSend}
           onInputChange={setInput}
           input={input}
+          onReset={reset}
         />
     </div>
   )

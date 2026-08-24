@@ -200,7 +200,27 @@ function CommentNode({
   comment: CommentWithMeta
   onReply: (id: string) => void
 }) {
-  const score = comment.upvotes - comment.downvotes
+  const [voteDelta, setVoteDelta] = useState(0)
+  const baseScore = comment.upvotes - comment.downvotes
+  const score = baseScore + voteDelta
+
+  const handleVote = async (value: 1 | -1) => {
+    setVoteDelta((d) => d + value)
+    try {
+      const res = await fetch(`/api/forum/comments/${comment.id}/vote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      })
+      if (!res.ok) {
+        console.error(`Vote failed (${res.status})`)
+        setVoteDelta((d) => d - value)
+      }
+    } catch {
+      console.error("Vote request failed")
+      setVoteDelta((d) => d - value)
+    }
+  }
 
   return (
     <div className={`${comment.depth > 0 ? "ml-6 border-l border-white/5 pl-4" : ""}`}>
@@ -208,11 +228,7 @@ function CommentNode({
         {/* Vote */}
         <div className="flex flex-col items-center gap-0.5 w-8 shrink-0 pt-0.5">
           <button
-            onClick={() => fetch(`/api/forum/comments/${comment.id}/vote`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ value: 1 }),
-            })}
+            onClick={() => handleVote(1)}
             className="text-neutral-600 hover:text-orange-400 transition-colors leading-none text-[10px]"
           >
             ▲
@@ -223,11 +239,7 @@ function CommentNode({
             {score}
           </span>
           <button
-            onClick={() => fetch(`/api/forum/comments/${comment.id}/vote`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ value: -1 }),
-            })}
+            onClick={() => handleVote(-1)}
             className="text-neutral-600 hover:text-blue-400 transition-colors leading-none text-[10px]"
           >
             ▼

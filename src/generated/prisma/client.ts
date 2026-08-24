@@ -87,6 +87,11 @@ export type Portfolio = Prisma.PortfolioModel
  */
 export type Project = Prisma.ProjectModel
 /**
+ * Model ProjectMilestone
+ * 
+ */
+export type ProjectMilestone = Prisma.ProjectMilestoneModel
+/**
  * Model Role
  * 
  */

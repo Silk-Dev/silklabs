@@ -31,11 +31,7 @@ export function ProjectActions({ projectId }: { projectId: string }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button variant="destructive" size="sm">
-          Delete Project
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger render={<Button variant="destructive" size="sm" />}>Delete Project</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you sure?</DialogTitle>

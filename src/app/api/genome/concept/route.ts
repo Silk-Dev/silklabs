@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server"
 import { buildConcept } from "@/lib/concept.service"
+import { requireApiAuth } from "@/lib/dal"
 
 export async function POST(req: NextRequest) {
+  const session = await requireApiAuth()
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+
   try {
     const { atoms } = await req.json()
     if (!atoms || !Array.isArray(atoms) || atoms.length === 0) {
@@ -9,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
     const concept = await buildConcept(atoms)
     return NextResponse.json(concept)
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message }, { status: 500 })
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : String(e) }, { status: 500 })
   }
 }

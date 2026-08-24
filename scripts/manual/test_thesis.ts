@@ -7,7 +7,7 @@
  *
  * This is the gate. Shift is the precondition, ranking is the thesis.
  *
- * Run: source ~/.nvm/nvm.sh && nvm use && DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx test_thesis.ts
+ * Run: source ~/.nvm/nvm.sh && nvm use && DATABASE_URL="postgresql://postgres@localhost:5444/silklabs" npx tsx scripts/manual/test_thesis.ts
  */
 
 import { prisma } from "@/lib/prisma"

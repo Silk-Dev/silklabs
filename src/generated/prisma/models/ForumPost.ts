@@ -494,14 +494,6 @@ export type ForumPostUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.ForumPostScalarWhereInput | Prisma.ForumPostScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type ForumPostCreateNestedOneWithoutCommentsInput = {
   create?: Prisma.XOR<Prisma.ForumPostCreateWithoutCommentsInput, Prisma.ForumPostUncheckedCreateWithoutCommentsInput>
   connectOrCreate?: Prisma.ForumPostCreateOrConnectWithoutCommentsInput

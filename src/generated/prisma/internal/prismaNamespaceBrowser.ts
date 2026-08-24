@@ -60,6 +60,7 @@ export const ModelName = {
   ProfileTag: 'ProfileTag',
   Portfolio: 'Portfolio',
   Project: 'Project',
+  ProjectMilestone: 'ProjectMilestone',
   Role: 'Role',
   RoleTag: 'RoleTag',
   Application: 'Application',
@@ -100,6 +101,7 @@ export const UserScalarFieldEnum = {
   name: 'name',
   image: 'image',
   role: 'role',
+  termsAcceptedAt: 'termsAcceptedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -219,6 +221,8 @@ export const ProjectScalarFieldEnum = {
   title: 'title',
   tagline: 'tagline',
   description: 'description',
+  whatWeAre: 'whatWeAre',
+  whatWereBuilding: 'whatWereBuilding',
   coverImage: 'coverImage',
   phase: 'phase',
   discordLink: 'discordLink',
@@ -229,6 +233,21 @@ export const ProjectScalarFieldEnum = {
 } as const
 
 export type ProjectScalarFieldEnum = (typeof ProjectScalarFieldEnum)[keyof typeof ProjectScalarFieldEnum]
+
+
+export const ProjectMilestoneScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  description: 'description',
+  targetDate: 'targetDate',
+  status: 'status',
+  position: 'position',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectMilestoneScalarFieldEnum = (typeof ProjectMilestoneScalarFieldEnum)[keyof typeof ProjectMilestoneScalarFieldEnum]
 
 
 export const RoleScalarFieldEnum = {
