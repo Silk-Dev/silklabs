@@ -31,23 +31,25 @@ function Toolbar({ editor }: { editor: Editor }) {
     "h-7 px-2 font-mono text-[10px] uppercase tracking-[0.06em] border border-border-metal bg-surface/60 text-outline hover:bg-surface hover:text-primary data-[active=true]:border-primary-container/40 data-[active=true]:text-primary-container"
 
   const items = [
-    { label: "B", active: () => editor.isActive("bold"), run: () => editor.chain().focus().toggleBold().run() },
-    { label: "I", active: () => editor.isActive("italic"), run: () => editor.chain().focus().toggleItalic().run() },
-    { label: "H2", active: () => editor.isActive("heading", { level: 2 }), run: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
-    { label: "H3", active: () => editor.isActive("heading", { level: 3 }), run: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
-    { label: "• List", active: () => editor.isActive("bulletList"), run: () => editor.chain().focus().toggleBulletList().run() },
-    { label: "1. List", active: () => editor.isActive("orderedList"), run: () => editor.chain().focus().toggleOrderedList().run() },
-    { label: "Quote", active: () => editor.isActive("blockquote"), run: () => editor.chain().focus().toggleBlockquote().run() },
-    { label: "Undo", active: () => false, run: () => editor.chain().focus().undo().run() },
-    { label: "Redo", active: () => false, run: () => editor.chain().focus().redo().run() },
+    { label: "B", name: "Bold", active: () => editor.isActive("bold"), run: () => editor.chain().focus().toggleBold().run() },
+    { label: "I", name: "Italic", active: () => editor.isActive("italic"), run: () => editor.chain().focus().toggleItalic().run() },
+    { label: "H2", name: "Heading 2", active: () => editor.isActive("heading", { level: 2 }), run: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: "H3", name: "Heading 3", active: () => editor.isActive("heading", { level: 3 }), run: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+    { label: "• List", name: "Bulleted list", active: () => editor.isActive("bulletList"), run: () => editor.chain().focus().toggleBulletList().run() },
+    { label: "1. List", name: "Numbered list", active: () => editor.isActive("orderedList"), run: () => editor.chain().focus().toggleOrderedList().run() },
+    { label: "Quote", name: "Blockquote", active: () => editor.isActive("blockquote"), run: () => editor.chain().focus().toggleBlockquote().run() },
+    { label: "Undo", name: "Undo", active: () => false, run: () => editor.chain().focus().undo().run() },
+    { label: "Redo", name: "Redo", active: () => false, run: () => editor.chain().focus().redo().run() },
   ]
 
   return (
     <div className="flex flex-wrap items-center gap-1">
       {items.map((item) => (
         <button
-          key={item.label}
+          key={item.name}
           type="button"
+          aria-label={item.name}
+          aria-pressed={item.active()}
           data-active={item.active()}
           className={btn}
           onClick={item.run}

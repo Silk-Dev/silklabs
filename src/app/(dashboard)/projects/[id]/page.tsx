@@ -3,11 +3,17 @@ import { getApplicationsForProject } from "@/services/application.service"
 import { getSession } from "@/lib/auth"
 import { isProjectOwner, isTeamMember } from "@/lib/dal"
 import { sanitizeRichText } from "@/lib/sanitize"
+import { ChevronDown } from "lucide-react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Breadcrumb,
@@ -90,8 +96,6 @@ export default async function ProjectDetailPage({
       .filter((a) => a.userId === userId)
       .map((a) => a.roleId)
   )
-
-  const openRoles = project.roles.filter((r) => !r.isFilled)
 
   return (
     <div className="space-y-6">
@@ -232,34 +236,43 @@ export default async function ProjectDetailPage({
             />
           </section>
 
-          {isOwner && (
-            <>
-              <Separator className="bg-border-metal" />
-              <section>
-                <h2 className="mb-4 font-heading text-xl font-semibold text-primary">
-                  Applications ({applications.length})
-                </h2>
-                {applications.length > 0 ? (
-                  <ApplicantList applications={applications} />
-                ) : (
-                  <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-outline">
-                    No applications received yet.
-                  </p>
-                )}
-              </section>
-            </>
-          )}
-
           {(isOwner || isMember) && (
             <>
-              <section>
-                <h2 className="mb-4 font-heading text-xl font-semibold text-primary">Team Management</h2>
-                <TeamList
-                  members={project.teamMembers}
-                  isOwner={isOwner}
-                  projectId={project.id}
-                />
-              </section>
+              <Separator className="bg-border-metal" />
+              {/* Owner/member ops chrome collapsed so it doesn't interrupt the campaign story */}
+              <Collapsible>
+                <CollapsibleTrigger className="flex w-full items-center justify-between border border-border-metal bg-surface/40 px-4 py-3 transition-colors hover:border-primary-container/20">
+                  <span className="font-heading text-xl font-semibold text-primary">
+                    Manage project
+                  </span>
+                  <ChevronDown className="size-4 text-outline transition-transform duration-200 [[data-panel-open]&]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-8 pt-6">
+                  {isOwner && (
+                    <section>
+                      <h2 className="mb-4 font-heading text-xl font-semibold text-primary">
+                        Applications ({applications.length})
+                      </h2>
+                      {applications.length > 0 ? (
+                        <ApplicantList applications={applications} />
+                      ) : (
+                        <p className="font-mono text-[11px] uppercase tracking-[0.06em] text-outline">
+                          No applications received yet.
+                        </p>
+                      )}
+                    </section>
+                  )}
+
+                  <section>
+                    <h2 className="mb-4 font-heading text-xl font-semibold text-primary">Team Management</h2>
+                    <TeamList
+                      members={project.teamMembers}
+                      isOwner={isOwner}
+                      projectId={project.id}
+                    />
+                  </section>
+                </CollapsibleContent>
+              </Collapsible>
             </>
           )}
         </div>
@@ -271,9 +284,6 @@ export default async function ProjectDetailPage({
               <h2 className="mb-3 font-heading text-sm font-semibold text-primary">
                 Open Roles
               </h2>
-              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.06em] text-outline">
-                {openRoles.length} role{openRoles.length !== 1 ? "s" : ""} waiting to be filled
-              </p>
               <RoleList
                 roles={project.roles}
                 userId={userId}

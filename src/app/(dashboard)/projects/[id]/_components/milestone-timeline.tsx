@@ -17,7 +17,7 @@ const STATUS_STYLE = {
   },
   Current: {
     node: "bg-surface border-primary-container text-primary-container",
-    ring: "absolute inline-flex h-full w-full animate-ping rounded-full bg-primary-container opacity-40",
+    ring: "absolute inline-flex h-full w-full rounded-full bg-primary-container opacity-40 motion-safe:animate-ping",
     label: "In progress",
   },
   Upcoming: {
@@ -60,7 +60,7 @@ export function MilestoneTimeline({ milestones }: { milestones: MilestoneView[] 
             </span>
 
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="font-heading text-sm font-semibold text-primary">{m.title}</h4>
+              <h3 className="font-heading text-sm font-semibold text-primary">{m.title}</h3>
               <StatusBadge status={m.status} />
               {m.targetDate && (
                 <span className="font-mono text-[10px] uppercase tracking-[0.06em] text-outline">
